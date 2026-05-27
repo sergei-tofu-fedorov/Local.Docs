@@ -1,0 +1,4 @@
+NAME                                            READY   STATUS    RESTARTS   AGE     IP           NODE                                        NOMINATED NODE   READINESS GATES
+auth-api-deployment-79f6fc5995-8swn8            1/1     Running   0          34s     10.76.1.97   gke-invoices-cluster-pool-1-3cf6bcb2-b841   <none>           <none>
+invoices-api-deployment-549cc4f74d-jwrtr        1/1     Running   0          2m55s   10.76.0.43   gke-invoices-cluster-pool-1-3cf6bcb2-rwrv   <none>           1/1
+tofu-invoices-api-deployment-66644b8ddd-7q854   1/1     Running   0          55s     10.76.1.96   gke-invoices-cluster-pool-1-3cf6bcb2-b841   <none>           <none>

@@ -1,0 +1,17 @@
+# IDE / Editor settings
+.idea/
+.vscode/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Logs / temp
+*.log
+tmp/
+
+# MAIN-1361 prototype — large JSON dumps + generated HTML reviews, not source-of-truth
+features/MAIN-1361/prototype/
+
+# WEB-1523-segmentation prototype — same exclusion pattern as MAIN-1361
+features/WEB-1523-segmentation/prototype/

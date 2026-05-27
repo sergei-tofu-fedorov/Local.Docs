@@ -1,0 +1,3 @@
+# Local benchmark sample data — production PII, never commit.
+# Regenerate via the script noted in benchmark-plan.md.
+accounts/

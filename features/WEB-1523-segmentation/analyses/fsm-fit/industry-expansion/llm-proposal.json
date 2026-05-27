@@ -1,0 +1,293 @@
+{
+  "model": "claude-opus-4-7",
+  "model_note": "Clustering pass run by Claude Opus 4.7 (this conversation), NOT gpt-4.1-nano. Chosen for the meta-step over gpt-4.1-nano (the per-account sweep model) to (a) avoid an OpenAI key/env dependency on the doc-side workflow and (b) leverage a stronger reasoning model on a one-shot clustering task. The per-account sweep model is unchanged.",
+  "input_threshold": 5,
+  "input_specs_count": 74,
+  "input_accounts_covered": 814,
+  "cohort_size": 6231,
+  "cohort_non_empty_spec": 5544,
+  "coverage_of_cohort_non_empty": 0.147,
+  "generated_at": "2026-05-20",
+  "clusters": [
+    {
+      "proposed_id": "auto_body_repair",
+      "member_specs": [
+        "auto body repair and painting",
+        "auto body repair and collision repair",
+        "auto body repair and paint",
+        "auto body repair"
+      ],
+      "account_count": 73,
+      "example_business_names": ["A-1 Auto Body", "Jorges Auto Body And Paint", "Mauricios Collision Repair", "The Valley Auto Body", "Acevedo Auto Body Shop"],
+      "fsm_suited": "borderline",
+      "rationale": "Labour-heavy and scheduled, but predominantly in-shop (customer brings vehicle in) — limited multi-address / dispatch pattern. FSM workflow value depends on how PM frames the in-shop scheduling use case."
+    },
+    {
+      "proposed_id": "auto_repair",
+      "member_specs": [
+        "auto repair and maintenance",
+        "auto repair and diagnostics",
+        "auto repair and tire services"
+      ],
+      "account_count": 32,
+      "example_business_names": ["Automatic Car Service", "Brighams Helping Hand LLC", "Prairie Grove Automotive", "BryMobile Tires"],
+      "fsm_suited": "borderline",
+      "rationale": "Same shop-based pattern as auto_body_repair. Mobile mechanics ('BryMobile Tires') exist but are the minority of the cluster."
+    },
+    {
+      "proposed_id": "auto_detailing",
+      "member_specs": [
+        "auto detailing",
+        "auto detailing and paint correction",
+        "auto detailing and car cleaning",
+        "auto detailing and ceramic coating",
+        "auto detailing and car care",
+        "auto detailing and vehicle cleaning",
+        "auto detailing and car wash services",
+        "auto detailing and vehicle coating"
+      ],
+      "account_count": 75,
+      "example_business_names": ["Kings Detailing", "Quality Auto Detailing", "DVO Detailing", "Hayman’s Polish n Shine", "Refine Detailing"],
+      "fsm_suited": "yes",
+      "rationale": "Mobile detailing is common (on-site at customer); scheduling-heavy with recurring memberships ('Monthly Membership') visible in top_items. Labour-billed and multi-address."
+    },
+    {
+      "proposed_id": "auto_glass",
+      "member_specs": ["auto glass repair and replacement"],
+      "account_count": 12,
+      "example_business_names": ["AJ Windshield Repair", "Cruz Auto Glass", "Mosaic Auto Glass", "Scissortail Auto Glass", "Wilson And Tucker Auto Glass"],
+      "fsm_suited": "yes",
+      "rationale": "Mobile windshield replacement is the dominant pattern — dispatched per-job, on-site at customer, scheduled."
+    },
+    {
+      "proposed_id": "towing_roadside",
+      "member_specs": [
+        "towing and roadside assistance",
+        "vehicle towing and roadside assistance",
+        "towing services",
+        "Towing services",
+        "towing and recovery services",
+        "towing and vehicle recovery",
+        "vehicle towing and recovery",
+        "vehicle towing and transport"
+      ],
+      "account_count": 58,
+      "example_business_names": ["Epic Towing LLC", "Kingdom Towing", "C&G Dynasty Tow", "Active Towing", "AMJ TOWING"],
+      "fsm_suited": "yes",
+      "rationale": "Pure mobile/dispatch business — every job is a separate location, scheduling and routing are the core workflow. Billing is per-call (not recurring), but on_site_work + scheduling + labour_billing pattern is unambiguous."
+    },
+    {
+      "proposed_id": "event_decoration",
+      "member_specs": [
+        "Event decoration and setup",
+        "Event decoration and planning",
+        "Event decoration and balloon art",
+        "event decoration and setup",
+        "Event decoration and rental services",
+        "Event planning and decoration",
+        "event decoration and balloon art",
+        "event decoration and planning",
+        "event decoration and rental services",
+        "Event planning and coordination",
+        "Event balloon decoration and setup"
+      ],
+      "account_count": 174,
+      "example_business_names": ["A Touch Of Love", "Balloons Galore and Decor", "Emalya Events", "Divine Events By Adri", "Brooke’s Balloons"],
+      "fsm_suited": "yes",
+      "rationale": "Heavy on-site setup labour at customer venues; per-event scheduling; deposit + delivery patterns visible in top_items. Largest single new cluster after auto."
+    },
+    {
+      "proposed_id": "event_rental",
+      "member_specs": [
+        "Event equipment rental and setup",
+        "event equipment rental and setup",
+        "Party rental equipment and event setup",
+        "Event equipment rental and event setup",
+        "Party equipment rental and event setup"
+      ],
+      "account_count": 57,
+      "example_business_names": ["Djmppartyrental", "Savage Events", "Dorado Party Rentals", "NC- Party Rentals Of Rockford", "Al’s Party Rentals"],
+      "fsm_suited": "yes",
+      "rationale": "Delivery + on-site setup + pickup workflow — scheduling-heavy, labour-billed, multi-address. Classic FSM pattern for chairs/tables/tents/photo booths."
+    },
+    {
+      "proposed_id": "event_catering",
+      "member_specs": [
+        "Catering and event food service",
+        "Catering and event food services",
+        "Catering and event services",
+        "event catering and food delivery"
+      ],
+      "account_count": 33,
+      "example_business_names": ["Canapes Haven Catering", "Hermanas Catering", "Chef Annes 5 Star Catering Services", "Smookies LLC"],
+      "fsm_suited": "borderline",
+      "rationale": "On-site service is the norm but billing is more product-shaped (per-menu / per-head) than labour-shaped. PM call on whether the FSM upsell makes sense — catering software is its own competitive category."
+    },
+    {
+      "proposed_id": "garage_door",
+      "member_specs": [
+        "Garage door repair and installation",
+        "Garage door installation and repair"
+      ],
+      "account_count": 70,
+      "example_business_names": ["All Seasons Garage Door Service", "Bills Garage Doors", "Okie Overhead Door", "South Valley Garage Doors", "Richardson Overhead Doors"],
+      "fsm_suited": "yes",
+      "rationale": "Textbook FSM trade — on-site install/repair, scheduling, labour-billed, recurring service relationships. Top_items show parts SKUs + trip charges."
+    },
+    {
+      "proposed_id": "moving_relocation",
+      "member_specs": [
+        "Moving and relocation services",
+        "Moving services",
+        "Moving and delivery services",
+        "Moving and junk removal services",
+        "Moving and logistics services"
+      ],
+      "account_count": 42,
+      "example_business_names": ["Always In Motion LLC", "JC Movers & Senior Transitions Of SWFL", "City Crown Transport Pty Ltd", "ASAP MOVERS 365", "Apollos Moving"],
+      "fsm_suited": "yes",
+      "rationale": "Pure on-site labour-billed multi-address work. Hourly billing + truck fees visible in top_items."
+    },
+    {
+      "proposed_id": "windows_doors",
+      "member_specs": [
+        "window and door installation and repair",
+        "Window and door installation and repair"
+      ],
+      "account_count": 23,
+      "example_business_names": ["Esteban Windows And doors Inc..", "JS Windows and Doors LLC", "Elevate Line LLC", "Warrior Windows & Doors"],
+      "fsm_suited": "yes",
+      "rationale": "On-site install at customer property — same FSM profile as flooring/roofing already in the enum."
+    },
+    {
+      "proposed_id": "drywall",
+      "member_specs": [
+        "Drywall installation and repair",
+        "Drywall installation and finishing",
+        "drywall installation and finishing"
+      ],
+      "account_count": 24,
+      "example_business_names": ["DJ’s Drywall LLC", "Bbc Drywall Llc", "CLRDRYWALL.LLC", "Morales Drywall"],
+      "fsm_suited": "yes",
+      "rationale": "On-site labour trade — slots naturally between painting and renovations in the existing enum."
+    },
+    {
+      "proposed_id": "gutters",
+      "member_specs": [
+        "Gutter installation and repair",
+        "Gutter installation and maintenance"
+      ],
+      "account_count": 14,
+      "example_business_names": ["B&B GUTTERS LLC", "Pitch Perfect Seamless Gutters", "Diaz Gutters LLC", "Valley Rain Gutters"],
+      "fsm_suited": "yes",
+      "rationale": "On-site exterior install/maintenance — peer trade to roofing, often run alongside it."
+    },
+    {
+      "proposed_id": "fence",
+      "member_specs": ["Fence installation and repair"],
+      "account_count": 13,
+      "example_business_names": ["Classic Fence Company LLC", "Empire State Fence LLC", "Prestige Fence Company", "SA Wooden Fence"],
+      "fsm_suited": "yes",
+      "rationale": "On-site install + measurement + materials labour. Could plausibly fold into a broader exterior_install bucket if PM wants fewer ids."
+    },
+    {
+      "proposed_id": "solar",
+      "member_specs": ["solar energy system installation and components"],
+      "account_count": 16,
+      "example_business_names": ["ABD Abdulhadi Trading", "J&T SOLAR ENERGY", "JAVID SOLAR ENERGY", "Qualitysolar energy"],
+      "fsm_suited": "yes",
+      "rationale": "On-site install — large multi-day projects, materials + labour mix. Could fold into electrical, but solar businesses are usually marketed as their own vertical."
+    },
+    {
+      "proposed_id": "pressure_washing",
+      "member_specs": ["pressure washing and exterior cleaning"],
+      "account_count": 14,
+      "example_business_names": ["A&G All Construction Corp.", "Diamond Pressure Powerwash", "Pacific Pressure Pros", "Riggs Pressure Washing Solutions"],
+      "fsm_suited": "yes",
+      "rationale": "Mobile on-site exterior cleaning — recurring (often quarterly/seasonal) and route-scheduled. Sits adjacent to existing cleaning industry."
+    },
+    {
+      "proposed_id": "pet_services",
+      "member_specs": ["Dog walking and pet sitting services"],
+      "account_count": 12,
+      "example_business_names": ["Biscuit Tin Adventures", "Caring Cats & Canines", "Kelly K9", "Megan Walks", "Tails Blazing Trails"],
+      "fsm_suited": "yes",
+      "rationale": "Highly recurring + multi-address scheduling — Single Walk / Double walk / Pet sitting visible in top_items. Different vertical from rest of FSM enum but strong scheduling fit."
+    },
+    {
+      "proposed_id": "countertops",
+      "member_specs": ["countertop fabrication and installation"],
+      "account_count": 8,
+      "example_business_names": ["D’Amico Stone Design LLC", "Jano’s Countertops Llc", "Perfect Stone", "Platinum Stones LLC"],
+      "fsm_suited": "yes",
+      "rationale": "Shop fabrication + on-site measurement + on-site install. The install half of the workflow is FSM-shaped."
+    },
+    {
+      "proposed_id": "welding_fabrication",
+      "member_specs": [
+        "metal fabrication and welding",
+        "welding and fabrication",
+        "welding and metal fabrication"
+      ],
+      "account_count": 19,
+      "example_business_names": ["Precsion Fabrications", "Rick’s Stainless Systems", "DENOVAN WELDING INC.", "Red River Welding & Fabrication"],
+      "fsm_suited": "borderline",
+      "rationale": "Mostly shop-based fab; some mobile welding ('Mobile Welding') exists but visible top_items lean shop. Could collapse into other if PM thinks the in-shop pattern dominates."
+    },
+    {
+      "proposed_id": "glass_install",
+      "member_specs": ["Glass installation and repair"],
+      "account_count": 7,
+      "example_business_names": ["ACE GLASS WORKS", "FB QUALITY GLASS INC", "Infinity Glass", "Master Pro Glass & Mirror LLC"],
+      "fsm_suited": "yes",
+      "rationale": "Non-auto glass (shower, storefront, residential). On-site measurement + install — top_items include 'LABOR (PER WINDOW)' and 'SHOWER GLASS'."
+    },
+    {
+      "proposed_id": "property_management",
+      "member_specs": ["property management and maintenance"],
+      "account_count": 5,
+      "example_business_names": ["A.D.S Properties CC", "All County First Property Management", "Rex Estates Management LTD", "Stoic Property And Investments  Llc"],
+      "fsm_suited": "yes",
+      "rationale": "Multi-property recurring maintenance + trip-based service calls — top_items show 'Management Fees', 'Trips to home', 'Eviction'. Scheduling-heavy across many addresses."
+    }
+  ],
+  "unclustered": [
+    {
+      "spec": "transportation and logistics",
+      "count": 7,
+      "note": "Freight/courier — not customer-facing FSM. Keep in other."
+    },
+    {
+      "spec": "vehicle rental and transportation services",
+      "count": 6,
+      "note": "Rental fleet — not FSM. Keep in other."
+    },
+    {
+      "spec": "transportation and logistics services",
+      "count": 5,
+      "note": "Same as above."
+    },
+    {
+      "spec": "transportation/logistics",
+      "count": 5,
+      "note": "Same as above."
+    },
+    {
+      "spec": "Car audio installation and customization",
+      "count": 5,
+      "note": "Mostly in-shop custom install — borderline FSM, too small alone to justify its own id. Keep in other."
+    },
+    {
+      "spec": "event videography and photography",
+      "count": 5,
+      "note": "Creative service, not classic FSM scheduling/labour pattern. Keep in other."
+    }
+  ],
+  "summary": {
+    "proposed_new_ids": 21,
+    "accounts_promoted_out_of_other": 791,
+    "accounts_remaining_in_other_above_threshold": 33,
+    "accounts_remaining_in_other_below_threshold": 4730,
+    "note": "At threshold>=5 the proposal moves ~14% of strong+other accounts (791/5544) into named ids. The remaining ~85% live in the long tail (count<5 specs); their individual cluster signal is too weak to justify enum entries today."
+  }
+}
