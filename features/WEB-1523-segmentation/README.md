@@ -134,8 +134,7 @@ Implementation breakdown is tracked directly in ClickUp under WEB-1523 sub-ticke
 |---|---|---|
 | [`investigation/provider.md`](investigation/provider.md) | LLM model + integration + cost mechanics. Locked on OpenAI `gpt-4.1-nano`. | framework + FSM-fit |
 | [`investigation/privacy.md`](investigation/privacy.md) | PII payload shape, Presidio redaction, per-analysis PII allow-list, DPA layer, disclosure (privacy policy, sub-processor list, AI Act). | framework + FSM-fit |
-| [`investigation/metrics.md`](investigation/metrics.md) | Filling `account_metrics` — sourcing options (Mongo direct vs Federation vs DWH). | framework |
-| [`investigation/dwh.md`](investigation/dwh.md) | Playfair DWH — existing Tofu data already in BigQuery. | framework |
+| [`investigation/metrics.md`](investigation/metrics.md) | Filling `account_metrics` — sourcing options (Mongo direct vs Federation vs warehouse). | framework |
 | [`investigation/mongo-read-isolation.md`](investigation/mongo-read-isolation.md) | Mongo read-isolation options for `account_metrics` collection. | framework |
 | [`investigation/postgres-read-isolation.md`](investigation/postgres-read-isolation.md) | Postgres read-isolation options for the (analyze-stage) eligibility probe. | framework |
 | [`investigation/scoring-patterns.md`](investigation/scoring-patterns.md) | Industry scoring patterns (research). | FSM-fit |

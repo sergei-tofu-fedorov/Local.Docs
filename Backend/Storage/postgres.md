@@ -106,12 +106,9 @@ PostgreSQL databases/schemas across the workspace. Index: [`AGENTS.md`](AGENTS.m
 ## `tofu_payments` (PaymentOrders) — external
 
 **Owner / writer:** **Tofu Payments service** (external; not a workspace repo) · **Env:** prod = **TODO**
-**Notes:** mirrored daily into Playfair `data_layer.tofu_postgres_payment_orders` (see [`bigquery.md`](bigquery.md)). Revenue/subscription signal per `account_id`.
+**Notes:** external store; potential revenue/subscription signal source per `account_id`. Not consumed by the workspace today.
 
 ### Objects
 | Table | Purpose | Notes |
 |---|---|---|
 | `public."PaymentOrders"` | payment orders | `status=3` ⇒ paid; `fee_amount` = Tofu's take; `account_id` FK → Mongo `accounts._id` |
-
-### Links
-- Investigation: [`features/WEB-1523-segmentation/investigation/dwh.md`](../../features/WEB-1523-segmentation/investigation/dwh.md) § Tofu Payments

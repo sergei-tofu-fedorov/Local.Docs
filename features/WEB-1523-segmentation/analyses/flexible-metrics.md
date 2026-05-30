@@ -98,17 +98,17 @@ A *single* metric change drags **all three** + a redeploy. When requirements chu
 | **Compute-on-read (dbt/SQL over mirrors)** | a PR-reviewed SQL edit | recomputed per read | high churn, modest read volume, exact freshness | LLM path can't pay per-read recompute |
 | **Schema-on-read (JSON landing)** | just query a new field | extract + cast per read | experimental / not-yet-stable metrics | as a *serving* tier — no typing, no contract |
 
-### You already own the "compute-on-read over mirrors" stack
+### Compute-on-read over mirrors — viable for the feature store
 
-The Playfair DWH ([`../investigation/dwh.md`](../investigation/dwh.md)) is **Dagster + dbt + BigQuery** that already mirrors the Mongo source-of-truth collections (`data_layer.mongo_invoices_*`) and computes marts via dbt **on read** — i.e. a bronze (raw mirrors) + transform layer already exists; most Mongo streams are just *disabled*. `dwh.md` flagged "read metrics from BQ mirrors instead of Mongo" as an alternative and rejected it **for the LLM signal payload** — daily staleness, and the loader **MD5-hashes Client PII**, stripping the exact item text the LLM needs.
+A bronze (raw Mongo mirror in BQ) + dbt-transform layer computes marts **on read**. The reason it fits *here* is a freshness/PII asymmetry: a mirror is daily-stale and you'd typically scrub PII at load — which is **wrong for the LLM signal payload** (it needs fresh, raw item text) but **fine for the numeric metrics**.
 
-That rejection **does not transfer to the numeric metrics**: `account_metrics` holds non-PII aggregates (counts, ratios, amounts) whose drift is weekly+ ([`metrics.md`](metrics.md) notes `RefreshTtl` could be 48 h / 7 d). Daily-stale, PII-hashed mirrors are *fine* for those. So the compute-on-read path is a genuine option **for the feature store specifically**, even though it was wrong for the LLM payload — the two have different freshness/PII needs and shouldn't be forced onto one read path.
+`account_metrics` holds non-PII aggregates (counts, ratios, amounts) whose drift is weekly+ ([`metrics.md`](metrics.md) notes `RefreshTtl` could be 48 h / 7 d), so a daily-stale, PII-light mirror loses nothing for them. So the compute-on-read path is a genuine option **for the feature store specifically**, even though the LLM payload must stay on the direct-Mongo path — the two have different freshness/PII needs and shouldn't be forced onto one read path.
 
 ### Recommended escalation — medallion hybrid (bronze → silver → gold)
 
 When churn justifies it, restructure into three layers, each absorbing one of the coupled axes:
 
-- **Bronze — dumb stable mirrors.** Mongo source collections landed in BQ as-is (the Playfair mirror plumbing, or a dedicated `ai_analysis_v2` landing). **No metric logic here** → ingestion stops changing per metric. Kills the proto-per-metric pain at the source.
+- **Bronze — dumb stable mirrors.** Mongo source collections landed in BQ as-is (a dedicated landing dataset). **No metric logic here** → ingestion stops changing per metric. Kills the proto-per-metric pain at the source.
 - **Silver — per-domain metric marts, where churn lives.** One dbt model per source-of-truth instance — `account_invoice_metrics`, `account_estimate_metrics`, `account_client_metrics` — each owned by and aligned to its source (the data-mesh *source-aligned product* idea). A metric change is a **PR-reviewed SQL edit isolated to one domain**: changing an invoice metric never touches the estimates mart, its proto, or its collector. This is the direct answer to "separate instances of source-of-truth tables" — let the *metric* tables follow the same seams. Materialise heavy marts (dbt incremental / a single-source BQ MV); leave light ones as views.
 - **Gold — thin stable serving row.** A narrow `account_metrics` built by a dbt model selecting from silver, refreshed on schedule. The LLM still gets its **cheap, typed, O(1) row** — the one property the analyze path genuinely needs — but adding/changing a metric is now a dbt edit + scheduled rebuild, **not** proto + DDL + redeploy + backfill.
 
@@ -116,8 +116,8 @@ When churn justifies it, restructure into three layers, each absorbing one of th
 
 ### When *not* to escalate
 
-- **On-demand freshness need.** The current federation/collector path refreshes hourly and discovers a net-new account within ~2 h of its first invoice. A daily DWH mirror pushes cold-start metrics latency to ~1 day. Fine for FSM-fit (weekly drift) — not fine for any future near-real-time metric.
-- **Pipeline ownership.** The mirror path adds a hard dependency on the Playfair pipeline; `dwh.md` § Open questions flags that the disabled streams' *why* (cost? PII? broken?) is unconfirmed. Don't couple to it before that's answered.
+- **On-demand freshness need.** The current federation/collector path refreshes hourly and discovers a net-new account within ~2 h of its first invoice. A daily mirror refresh pushes cold-start metrics latency to ~1 day. Fine for FSM-fit (weekly drift) — not fine for any future near-real-time metric.
+- **Pipeline ownership.** The mirror + dbt path is a *new* pipeline to build, own, and operate (loaders, schedules, monitoring). The single-table model needs none of it — don't take that on until the team can own the surface.
 - **One stable metric set.** If churn is actually low, the single-table model wins — three layers is over-engineering. Escalate on *measured* churn, not anticipation.
 
 **Decision shorthand:** stable metrics + LLM read → **single wide table** (today). Sources evolve independently → **per-domain marts + gold serving view**. Fast-churn definitions + analyst reads → **dbt compute-on-read over mirrors**. Experimental → **JSON landing**, graduate later. The hybrid is the general answer when churn is high upstream but the LLM still needs a cheap stable row downstream.
@@ -139,7 +139,7 @@ When churn justifies it, restructure into three layers, each absorbing one of th
 - [ ] **Retention of superseded values.** UPSERT overwrites in place; there's no history of a metric's pre-change values. If "what did this account score under the old definition?" matters, lean on BigQuery time-travel (partitioning is in place) or an append-only audit table — same open question as [`versioning.md`](versioning.md) § Open questions.
 - [ ] **`extras` JSON governance.** An overflow lane rots into a dumping ground without a graduation policy (experimental → typed column within N releases or delete).
 - [ ] **Backfill completion signal.** With TTL-driven convergence, "is the rollout done?" needs a check — e.g. `COUNT(*) WHERE def_version != @current` trending to zero — rather than a job-complete event.
-- [ ] **Topology escalation trigger.** At what measured churn rate (metric changes / month) does the per-domain-marts + dbt-over-mirrors hybrid (§ If metrics churn fast) beat the single-table model? Tied to the Playfair-pipeline ownership question in [`../investigation/dwh.md`](../investigation/dwh.md) § Open questions — don't couple to those mirrors until the disabled-streams *why* is confirmed.
+- [ ] **Topology escalation trigger.** At what measured churn rate (metric changes / month) does the per-domain-marts + dbt-over-mirrors hybrid (§ If metrics churn fast) beat the single-table model? Don't stand up the mirror + dbt pipeline until that threshold is real.
 - [ ] **Two-write-path reconciliation.** If gold migrates from CDC-collectors to a dbt-built table, decide whether both write paths coexist during transition or it's a hard cutover (the proto/CDC path and the dbt path must not both own `account_metrics`).
 
 ## Sources

@@ -18,7 +18,6 @@ Index
 | Store | Type | Env / location | Owner (writer) | Config key | Detail |
 |---|---|---|---|---|---|
 | `ai_analysis_v2` | BigQuery | test=`invoicesapp-project-test` · prod=deploy-time (not in config) | `Tofu.AI.Backend` | `Analyses:BigQuery` | [`bigquery.md`](bigquery.md) |
-| `playfair-project.data_layer` | BigQuery | prod=`playfair-project` | Playfair DWH (external) | — | [`bigquery.md`](bigquery.md) |
 | `invoicesDB` (BFF) | MongoDB | dev=`localhost:27017` · prod=TODO | `Invoices.Backend` | `ConnectionStrings:MongoDb` | [`mongo.md`](mongo.md) |
 | `invoicesDB` (Tofu.Invoices) | MongoDB | dev=`localhost:27017` · prod via Data Federation | `Tofu.Invoices.Backend` | `ConnectionStrings:MongoDb` | [`mongo.md`](mongo.md) |
 | `jobs` schema (FSM) | PostgreSQL | dev=`localhost:5432/postgres` · prod=TODO | `Invoices.Backend` | `Jobs:ConnectionString` | [`postgres.md`](postgres.md) |
@@ -36,7 +35,6 @@ Cross-service reads
 Stores one service **reads but does not own** (worth knowing for blast-radius):
 - `Tofu.AI.Backend` → `jobs."Jobs"` in `Invoices.Backend` PG (FSM-using audience filter), via `ConnectionStrings:InvoicesJobs`.
 - `Tofu.AI.Backend` → the four source Mongo collections (Federation in prod), via `ConnectionStrings:Mongo`.
-- Playfair DWH → mirrors Mongo + Tofu Payments PG into `data_layer` (see [`bigquery.md`](bigquery.md)).
 
 GCP projects
 ------------

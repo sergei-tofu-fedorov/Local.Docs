@@ -1,13 +1,13 @@
 # WEB-1523 — Migrating `account_metrics` to the Gold serving model (theory)
 
-> **⬜ Theory — not built. Decision-gated.** A concrete, phased plan to move the metrics feature store from today's **single CDC-collector table** to the **medallion hybrid** (bronze mirrors → silver per-domain marts → gold thin serving row) described in [`flexible-metrics.md`](flexible-metrics.md) § "If metrics churn fast." This is the *how* for that *what*. **Do not start** until the escalation trigger is real (measured metric churn) and the Playfair-pipeline ownership questions in [`../investigation/dwh.md`](../investigation/dwh.md) § Open questions are answered. The whole point of the plan is to be reversible at every step.
+> **⬜ Theory — not built. Decision-gated.** A concrete, phased plan to move the metrics feature store from today's **single CDC-collector table** to the **medallion hybrid** (bronze mirrors → silver per-domain marts → gold thin serving row) described in [`flexible-metrics.md`](flexible-metrics.md) § "If metrics churn fast." This is the *how* for that *what*. **Do not start** until the escalation trigger is real (measured metric churn) and the team is ready to own a new bronze + dbt pipeline. The whole point of the plan is to be reversible at every step.
 
 ## Decision — the migration spine
 
 - **Freeze the gold contract, swap the producer.** `account_metrics`' shape — `account_id` PK, the typed metric columns, `updated_at` / `expires_at`, the `DATE_TRUNC(updated_at, MONTH)` partition — **does not change**. Consumers (the analyze job's batch read, the `v_fsm_fit` join) never see the migration. Only *what fills the table* changes: Mongo collectors + CDC → a dbt model over per-domain marts. This is **expand-contract / strangler-fig**, not a rewrite.
 - **Introduce a read seam first.** Before any producer change, put a `v_account_metrics` view in front of the physical table and repoint every consumer to it. The eventual cutover is then a **one-line view repoint**, not a consumer change — and the instant rollback path.
 - **Parallel-run to a shadow table, gate on parity.** The dbt-built gold writes to `account_metrics_gold` (shadow) alongside the live CDC table for N days; cutover only after a row/column/value diff clears tolerance. Never let two write paths own the *live* table at once.
-- **Materialise gold into the dataset consumers already read** (`ai_analysis_v2`), wherever bronze/silver physically live (Playfair `data_layer` or a dedicated landing). Consumers don't move datasets.
+- **Materialise gold into the dataset consumers already read** (`ai_analysis_v2`), wherever bronze/silver physically live (a dedicated landing dataset). Consumers don't move datasets.
 - **Numeric-only invariant.** Only non-PII aggregates flow through the mirrors. The LLM signal payload stays on its existing direct-Mongo path — this migration touches the **feature store, not the analyze stage** ([`../investigation/privacy.md`](../investigation/privacy.md) unaffected).
 
 ## From → To
@@ -36,22 +36,22 @@ The three coupled axes ([`flexible-metrics.md`](flexible-metrics.md) § topology
 Every object the data passes through, in flow order. Each metric is mapped to the **silver mart that owns it** (so changing one metric touches exactly one mart); the gold model only assembles. Windows / `null` rules are the spec in [`metrics.md`](metrics.md) § Per-metric query plan.
 
 ```
-SOURCE (Mongo, live)              BRONZE (BQ mirrors · daily · dumb — no metric logic)
-  invoices  (Tofu.Invoices) ───►  mongo_invoices  ─┐
-  estimates (Tofu.Invoices) ───►  mongo_estimates ─┤  raw copy, schema-stable
-  clients   (Invoices)      ───►  mongo_clients   ─┤  (Client PII MD5-hashed)
-  accounts  (Invoices)      ───►  mongo_accounts  ─┘  → ingestion stops changing per metric
+SOURCE (Mongo, live)              BRONZE (BQ landing · daily · dumb — no metric logic)
+  invoices  (Tofu.Invoices) ───►  invoices_raw  ─┐
+  estimates (Tofu.Invoices) ───►  estimates_raw ─┤  raw copy, schema-stable
+  clients   (Invoices)      ───►  clients_raw   ─┤  incremental load on Created/ModifiedTime
+  accounts  (Invoices)      ───►  accounts_raw  ─┘  → ingestion stops changing per metric
                                           │
                                           ▼
 SILVER (per-domain dbt marts · 1 row/account · METRIC LOGIC LIVES HERE — churns as dbt PRs)
-  account_invoice_metrics  ◄─ mongo_invoices    30d: invoice_count_30d, avg_invoice_amount,
-                                                     invoice_amount_variance_cv, avg_line_items
-                                                12mo: repeat_customer_ratio, avg_days_between_repeats
-  account_estimate_metrics ◄─ mongo_estimates   12mo: estimate_count, estimate_to_invoice_rate
-  account_client_metrics   ◄─ mongo_clients     b2b_clients_present, distinct_addresses,
-                                                     multi_address_work
-  account_base             ◄─ mongo_accounts    eligibility gate (alive, non-technical,
-                              (+ invoices            invoice-active 90d) + business_name
+  account_invoice_metrics  ◄─ invoices_raw     30d: invoice_count_30d, avg_invoice_amount,
+                                                    invoice_amount_variance_cv, avg_line_items
+                                               12mo: repeat_customer_ratio, avg_days_between_repeats
+  account_estimate_metrics ◄─ estimates_raw    12mo: estimate_count, estimate_to_invoice_rate
+  account_client_metrics   ◄─ clients_raw      b2b_clients_present, distinct_addresses,
+                                                    multi_address_work
+  account_base             ◄─ accounts_raw     eligibility gate (alive, non-technical,
+                              (+ invoices_raw      invoice-active 90d) + business_name
                                for activity)
                                           │
                                           ▼   LEFT JOIN on account_id   (ASSEMBLY ONLY — no math)
@@ -80,10 +80,10 @@ Each phase is independently shippable and leaves the system working. Consumer-vi
 
 ### Phase 0 — Decisions & prerequisites (no code)
 - **Confirm the escalation is warranted** — measured metric-change rate vs the single-table cost. If churn is low, stop here; the single table wins.
-- **Pick the bronze source:** (a) enable the dormant Playfair `mongo_invoices_*` streams ([`../investigation/dwh.md`](../investigation/dwh.md)), or (b) stand up a dedicated Dagster/scheduled snapshot into an `ai_analysis_v2` landing dataset. (a) reuses plumbing but couples to Playfair ownership + its PII-hashing + daily cadence; (b) is independent but new infra.
+- **Stand up the bronze load** — a scheduled snapshot / CDC load of the four collections into a dedicated landing dataset (adjacent to `ai_analysis_v2`). Incremental load is feasible off the `CreatedTime` / `ModifiedTime` (clients: `CreatedAt`/`UpdatedAt`/`DeletedAt`) watermarks; soft-deletes bump the watermark so deletes ride the same path. New infra to own — size it here.
 - **Confirm freshness budget.** Mirror cadence is daily; FSM-fit drift is weekly+ ([`metrics.md`](metrics.md)), so acceptable — but cold-start metrics latency goes from ~2 h to ~1 day. Sign-off needed.
 - **Confirm PII invariant.** Every metric in scope is a numeric/boolean aggregate. Any metric needing raw text is out of scope and stays on the collector path.
-- **Locate the dbt project** (extend Playfair's, or a new one owned by this team) and the gold write target (`ai_analysis_v2.account_metrics`).
+- **Stand up a team-owned dbt project** and the gold write target (`ai_analysis_v2.account_metrics`).
 
 ### Phase 1 — Read seam (consumer-invisible, ships immediately)
 - Add `v_account_metrics` as `SELECT * FROM account_metrics`.
@@ -133,10 +133,10 @@ Gate: population diff under threshold **and** every metric within tolerance for 
 | Risk | Mitigation |
 |---|---|
 | **Freshness regression** (hourly → daily; cold-start ~2 h → ~1 day) | Confirm against FSM-fit's weekly drift budget in Phase 0; keep an on-demand top-up path if any metric needs it |
-| **Playfair coupling / unknown ownership** | Phase-0 gate on `dwh.md` open questions; option (b) dedicated landing avoids the dependency |
+| **New pipeline to own** (bronze loaders + dbt + schedules) | Size in Phase 0; don't start until the team can operate it; single-table model needs none of it |
 | **Two write paths racing the live table** | Gold writes to a *shadow* table until cutover; cutover is an atomic view repoint |
 | **Silver SQL drifts from collector semantics** | Parity gate; port the `metrics.md` query plan verbatim incl. window lengths and `null` rules |
-| **Cross-project read** (silver in `playfair-project`, consumers in `ai_analysis_v2`) | Materialise gold *into* `ai_analysis_v2`; consumers never change project |
+| **Cross-dataset read** (silver in a landing dataset, consumers in `ai_analysis_v2`) | Materialise gold *into* `ai_analysis_v2`; consumers never change dataset |
 | **PII leak via mirrors** | Numeric-only invariant asserted in Phase 0; raw-text metrics excluded by definition |
 
 ## Out of scope
@@ -147,11 +147,11 @@ Gate: population diff under threshold **and** every metric within tolerance for 
 
 ## Open questions
 
-- [ ] **Bronze source** — enable Playfair streams vs dedicated `ai_analysis_v2` landing (Phase 0 decision; gates everything).
-- [ ] **dbt ownership** — extend Playfair's dbt project or a new team-owned one; affects who reviews metric PRs.
+- [ ] **Bronze load mechanism** — scheduled snapshot vs streaming CDC into the landing dataset (Phase 0 decision; gates everything).
+- [ ] **dbt ownership** — a team-owned dbt project; affects who reviews metric PRs.
 - [ ] **Parity tolerance** — the epsilon for float metrics and the population-diff threshold that constitute "clear to cut over."
 - [ ] **View-evolution mechanism** — resolve the `migration_history` view caveat ([`../implementation/migrations.md`](../implementation/migrations.md)) so the Phase-1 seam and Phase-4 repoint actually re-apply.
-- [ ] **Gold refresh trigger** — dbt-on-Dagster-schedule vs a non-incremental MV with a staleness window; tied to the freshness budget.
+- [ ] **Gold refresh trigger** — scheduled dbt run vs a non-incremental MV with a staleness window; tied to the freshness budget.
 
 ## Sources
 

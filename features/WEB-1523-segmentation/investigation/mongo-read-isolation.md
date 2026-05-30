@@ -18,7 +18,7 @@ Comparison of the ways `Tofu.AI.Api` can read invoices / estimates / clients / a
 - **Direct secondary reads in prod (Option 1) — rejected.** Atlas dashboard evidence below shows prod secondaries already running hot on `InvoicesCluster`; adding 1.2/s sustained aggregations is unsafe.
 - **Atlas Analytics Node (Option 2) — rejected.** Was the locked decision as of 2026-05-21; superseded once Data Federation came in as a viable path that eliminates *all* live-cluster read load (analytics node still hits the same physical cluster, just a logically-tagged member). The line item ($400–$2,300/mo for analytics nodes across both clusters) also goes away with the snapshot-backed path.
 - **Reserve mongosync / custom change-stream mirror (Options 4–5)** for the case where physical isolation *plus* live-freshness becomes a hard requirement. Snapshot-backed Federation gives us isolation; freshness on snapshot cadence (typ. daily or hourly) is acceptable for FSM-fit's metric windows.
-- **CDC-to-BigQuery (Option 9 — Playfair path) stays as the long-horizon answer** when v2+ analyses and BI dashboards justify a shared warehouse.
+- **CDC-to-BigQuery (Option 9 — CDC → external BigQuery warehouse) stays as the long-horizon answer** when v2+ analyses and BI dashboards justify a shared warehouse.
 
 **Caveat on cost shape (revisit during implementation).** This doc originally rejected Option 6 partly because per-account targeted reads × 100k accounts/day would multiply Federation scan cost vs. a single batched sweep. That economic concern still applies: if the worker keeps the per-account aggregation pattern unchanged, scan billing on the Federation endpoint may dominate. Two ways to handle: (a) re-shape the refresh into a batched per-snapshot sweep that lands intermediate results in `account_metrics` and have per-analysis code read from BQ thereafter — this matches the Layer A / Layer B split already in [`architecture.md`](../architecture.md); or (b) accept the per-account scan cost as the simpler path for v1 and measure before optimising. The implementation task should price both before committing.
 
@@ -45,23 +45,23 @@ FSM-fit's read shape, copied from [`../analyses/metrics.md`](../analyses/metrics
 | 6 | Atlas Data Lake snapshot + Data Federation | Periodic cluster snapshot to S3-backed storage; query via Federation endpoint |
 | 7 | Atlas Online Archive + Data Federation | Auto-tier *old* docs off the cluster to cheap storage; transparent federated read |
 | 8 | Data Federation over the live cluster | Federation endpoint that proxies straight to the live cluster — no load shedding |
-| 9 | CDC → external warehouse (Playfair DWH path) | Re-enable Playfair Mongo streams into BigQuery; query metrics there |
+| 9 | CDC → external BigQuery warehouse | Stream Mongo changes into a shared BigQuery warehouse; query metrics there |
 
 ## Capability matrix
 
 | | 1. Direct secondary | 2. Atlas Analytics Node | 3. Hidden secondary | 4. mongosync → separate cluster | 5. Custom change-stream mirror | 6. Data Lake + Federation | 7. Online Archive + Federation | 8. Federation over live | 9. CDC to BigQuery |
 |---|---|---|---|---|---|---|---|---|---|
 | **Load isolation from prod cluster** | none (shares secondaries with BFF) | logical (tag) — same cluster | logical (tag) — same cluster | physical (separate cluster) | physical (separate cluster) | physical (snapshot) | physical for cold rows only | none (passes through) | physical (separate system) |
-| **Freshness** | real-time | real-time (oplog) | real-time (oplog) | real-time-ish (~sub-sec lag) | real-time-ish (~sub-sec, lag depends on worker) | snapshot cadence (≥hourly typ.; daily realistic) | real-time for hot, snapshot for cold | real-time | daily (Playfair cadence today) |
+| **Freshness** | real-time | real-time (oplog) | real-time (oplog) | real-time-ish (~sub-sec lag) | real-time-ish (~sub-sec, lag depends on worker) | snapshot cadence (≥hourly typ.; daily realistic) | real-time for hot, snapshot for cold | real-time | daily (warehouse refresh cadence) |
 | **Indexes** | prod indexes | prod indexes | prod indexes | configurable on destination | configurable on destination | partition-level only; no native btree | hot tier yes, cold tier no | prod indexes (but only on `$match` stage) | configurable in BQ |
 | **Per-account aggregation efficiency** | excellent (point lookups) | excellent (point lookups) | excellent (point lookups) | excellent if indexes copied | excellent if indexes copied | poor (scan-shaped) | excellent for 30d, poor for 12mo | degrades after `$match` | depends on BQ partitioning |
-| **PII shaping at ingest** | no | no | no | limited (filter at sync; no transform) | yes (full control) | snapshot-time projection only | no | no | yes (Playfair already does MD5 on Client) |
+| **PII shaping at ingest** | no | no | no | limited (filter at sync; no transform) | yes (full control) | snapshot-time projection only | no | no | yes (transform in the CDC pipeline) |
 | **Cross-cluster joins** | no | no | no | no | possible if both sources sync to one mirror | yes (the one real Federation win) | yes | yes | yes (BQ joins) |
-| **Setup effort** | 0 | small (Atlas cluster config) | small (replica-set config) | medium (mongosync host + tuning) | medium-high (write sync worker, resume tokens, monitoring) | medium (snapshot schedule + endpoint) | small (UI toggle per collection) | small | high (re-enable Playfair streams, cross-team) |
-| **Ongoing ops surface** | none new | none beyond Atlas | one extra Mongo node | mongosync process + lag monitor | sync worker + lag monitor + resume-token store | snapshot lifecycle, federation IAM | trivial | trivial | Playfair pipeline ownership |
-| **Failure / drift risk** | nil | nil (replica-set guarantee) | nil (replica-set guarantee) | bounded by mongosync resume support; silent drift if not monitored | unbounded if resume tokens lost; can silently miss writes | snapshot can fail without alarm; per-cycle staleness | nil if Atlas-managed | nil | depends on Dagster job health |
+| **Setup effort** | 0 | small (Atlas cluster config) | small (replica-set config) | medium (mongosync host + tuning) | medium-high (write sync worker, resume tokens, monitoring) | medium (snapshot schedule + endpoint) | small (UI toggle per collection) | small | high (stand up CDC streams, cross-team) |
+| **Ongoing ops surface** | none new | none beyond Atlas | one extra Mongo node | mongosync process + lag monitor | sync worker + lag monitor + resume-token store | snapshot lifecycle, federation IAM | trivial | trivial | warehouse pipeline ownership |
+| **Failure / drift risk** | nil | nil (replica-set guarantee) | nil (replica-set guarantee) | bounded by mongosync resume support; silent drift if not monitored | unbounded if resume tokens lost; can silently miss writes | snapshot can fail without alarm; per-cycle staleness | nil if Atlas-managed | nil | depends on CDC pipeline health |
 | **Cold-start latency (first invoice → first score)** | ~2h | ~2h | ~2h | ~2h | ~2h | next snapshot (up to 24h) | ~2h (hot writes go to live) | ~2h | ~24h |
-| **Covers PG eligibility probe** | no — separate PG conn | no | no | no | no | no | no | no | yes (PG already replicated by Playfair) |
+| **Covers PG eligibility probe** | no — separate PG conn | no | no | no | no | no | no | no | no |
 | **Best fit scenario** | small scoped set, no BFF contention | BFF and analytics must not share secondaries | self-managed Mongo equivalent of #2 | want full physical isolation, no custom code | want isolation + ingest-time PII shaping or schema slimming | want batch sweeps, accept daily freshness | most reads are hot; cold rows rarely scanned | cross-source join in one MQL query | multi-analysis future, daily ok, share with BI |
 
 ## Pricing detail
@@ -107,8 +107,8 @@ FSM-fit's read shape, copied from [`../analyses/metrics.md`](../analyses/metrics
 ### 8. Data Federation over the live cluster
 - ~$5/TB scanned **on top of** existing cluster reads. Worse than direct secondary on every axis (cost, latency, prod load) unless you actually need cross-source `$lookup` in MQL.
 
-### 9. CDC to BigQuery (Playfair DWH path)
-- Detailed in [`metrics.md`](metrics.md) Option C and [`dwh.md`](dwh.md). For us the Playfair pipeline is sunk; we'd pay BQ storage + slot/scan cost for new dbt models (cents/month at our row count) plus the cross-team cost of re-enabling the dormant streams.
+### 9. CDC to BigQuery (external BigQuery warehouse)
+- Detailed in [`metrics.md`](metrics.md) Option C. We'd pay BQ storage + slot/scan cost for new dbt models (cents/month at our row count) plus the cross-team cost of standing up the CDC streams.
 
 ## Common scenarios — pick by what you're trying to solve
 
@@ -119,7 +119,7 @@ FSM-fit's read shape, copied from [`../analyses/metrics.md`](../analyses/metrics
 | "We want the metric layer physically separate from prod and isolated even from Atlas-project-level blast radius." | **#4 mongosync** (no custom code) or **#5 change-stream mirror** (if you also want PII-shaping / field filtering at ingest) | Physical separation, real-time, ~$800/mo for both clusters. #5 adds PII control at a 1–2-week engineering cost. |
 | "Most of the metric reads are over old data that's rarely touched." | **#7 Online Archive** | Frees cluster IOPS for hot reads. *Not our case* — windows are 30d/12mo, all hot. |
 | "We want batch sweeps over snapshots, fresh-enough is fine, and we don't want per-account targeted reads on Mongo at all." | **#6 Data Lake + Federation** | Daily snapshot, single-sweep refresh, predictable per-GB cost. Requires flipping the refresh model from per-account to batch. |
-| "Multiple downstream analyses + BI need this data, daily freshness is fine, and we'd like one canonical warehouse." | **#9 CDC → BigQuery** | Amortises across all consumers, joins with LTV / attribution data already in Playfair. |
+| "Multiple downstream analyses + BI need this data, daily freshness is fine, and we'd like one canonical warehouse." | **#9 CDC → BigQuery** | Amortises across all consumers in a shared BigQuery warehouse. |
 | "We need to join two source clusters in one MQL pipeline." | **#8 Federation over live** | The one place Federation-over-live earns its keep. Not our use case in v1. |
 
 ## Staged recommendation for WEB-1523
@@ -148,5 +148,4 @@ FSM-fit's read shape, copied from [`../analyses/metrics.md`](../analyses/metrics
 - [`metrics.md`](metrics.md) — broader sourcing-category investigation (direct reads vs. event-sourced vs. DWH vs. Amplitude). This doc deep-dives the "direct reads" branch under the lens of prod-cluster isolation.
 - [`postgres-read-isolation.md`](postgres-read-isolation.md) — Postgres-side counterpart for the eligibility-probe read path (`jobs.Jobs`). Same framework, smaller load, recommendation is a Cloud SQL read replica.
 - [`../analyses/metrics.md`](../analyses/metrics.md) — locked per-metric query plan, eligibility funnel, refresh strategy. Read paths in this doc must not change those.
-- [`dwh.md`](dwh.md) — Playfair DWH inventory; underpins Option 9.
 - [`../implementation/storage.md`](../implementation/storage.md) — BigQuery layout for `account_metrics` (the destination, unchanged by any option here).

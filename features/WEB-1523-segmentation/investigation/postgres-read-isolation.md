@@ -16,7 +16,7 @@ Comparison of the ways `Tofu.AI.Api` can read from `Invoices.Backend`'s Postgres
 - **If no replica exists today**, provision one — the read-replica path is the PG-side equivalent of the Mongo Data Federation read plane (different mechanism, same intent: keep AI reads off the BFF-serving primary), scaled to the much lower PG load.
 - **Reading the primary directly (Option 0) — rejected for v1** on symmetry grounds with the Mongo decision, even though the eligibility-probe load alone wouldn't force it.
 - **Reserve `Datastream → BigQuery` (Option 2) for v2+** when at least one analysis wants PG-derived data joinable in BQ alongside `account_metrics`. Symmetric to the Mongo CDC-to-warehouse path.
-- **Skip the snapshot-export-to-GCS pattern (Option 3) and the custom Dagster pipeline (Option 4)** unless a specific reason emerges. They don't beat 1 or 2 on either ease or cost for our load profile.
+- **Skip the snapshot-export-to-GCS pattern (Option 3) and the custom warehouse CDC pipeline (Option 4)** unless a specific reason emerges. They don't beat 1 or 2 on either ease or cost for our load profile.
 
 ## Criteria
 
@@ -40,22 +40,22 @@ Net load: trivially small. The question is whether to isolate it on principle, n
 | 2 | **Datastream → BigQuery** | GCP-managed CDC; PG WAL → BQ tables. Worker queries BQ instead of PG. |
 | 3 | BigQuery `EXTERNAL_QUERY` to Cloud SQL | BQ federated query proxying to the PG instance (or its replica). |
 | 4 | Cloud SQL export to GCS + BQ external table | Daily `gcloud sql export` to GCS; BQ external table consumes it. |
-| 5 | Custom Dagster pipeline (Playfair-style) | Extend Playfair's `tofu_postgres_job.py` to ingest `jobs.Jobs` into `data_layer.*`. |
+| 5 | Custom warehouse CDC pipeline | Extend a shared warehouse pipeline to ingest `jobs.Jobs` into a BigQuery warehouse. |
 | 6 | Logical replication to a separate analytics PG | Native PG `CREATE SUBSCRIPTION`; the AI worker queries the analytics instance. |
 
 ## Capability matrix
 
-| | 0. Primary | 1. Read replica | 2. Datastream → BQ | 3. BQ `EXTERNAL_QUERY` | 4. GCS export + BQ external | 5. Dagster CDC | 6. Logical replication |
+| | 0. Primary | 1. Read replica | 2. Datastream → BQ | 3. BQ `EXTERNAL_QUERY` | 4. GCS export + BQ external | 5. Custom warehouse CDC | 6. Logical replication |
 |---|---|---|---|---|---|---|---|
-| **Load isolation from primary** | none | yes (replica absorbs) | yes (WAL slot, near-zero overhead) | partial (federated query routes back to PG) | partial (export runs on source/replica) | yes (Dagster pulls from replica) | yes (subscriber absorbs) |
+| **Load isolation from primary** | none | yes (replica absorbs) | yes (WAL slot, near-zero overhead) | partial (federated query routes back to PG) | partial (export runs on source/replica) | yes (pipeline pulls from replica) | yes (subscriber absorbs) |
 | **Freshness** | real-time | sub-second lag | seconds → low minutes | real-time | daily | daily | sub-second lag |
 | **Indexes** | source | source (inherited) | configurable in BQ | source | none (file scan) | configurable in BQ | configurable on subscriber |
 | **Query shape change** | none | none | rewrite to BQ SQL | minimal (wrap in `EXTERNAL_QUERY`) | rewrite to BQ SQL | rewrite to BQ SQL | none |
-| **Setup effort** | 0 | tiny (provision replica) | small (UI + replication flag) | tiny (BQ connection) | medium (Scheduler + Function + table) | medium (Playfair cross-team) | medium (subscription + monitoring) |
-| **Ongoing ops surface** | none | replica + lag monitoring | replication slot monitoring | none beyond #0/#1 | Cloud Scheduler + GCS lifecycle | Playfair pipeline ownership | subscription slot + DDL coordination |
-| **Failure / drift risk** | nil | nil (streaming) | non-zero (stuck slot → WAL buildup on source) | nil | export job can silently fail | depends on Dagster job health | non-zero (stuck slot, DDL drift) |
-| **Cost shape** | $0 incremental | replica hourly | per-GB CDC + BQ storage | BQ scan + Cloud SQL | tiny (GCS + BQ) | Dagster compute + BQ | analytics instance hourly |
-| **Best fit scenario** | tiny load, no symmetry concern | want PG-native isolation, simplest | want data joinable in BQ, near-real-time | ad-hoc BQ access, no copies | daily file artifact for another reason | already extending Playfair | want native PG mirror + column filtering |
+| **Setup effort** | 0 | tiny (provision replica) | small (UI + replication flag) | tiny (BQ connection) | medium (Scheduler + Function + table) | medium (cross-team warehouse coordination) | medium (subscription + monitoring) |
+| **Ongoing ops surface** | none | replica + lag monitoring | replication slot monitoring | none beyond #0/#1 | Cloud Scheduler + GCS lifecycle | warehouse pipeline ownership | subscription slot + DDL coordination |
+| **Failure / drift risk** | nil | nil (streaming) | non-zero (stuck slot → WAL buildup on source) | nil | export job can silently fail | depends on pipeline job health | non-zero (stuck slot, DDL drift) |
+| **Cost shape** | $0 incremental | replica hourly | per-GB CDC + BQ storage | BQ scan + Cloud SQL | tiny (GCS + BQ) | warehouse compute + BQ | analytics instance hourly |
+| **Best fit scenario** | tiny load, no symmetry concern | want PG-native isolation, simplest | want data joinable in BQ, near-real-time | ad-hoc BQ access, no copies | daily file artifact for another reason | already running a shared warehouse pipeline | want native PG mirror + column filtering |
 
 ## Pricing detail
 
@@ -88,10 +88,10 @@ Net load: trivially small. The question is whether to isolate it on principle, n
 - BQ external table queries: **$6.25/TB scanned**.
 - At our table size, **<$1/mo**.
 
-### 5. Custom Dagster pipeline
-- Compute: amortised in the existing Dagster cluster (~$0 incremental).
+### 5. Custom warehouse CDC pipeline
+- Compute: amortised in the existing warehouse pipeline (~$0 incremental).
 - BQ storage + query: same as Option 2 (**<$20/mo**).
-- Real cost is **Playfair-team ownership** of a new stream — coordination, not dollars.
+- Real cost is **warehouse-team ownership** of a new stream — coordination, not dollars.
 
 ### 6. Logical replication to a separate analytics PG
 - Subscriber instance: Cloud SQL hourly cost as in Option 1 (~$50–190/mo per tier).
@@ -103,10 +103,10 @@ Net load: trivially small. The question is whether to isolate it on principle, n
 | Scenario | Best fit | Why |
 |---|---|---|
 | "We just want PG reads off the primary, minimum fuss." | **Option 1 — read replica** | Cheapest GCP-native isolation, same query shape, no rewrite, no pipeline. |
-| "We want the data in BQ to join with `account_metrics`." | **Option 2 — Datastream** | GCP-native CDC, near-real-time, no Playfair coordination. |
+| "We want the data in BQ to join with `account_metrics`." | **Option 2 — Datastream** | GCP-native CDC, near-real-time, no cross-team warehouse coordination. |
 | "We want occasional BQ access without copying data." | **Option 3 — `EXTERNAL_QUERY`** | Lowest setup; load lands wherever the connection points. |
 | "We already have a daily file artifact for another consumer." | **Option 4 — GCS export** | Reuse the artifact; cheapest steady-state at daily cadence. |
-| "We want the PG data in the warehouse alongside Playfair's existing PG/Mongo streams." | **Option 5 — extend Playfair pipeline** | Single canonical warehouse; amortises across analyses; cross-team coordination required. |
+| "We want the PG data in the warehouse alongside other PG/Mongo streams." | **Option 5 — extend a shared warehouse pipeline** | Single canonical warehouse; amortises across analyses; cross-team coordination required. |
 | "Multiple non-BQ consumers need the mirrored data." | **Option 6 — logical replication** | Native PG, configurable indexes, no warehouse hop. |
 
 ## Staged recommendation for WEB-1523
@@ -116,7 +116,7 @@ Net load: trivially small. The question is whether to isolate it on principle, n
 3. **If a replica exists → just use it.** Same effect, zero infrastructure change.
 4. **Add Cloud SQL dashboard panels** post-cutover: replica lag, replica CPU/IO, query latency. Tripwire for moving to Option 2 is "replica saturated" or "v2 analysis wants PG data joined in BQ."
 5. **Option 2 (Datastream) becomes the right pick once any of:** (a) a v2 analysis needs `Tofu.Auth.Backend` PG data at scale, (b) we want eligibility-funnel rows queryable from BQ for cohort analysis alongside `account_metrics`, (c) the replica starts contending with whatever else uses it.
-6. **Option 5 (extend Playfair)** is the long-horizon answer — same role here as Option 9 in the Mongo doc. Revisit when ≥2 analyses share the warehouse path.
+6. **Option 5 (extend a shared warehouse pipeline)** is the long-horizon answer — same role here as Option 9 in the Mongo doc. Revisit when ≥2 analyses share the warehouse path.
 
 ## Open questions
 
@@ -131,4 +131,3 @@ Net load: trivially small. The question is whether to isolate it on principle, n
 - [`mongo-read-isolation.md`](mongo-read-isolation.md) — the Mongo-side counterpart; same options framework, much larger load, locked answer is Mongo Data Federation over snapshots (prod) / plain default connection (stage).
 - [`metrics.md`](metrics.md) — broader sourcing-category investigation (direct reads vs. event-sourced vs. DWH vs. Amplitude); PG sits inside Option A (direct reads).
 - [`../analyses/metrics.md`](../analyses/metrics.md) — locked eligibility-funnel query and batching strategy; this doc does not change them.
-- [`dwh.md`](dwh.md) — Playfair DWH inventory including the existing `tofu_postgres_payment_orders` daily PG → BQ ingestion. Reference for Option 5's shape.
