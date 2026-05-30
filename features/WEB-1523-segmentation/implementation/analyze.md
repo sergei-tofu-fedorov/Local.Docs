@@ -41,7 +41,7 @@ Registered in `AddAnalysesApplication` alongside the metrics job (which is itsel
 
 ## Audience eligibility
 
-Moved here from `metrics.md` (2026-05-24). `account_metrics` is analysis-agnostic — it holds a row for *every* invoice-active prod account, including ones already using FSM. Deciding which subset a given analysis scores is that analysis's concern, so the **FSM-using-account exclusion** (v1's audience is invoice-only users; see `../analyses/metrics.md` § Eligibility, which deliberately leaves this gate out) is an FSM-fit audience filter that runs inside `AnalyzeFsmFitJob`, not in metrics collection.
+Moved here from `metrics.md` (2026-05-24). `account_metrics` is analysis-agnostic — it holds a row for *every* invoice-active account, including ones already using FSM. Deciding which subset a given analysis scores is that analysis's concern, so the **FSM-using-account exclusion** (v1's audience is invoice-only users; see `../analyses/metrics.md` § Eligibility, which deliberately leaves this gate out) is an FSM-fit audience filter that runs inside `AnalyzeFsmFitJob`, not in metrics collection.
 
 ### Where it plugs in
 

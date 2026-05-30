@@ -1,6 +1,6 @@
 # WEB-1527 — Account metrics collection (Tofu.AI.Backend) — Overview
 
-> Implement the `account_metrics` read path: an hourly Hangfire job in `Tofu.AI.Api` that reads the workspace's Mongo collections and CDC-upserts one typed metrics row per invoice-active prod account into BigQuery. Metrics stage only — no LLM / redaction / FSM-fit scoring.
+> Implement the `account_metrics` read path: an hourly Hangfire job in `Tofu.AI.Api` that reads the workspace's Mongo collections and CDC-upserts one typed metrics row per invoice-active account into BigQuery. Metrics stage only — no LLM / redaction / FSM-fit scoring.
 
 **Status:** planning
 **Ticket:** WEB-1527 (theory: WEB-1523-segmentation)
@@ -66,7 +66,7 @@ sequenceDiagram
     Job->>Repo: ExceptExistingAsync(active)  %% pull existing once, subtract in-memory
     Repo->>BQ: SELECT account_id FROM account_metrics
     Job->>Disc: FilterEligibleAsync(netNew)
-    Disc->>Mongo: accounts lookup (Store=prod, alive, non-technical)
+    Disc->>Mongo: accounts lookup (alive, non-technical)
     Disc-->>Job: eligible net-new account_id[]
 
     loop queue.Chunk(AggregationBatchSize=300), ≤ MaxConcurrentBatches in flight

@@ -23,7 +23,7 @@ sequenceDiagram
         Job->>Rdr: SelectMissingAccountIdsAsync(candidates)  %% BQ EXCEPT
         Rdr->>BQ: EXCEPT existing account_metrics.account_id
         BQ-->>Job: net-new candidates
-        Job->>Mongo: accounts lookup (Store=prod, alive, non-technical)
+        Job->>Mongo: accounts lookup (alive, non-technical)
         Mongo-->>Job: eligible net-new account_ids
     end
 

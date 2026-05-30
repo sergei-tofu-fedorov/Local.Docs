@@ -38,17 +38,17 @@ $commitMessage = "$branchName | $parentRepoName | $ShortDescription"
 # Check for changes in the docs submodule
 $status = git -C $submoduleRoot status --porcelain
 if (-not $status) {
-    Write-Host "No changes in Tofu.Docs to commit."
+    Write-Host "No changes in Local.Docs to commit."
     exit 0
 }
 
-Write-Host "Committing docs changes in Tofu.Docs with message:"
+Write-Host "Committing docs changes in Local.Docs with message:"
 Write-Host "  $commitMessage"
 
 git -C $submoduleRoot add .
 git -C $submoduleRoot commit -m "$commitMessage"
 
-# Always push docs changes to the main branch in the Tofu.Docs repo
+# Always push docs changes to the main branch in the Local.Docs repo
 $targetBranch = "main"
 
 Write-Host "Pushing docs changes to origin/$targetBranch from current commit (HEAD)."

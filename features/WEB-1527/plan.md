@@ -200,7 +200,7 @@ Returns `Dictionary<string, InvoiceMetricsResult>`.
 #### 5.1 `AccountDiscovery` (split — sweep + eligibility)
 Two methods; the `EXCEPT` step between them is orchestrated by the job (Step 8), not here (reference §2):
 - `SweepActiveAccountsAsync(windowDays)` → `invoices` sweep: `$match {CreatedTime ≥ now-windowDays, IsDeleted ∈ [false,null]}` → `$group {_id: "$AccountId"}`. Comment the `CreatedTime`-vs-`Date` choice inline (spec open question; default `CreatedTime`).
-- `FilterEligibleAsync(accountIds)` → batched `accounts` lookup filtering `_id ∈ accountIds` (string `_id` — see §4.5), `Store="prod"`, alive (`IsDeleted ∈ [false,null]`), `IsTechnical=false`.
+- `FilterEligibleAsync(accountIds)` → batched `accounts` lookup filtering `_id ∈ accountIds` (string `_id` — see §4.5), alive (`IsDeleted ∈ [false,null]`), `IsTechnical=false`.
 No FSM trim (that's the analyze stage).
 
 > **No daily guard** — the full funnel runs every tick (`MetricsRefreshJob.DiscoverAsync`). Discovery is idempotent (read-only sweep, `EXCEPT` dedupes net-new, CDC upsert is repeat-safe) and cheap at current volume, so hourly is fine. Re-throttle (durable Postgres claim, or a dedicated daily Hangfire recurring job) only if the sweep cost grows.

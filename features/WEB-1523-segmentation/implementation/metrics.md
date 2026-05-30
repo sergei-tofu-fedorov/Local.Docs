@@ -8,7 +8,7 @@ How `Tofu.AI.Backend` actually wires up the Mongo read path that populates the s
 >
 > **Metrics only.** This doc covers the `account_metrics` read path *exclusively*. The analyze pipeline that consumes `account_metrics` (redaction → LLM → rule → score → `account_fsm_fit`) — including the `AnalyzeJob<TAnalysis>` / `AnalyzeFsmFitJob` / `SmokeProbeJob` classes, the `ILlmClient` / `IPromptLoader` registrations, and the `openai-ping` CLI — lives in [`analyze.md`](analyze.md). The metrics stage ships first and stands alone.
 >
-> **Audience eligibility deferred to the next stage.** The FSM-using-account exclusion (drop accounts already using FSM, since v1's audience is invoice-only) is **not** part of the metrics stage. `account_metrics` is analysis-agnostic and is populated for *all* invoice-active prod accounts; deciding which subset a given analysis scores is that analysis's concern. The `IFsmEligibilityProbe` (+ its `NoOp` dev fallback and the cross-repo `Invoices.Backend` Postgres `jobs.Jobs` probe) is therefore an FSM-fit audience filter and lives in [`analyze.md`](analyze.md) § Audience eligibility. The metrics discovery funnel keeps only the cheap single-store gates (invoice-active, `Store=prod`, alive, non-technical).
+> **Audience eligibility deferred to the next stage.** The FSM-using-account exclusion (drop accounts already using FSM, since v1's audience is invoice-only) is **not** part of the metrics stage. `account_metrics` is analysis-agnostic and is populated for *all* invoice-active accounts; deciding which subset a given analysis scores is that analysis's concern. The `IFsmEligibilityProbe` (+ its `NoOp` dev fallback and the cross-repo `Invoices.Backend` Postgres `jobs.Jobs` probe) is therefore an FSM-fit audience filter and lives in [`analyze.md`](analyze.md) § Audience eligibility. The metrics discovery funnel keeps only the cheap single-store gates (invoice-active, alive, non-technical).
 
 ## Decision
 
@@ -209,7 +209,7 @@ RunAsync(ct):
 DiscoverAsync(ct):
     active  = discovery.SweepActiveAccountsAsync(DiscoveryWindowDays)   # Mongo invoices: CreatedTime ≥ now-90d, alive
     netNew  = repo.ExceptExistingAsync(active)                          # active EXCEPT existing account_metrics.account_id
-    return    discovery.FilterEligibleAsync(netNew)                     # Mongo accounts: Store=prod, alive, non-technical
+    return    discovery.FilterEligibleAsync(netNew)                     # Mongo accounts: alive, non-technical
 ```
 
 The FSM-using-account trim that used to sit between `active` and `netNew` (`− PG probe(jobs.Jobs recent)`) is **gone from this stage** — `account_metrics` now covers FSM-using accounts too. The FSM-fit analyze job applies that exclusion itself; see [`analyze.md`](analyze.md) § Audience eligibility.

@@ -6,7 +6,7 @@ How `MetricsRefreshJob` populates the shared `account_metrics` table by querying
 
 > **Out of scope here.** The output schema (column names, types, partition / cluster keys) is locked in `storage.md`. The downstream LLM payload shape is locked in [`../investigation/privacy.md`](../investigation/privacy.md) § 1. This doc covers only the *read path* from Mongo into the typed columns.
 
-> **Scale baseline (2026-05-20).** ~5M total accounts and ~11M invoices in Mongo backing stores; the four metrics-collection gates (§ Eligibility) leave on the order of **~100k+ accounts with an `account_metrics` row** (invoice-active prod accounts). Note `account_metrics` now includes FSM-using accounts — the ~100k invoice-only figure is the FSM-fit *scored* subset *after* the analyze-stage audience filter, so the `account_metrics` set is a superset of it. All throughput, refresh, and cost numbers below are sized to the `account_metrics` set — not to the 5M backing-store total. The 50k-subject figure used elsewhere in this folder (`storage.md:203`, `provider.md` § Decision) predates this calibration and should be read with the same correction in mind.
+> **Scale baseline (2026-05-20).** ~5M total accounts and ~11M invoices in Mongo backing stores; the three metrics-collection gates (§ Eligibility) leave on the order of **~100k+ accounts with an `account_metrics` row** (invoice-active accounts). Note `account_metrics` now includes FSM-using accounts — the ~100k invoice-only figure is the FSM-fit *scored* subset *after* the analyze-stage audience filter, so the `account_metrics` set is a superset of it. All throughput, refresh, and cost numbers below are sized to the `account_metrics` set — not to the 5M backing-store total. The 50k-subject figure used elsewhere in this folder (`storage.md:203`, `provider.md` § Decision) predates this calibration and should be read with the same correction in mind.
 
 ## Decision
 
@@ -15,14 +15,14 @@ How `MetricsRefreshJob` populates the shared `account_metrics` table by querying
 - **Batched aggregation pipelines.** One Mongo aggregation per metric family **per batch** of ~`AggregationBatchSize` accounts (`$match {AccountId: {$in: batch}}` → `$group _id: "$AccountId"`), pushed server-side, fanned out concurrently across families. C# composes the 11 numeric/boolean output fields per account from the per-account result docs. Item counts and group-by-client live inside the pipeline; nothing meaningful happens in C# beyond shaping the upsert rows. (The single-account `_id: null` form in § Per-metric query plan is illustrative of one account's slice of each batched pipeline.)
 - **30-day rolling window** for activity-windowed metrics (`invoice_count_30d`, `avg_invoice_amount`, etc.). Window is `analyzed_at - 30d ≤ Date < analyzed_at`, anchored on `analyzed_at` so re-reads are stable until the next refresh.
 - **`RefreshTtl = 24h`** (the `MetricsRefreshJob.RefreshTtl` value referenced in `storage.md:96`). Configurable per-deploy via `Analyses:Metrics:RefreshTtl`.
-- **Eligibility filter — prod store, alive, non-technical, invoice-active** (see § Eligibility). `account_metrics` is analysis-agnostic and does **not** exclude FSM-using accounts; dropping FSM users is the FSM-fit analysis's audience decision, applied at scoring time — see [`../implementation/analyze.md`](../implementation/analyze.md) § Audience eligibility.
+- **Eligibility filter — alive, non-technical, invoice-active** (see § Eligibility). `account_metrics` is analysis-agnostic and does **not** exclude FSM-using accounts; dropping FSM users is the FSM-fit analysis's audience decision, applied at scoring time — see [`../implementation/analyze.md`](../implementation/analyze.md) § Audience eligibility.
 - **No incremental field-level updates.** Each refresh upserts the full row. CDC ingestion (`_CHANGE_TYPE = 'UPSERT'`) handles the merge in BQ.
 
 ## Sources
 
 | Collection | DB | Repo of record | Fields read |
 |---|---|---|---|
-| `accounts` | Invoices.Backend Mongo | `Invoices.Backend` | `_id`, `BusinessName`, `Store`, `IsDeleted`, `IsTechnical`, `SchemaVersion`, `CreatedTime` |
+| `accounts` | Invoices.Backend Mongo | `Invoices.Backend` | `_id`, `BusinessName`, `IsDeleted`, `IsTechnical`, `SchemaVersion`, `CreatedTime` |
 | `clients` | Invoices.Backend Mongo | `Invoices.Backend` (`ManageableClient`) | `AccountId`, `Info[].Name`, `Info[].Address`, `DeletedAt` (nullable DateTime; `DeletedAt = null` ⇒ alive) |
 | `invoices` | Tofu.Invoices.Backend Mongo | `Tofu.Invoices.Backend` | `AccountId`, `Date`, `TotalAmount`, `Items[]` (`$size`), `ClientId` / `Client.CatalogId`, `IsDeleted`, `Status` |
 | `estimates` | Tofu.Invoices.Backend Mongo | `Tofu.Invoices.Backend` | `AccountId`, `Date`, `InvoiceId`, `IsDeleted` |
@@ -41,12 +41,11 @@ How `MetricsRefreshJob` populates the shared `account_metrics` table by querying
 
 1. `Account.IsDeleted IN (false, null)`
 2. `Account.IsTechnical = false`
-3. `Account.Store = "prod"` (no sandbox accounts in the analytics store)
-4. At least one non-deleted `Invoice` in the last 90 days (proof-of-life; rules out abandoned accounts)
+3. At least one non-deleted `Invoice` in the last 90 days (proof-of-life; rules out abandoned accounts)
 
-These four are cheap, single-store (Mongo) gates. There is deliberately **no FSM-using-account gate here** — `account_metrics` holds rows for FSM users too. Whether an account is *scored* for a given analysis is that analysis's audience decision: FSM-fit excludes FSM-using accounts at scoring time via a PG batched query against `Invoices.Backend`'s `jobs.Jobs`, documented in [`../implementation/analyze.md`](../implementation/analyze.md) § Audience eligibility. It does not gate row creation.
+These three are cheap, single-store (Mongo) gates. There is deliberately **no FSM-using-account gate here** — `account_metrics` holds rows for FSM users too. Whether an account is *scored* for a given analysis is that analysis's audience decision: FSM-fit excludes FSM-using accounts at scoring time via a PG batched query against `Invoices.Backend`'s `jobs.Jobs`, documented in [`../implementation/analyze.md`](../implementation/analyze.md) § Audience eligibility. It does not gate row creation.
 
-Condition 4 is evaluated by the Mongo discovery sweep itself (§ Refresh strategy, step 2) — a `$match` on `Date >= now-90d` over `invoices` is exactly the gate. Conditions 1–3 (`Store=prod`, alive, non-technical) are evaluated via a batched `accounts` lookup against the discovery survivors. They are not stored on `account_metrics` — they only gate row creation. An account that drops out of eligibility (e.g., goes dormant — no invoices for 90 days) stops being refreshed; its old `account_metrics` row ages out via the BQ partition retention path (when configured) and disappears from `v_fsm_fit` joins for cold-start accounts via the `LEFT JOIN m → f` shape (`storage.md:188`).
+Condition 3 is evaluated by the Mongo discovery sweep itself (§ Refresh strategy, step 2) — a `$match` on `Date >= now-90d` over `invoices` is exactly the gate. Conditions 1–2 (alive, non-technical) are evaluated via a batched `accounts` lookup against the discovery survivors. They are not stored on `account_metrics` — they only gate row creation. An account that drops out of eligibility (e.g., goes dormant — no invoices for 90 days) stops being refreshed; its old `account_metrics` row ages out via the BQ partition retention path (when configured) and disappears from `v_fsm_fit` joins for cold-start accounts via the `LEFT JOIN m → f` shape (`storage.md:188`).
 
 **Subject-key population.** As built, `account_metrics` has a single `account_id STRING NOT NULL` key — the three-subject-level model (`master_user_id` / `platform_user_id` / `account_id`) was dropped before implementation (see [`../implementation/storage.md`](../implementation/storage.md) § Subject identity). FSM-fit is account-level, so this loses nothing for v1. A v2 per-user analysis (`suspicious_user` is per-`platform_user_id`) would add its user-keyed metrics in a **separate** table rather than reintroducing nullable subject columns here.
 
@@ -75,7 +74,7 @@ Condition 4 is evaluated by the Mongo discovery sweep itself (§ Refresh strateg
 
    From there:
    - **BQ `EXCEPT`** against the existing `account_metrics.account_id` column isolates net-new candidates (already-collected accounts get re-refreshed via the `expires_at` path in step 1, not discovery).
-   - **Batched `accounts` lookup** in Mongo applies the remaining § Eligibility checks (`Store=prod`, alive, non-technical).
+   - **Batched `accounts` lookup** in Mongo applies the remaining § Eligibility checks (alive, non-technical).
 
    Net-new survivors are enqueued for refresh. There is no FSM-using-account trim in discovery — `account_metrics` covers FSM users too; the exclusion is an FSM-fit audience filter applied at scoring time (see [`../implementation/analyze.md`](../implementation/analyze.md) § Audience eligibility).
 3. **Aggregation.** The enqueued `account_id`s are chunked into batches of `AggregationBatchSize` (default 300) and processed with `Parallel.ForEachAsync` at `MaxConcurrentBatches` (default 4) concurrency. Per batch, the four metric-family pipelines below run concurrently in their batched `$in`/group-by-account form, compose one `AccountMetricsRow` per account, and UPSERT into BQ via Storage Write API CDC in one append. `expires_at = analyzedAt + RefreshTtl` (one `analyzedAt` anchor for the whole tick); `updated_at` is stamped per batch at write time. **There is no `analyzed_at` column** — `analyzedAt` is only the in-memory window/expiry anchor.
@@ -215,7 +214,7 @@ Address normalisation (trim, lowercase, collapse whitespace) happens **inside th
 
 ## Performance budget
 
-At ~100k+ `account_metrics` accounts (invoice-active prod accounts, filtered from 5M backing-store accounts), 24h `RefreshTtl`:
+At ~100k+ `account_metrics` accounts (invoice-active accounts, filtered from 5M backing-store accounts), 24h `RefreshTtl`:
 
 - **Re-refresh load** — 100k/day ÷ 24h ≈ **4,200/hour ≈ 1.2/s** sustained. Batched at `AggregationBatchSize = 300` with `MaxConcurrentBatches = 4` (~4 reads + 1 write per batch), there's ample headroom; the in-process Hangfire server inside `tofu-ai-api-deployment` (2 replicas, distributed lock serialises the recurring tick) absorbs this comfortably.
 - **Per-account aggregation footprint** — average ~110 invoices per active account (11M / ~100k). A 30d window touches ~30 invoices; a 12mo window ~110. Each pipeline runs in single-digit ms once the index hits.

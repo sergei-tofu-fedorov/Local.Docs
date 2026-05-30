@@ -44,7 +44,7 @@ The 12 fields that have to be filled per row, extracted from [`../analyses/metri
 
 | Check | Source DB | Collection / Table | Source fields |
 |---|---|---|---|
-| Alive / non-technical / prod store | Mongo (Invoices.Backend) | `accounts` | `IsDeleted`, `IsTechnical`, `Store` |
+| Alive / non-technical | Mongo (Invoices.Backend) | `accounts` | `IsDeleted`, `IsTechnical` |
 | Has invoiced in last 90d (proof-of-life) | Mongo (Tofu.Invoices.Backend) | `invoices` | `AccountId`, `Date`, `IsDeleted` (also drives the discovery sweep) |
 | Has no recent jobs (invoice-only audience) | **Postgres** (Invoices.Backend, schema `jobs`) | `Jobs` | `AccountId`, `IsDeleted`, `CompletionTime` |
 
