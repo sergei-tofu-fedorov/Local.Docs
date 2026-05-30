@@ -1,24 +1,29 @@
 # WEB-1523 — AI-powered user analysis
 
-**Status:** in-progress — stage 1 partially landed (metrics feature-store shipped; FSM-fit analyze stage not yet built)
+**Status:** in-progress — stage 1 + FSM-fit analyze stage + Read API all landed on `feature/WEB-1557` (cumulative; **not yet merged to `develop`**). Remaining gaps: Presidio redaction (docs-only), BFF proposal surface, dashboards.
 **Started:** 2026-05-10
-**Updated:** 2026-05-27
+**Updated:** 2026-05-30
 **ClickUp:** https://app.clickup.com/t/WEB-1523
 **Affected repos:** see § "Affected repos" below
 **Implementation:** split into sub-tickets in the code repo — see § "Implementation status" below
 
-> **Doc vs. code:** this folder is the framework/spec plan. The shipped implementation is the source of truth and is tracked in `Tofu.AI.Backend/Docs/features/WEB-1526/` + `WEB-1527/`. Where the two disagree, the in-repo docs + code win; the deltas are recorded in § "Implementation status" and inline in the affected docs.
+> **Doc vs. code:** this folder is the framework/spec plan. The shipped implementation is the source of truth and is tracked in `Tofu.AI.Backend/Docs/features/{WEB-1526,WEB-1527,WEB-1555,WEB-1557}/`. Where the two disagree, the in-repo docs + code win; the deltas are recorded in § "Implementation status" and inline in the affected docs.
 
 ## Implementation status
 
-Stage 1 is being built inside the existing **`Tofu.AI.Backend`** repo (base branch `develop`), split into two sub-tickets. The repo's own `Docs/features/` is the authoritative implementation record.
+Built inside the existing **`Tofu.AI.Backend`** repo (base branch `develop`), split into four sub-tickets. As of 2026-05-30 all four are stacked on **`feature/WEB-1557`** (each branched off the previous); the branch is **1 behind / 5 ahead of `origin/develop` and not yet merged**. The repo's own `Docs/features/` is the authoritative implementation record.
 
-| Sub-ticket | Status | Branch | What landed | Repo doc |
+| Sub-ticket | Status | Commit | What landed | Repo doc |
 |---|---|---|---|---|
-| **WEB-1526** — FSM-fit analysis layer + CI/CD migrate gate | in review | `feature/WEB-1526` | `Analyses.Application` + `Analyses.Persistence` projects; store-agnostic **module-migration framework** (`IModuleMigration` + runner, parity with `Invoices.Backend`) + `migrate` CLI mode; BigQuery client/settings (`Analyses:BigQuery`); **in-process Hangfire** on Postgres (schema `analyses`); **stub** `MetricsRefreshJob`; Cloud Build retired (GitHub Actions becomes the only deploy path, with a pre-deploy migrate Job gate); Presidio sidecars added to the K8s overlay. | `Docs/features/WEB-1526/README.md` |
-| **WEB-1527** — Account metrics collection | implemented | `feature/WEB-1527` (off `feature/WEB-1526`) | `Analyses.Domain` + `Analyses.Infrastructure` projects; four batched Mongo **metrics collectors** (invoices / estimates / clients / accounts) + discovery funnel; the **`account_metrics`** BigQuery table via `V001_CreateAccountMetrics` (replaces the WEB-1526 bootstrap stub); **Storage Write API CDC** upserts; the real `MetricsRefreshJob` (hourly, every-tick discovery + expired re-refresh). Incidental: chat-context GCS made config-driven (`Storage:ServiceAccountKeyPath`, ADC default). | `Docs/features/WEB-1527/{overview,plan}.md` |
+| **WEB-1526** — FSM-fit analysis layer + CI/CD migrate gate | landed (on WEB-1557; `origin/feature/WEB-1526-prep` merged to develop) | `e5a63fe` | `Analyses.Application` + `Analyses.Persistence` projects; store-agnostic **module-migration framework** (`IModuleMigration` + runner, parity with `Invoices.Backend`) + `migrate` CLI mode; BigQuery client/settings (`Analyses:BigQuery`); **in-process Hangfire** on Postgres (schema `analyses`); **stub** `MetricsRefreshJob`; Cloud Build retired (GitHub Actions becomes the only deploy path, with a pre-deploy migrate Job gate); Presidio sidecars added to the K8s overlay. | `Docs/features/WEB-1526/README.md` |
+| **WEB-1527** — Account metrics collection | landed (on WEB-1557) | `b7161ab`, `b88380a` | `Analyses.Domain` + `Analyses.Infrastructure` projects; four batched Mongo **metrics collectors** (invoices / estimates / clients / accounts) + discovery funnel; the **`account_metrics`** BigQuery table via `V001_CreateAccountMetrics` (replaces the WEB-1526 bootstrap stub); **Storage Write API CDC** upserts; the real `MetricsRefreshJob` (hourly, every-tick discovery + expired re-refresh). Incidental: chat-context GCS made config-driven (`Storage:ServiceAccountKeyPath`, ADC default). | `Docs/features/WEB-1527/{overview,plan}.md` |
+| **WEB-1555** — FSM-fit analyze stage (LLM scoring + CDC write) | landed (on WEB-1557) | `bde31e6` | `IFsmFitLlmClient` + **`OpenAiFsmFitClient`** (gpt-4.1-nano, structured outputs); **`FsmFitPrompt`**; **`FsmFitScorer`** (deterministic rule + tiering); **`AnalyzeFsmFitJob`** (due/missing candidates → **FSM-using eligibility trim** via `InvoicesJobsRepository.GetAccountIdsWithRecentJobsAsync` → input-hash cache → LLM + scorer → CDC-UPSERT); **`account_fsm_fit`** table (`V002_CreateAccountFsmFit`) + **`v_fsm_fit`** view (`V003_CreateVFsmFitView`); domain models (`FsmFitFlags/Evidence/Offer/Payload/RuleResult/Tier`, 24-ID `Industry` enum, `InputHash`); `BigQueryAccountFsmFitRepository`; invoice item-name + invoices-jobs signal repos. **Presidio redaction NOT in code — docs only** (`Docs/features/WEB-1555-presidio/`); payload is built from aggregated metrics + top item names directly. | `Docs/features/WEB-1555/{overview,plan}.md`, `WEB-1555-presidio/{overview,plan}.md` |
+| **WEB-1557** — FSM-fit Read API | landed (HEAD) | `8c936d5` | **`AccountAnalysesController`** + `FsmFitReadService` / `IFsmFitReadService` / `FsmFitResponse` + BQ read methods on `BigQueryAccountFsmFitRepository`. This is the **stage-2 read API** brought forward (HTTP/REST on `Tofu.AI.Api`). | `Docs/features/WEB-1557/{overview,plan}.md` |
 
-**Not yet built (FSM-fit analyze stage — separate future tickets):** the LLM client, Presidio redaction call, eligibility / FSM-using trim, the `account_fsm_fit` result table, the `v_fsm_fit` view, and the scoring rule + tiering. Only the analysis-agnostic **feature-store** (`account_metrics`) and the framework scaffolding exist in code today. Stage 2 (typed read API + BFF proposal surface + dashboards) is likewise unbuilt.
+**Still NOT built:**
+- **Presidio redaction** (analyze stage) — design docs only (`WEB-1555-presidio/`), no code; the LLM payload currently goes unredacted-by-Presidio (aggregated metrics + item names only).
+- **BFF in-app proposal surface** (`Invoices.Backend`) — zero commits; consumes the new Read API in a future ticket.
+- **Looker Studio dashboards + checked-in `queries/`**, privacy-policy + sub-processor list update, the SQL-rule baseline comparison, and the industry-expansion cohort.
 
 **Key deltas this plan's design docs were written against, now overridden by the shipped code** (each reconciled inline in the relevant doc):
 
@@ -96,12 +101,13 @@ Implementation breakdown is tracked directly in ClickUp under WEB-1523 sub-ticke
 |---|---|---|---|
 | [`analyses/data-sources.md`](analyses/data-sources.md) | Data inventory across the workspace — the sources available for any analysis's payload. | framework | — |
 | [`analyses/metrics.md`](analyses/metrics.md) | Backend metrics catalog + per-metric Mongo query plan feeding `account_metrics`. | framework | ✅ |
-| [`analyses/scoring.md`](analyses/scoring.md) | Analysis contract (`IAnalysis` / `IAnalysisRule` / emit schema / tier vocabulary) + option-C decision + LLM-reliability findings. | framework | ⬜ |
-| [`analyses/versioning.md`](analyses/versioning.md) | The five per-row version dimensions (`schema_version` / `prompt_version` / `model_id` / `rule_version` / `input_hash`) + recompute + catalog versioning. | framework | ⬜ |
-| [`analyses/presidio.md`](analyses/presidio.md) | Presidio redaction implementation plan (analyze-stage PII scrub before the LLM call). | framework | ⬜ |
+| [`analyses/scoring.md`](analyses/scoring.md) | Analysis contract (`IAnalysis` / `IAnalysisRule` / emit schema / tier vocabulary) + option-C decision + LLM-reliability findings. | framework | 🟡 (FSM-fit concrete via `FsmFitScorer`; generic `IAnalysis<T>` extraction deferred to 2nd analysis) |
+| [`analyses/versioning.md`](analyses/versioning.md) | The five per-row version dimensions (`schema_version` / `prompt_version` / `model_id` / `rule_version` / `input_hash`) + recompute + catalog versioning. | framework | 🟡 (`input_hash` cache shipped in `AnalyzeFsmFitJob`) |
+| [`analyses/flexible-metrics.md`](analyses/flexible-metrics.md) | **Theory** — evolving the `account_metrics` feature store: metric-as-code catalog, additive-only schema + proto lockstep, definition-hash versioning, TTL-loop-as-backfill, recompute. | framework | ⬜ (design only) |
+| [`analyses/presidio.md`](analyses/presidio.md) | Presidio redaction implementation plan (analyze-stage PII scrub before the LLM call). | framework | ⬜ (docs only — sidecars in K8s overlay, no redaction code) |
 | [`analyses/training.md`](analyses/training.md) | Per-analysis training pattern — prompt iteration + rule-weight tuning with Optuna against stored LLM emit. | framework | n/a |
-| [`analyses/fsm-fit/scoring.md`](analyses/fsm-fit/scoring.md) | FSM-fit — 6 LLM-emit booleans + 2 backend-derived + 24-ID industry enum + offer routing tree + storage mapping. | FSM-fit | ⬜ |
-| [`analyses/fsm-fit/prompt.md`](analyses/fsm-fit/prompt.md) | FSM-fit system prompt — verbatim mirror + section reading + open issues. | FSM-fit | ⬜ |
+| [`analyses/fsm-fit/scoring.md`](analyses/fsm-fit/scoring.md) | FSM-fit — 6 LLM-emit booleans + 2 backend-derived + 24-ID industry enum + offer routing tree + storage mapping. | FSM-fit | ✅ (`FsmFitScorer` + `FsmFit*` models + `Industry` enum) |
+| [`analyses/fsm-fit/prompt.md`](analyses/fsm-fit/prompt.md) | FSM-fit system prompt — verbatim mirror + section reading + open issues. | FSM-fit | ✅ (`FsmFitPrompt`) |
 | [`analyses/fsm-fit/copy.md`](analyses/fsm-fit/copy.md) | FSM-fit proposal copy. | FSM-fit | ⬜ |
 | [`analyses/fsm-fit/analytics-events.md`](analyses/fsm-fit/analytics-events.md) | Event schema for the BFF proposal surface (`cohort_assigned`, `proposal_shown`/`_clicked`/`_dismissed`, `fsm_trial_started`). | FSM-fit | ⬜ |
 | [`analyses/fsm-fit/forward-ab.md`](analyses/fsm-fit/forward-ab.md) | Forward A/B design — hypothesis, primary metric menu, cohort, MDE, kill switch. `PM TO DECIDE` marked. | FSM-fit | ⬜ |
@@ -113,12 +119,12 @@ Implementation breakdown is tracked directly in ClickUp under WEB-1523 sub-ticke
 | Doc | What it covers | Scope | Built? |
 |---|---|---|---|
 | [`implementation/service.md`](implementation/service.md) | `Tofu.AI.Backend` service layout, abstractions, in-process Hangfire, K8s manifest, `migrate` CLI. | framework | 🟡 |
-| [`implementation/storage.md`](implementation/storage.md) | BigQuery layout — `account_metrics` (shipped) + planned per-analysis result tables/views, partitioning, write paths. | framework | 🟡 |
+| [`implementation/storage.md`](implementation/storage.md) | BigQuery layout — `account_metrics` + `account_fsm_fit` (`V002`) + `v_fsm_fit` (`V003`) all shipped; partitioning + CDC write paths live. | framework | ✅ |
 | [`implementation/metrics.md`](implementation/metrics.md) | Metrics collection implementation — collectors, discovery funnel, batched aggregations. | framework | ✅ |
 | [`implementation/metrics-interaction.md`](implementation/metrics-interaction.md) | Metrics-collection interaction/sequence detail. | framework | ✅ |
 | [`implementation/migrations.md`](implementation/migrations.md) | Module-migration framework (`IModuleMigration` + runner) + BigQuery module + `migrate` gate. | framework | ✅ |
 | [`implementation/ci-cd.md`](implementation/ci-cd.md) | CI/CD — single GitHub Actions deploy path with a pre-deploy migrate Job gate (Cloud Build retired). | framework | ✅ |
-| [`implementation/analyze.md`](implementation/analyze.md) | Analyze-stage pipeline (LLM + redaction + scoring) implementation plan. | framework | ⬜ |
+| [`implementation/analyze.md`](implementation/analyze.md) | Analyze-stage pipeline (LLM + redaction + scoring) implementation plan. | framework | 🟡 (LLM + scoring + CDC write shipped in WEB-1555; redaction step still missing) |
 | [`implementation/mongo-data-federation.md`](implementation/mongo-data-federation.md) | Mongo snapshot export → GCS → BigQuery Data Federation read path. | framework | ⬜ |
 
 **Investigation spikes (`investigation/`)**
@@ -146,7 +152,7 @@ Implementation breakdown is tracked directly in ClickUp under WEB-1523 sub-ticke
 
 ## Upstream blockers
 
-The **metrics feature-store** (WEB-1527) and framework scaffolding (WEB-1526) shipped without these clearing — they aggregate Mongo into BigQuery with no LLM and no user surface. The blockers below now gate the **FSM-fit analyze stage** and **stage 2** (read API + BFF proposal surface), not the work already done.
+The **metrics feature-store** (WEB-1527), framework scaffolding (WEB-1526), the **FSM-fit analyze stage** (WEB-1555 — LLM scoring + CDC write), and the **Read API** (WEB-1557) have all landed on `feature/WEB-1557`. The blockers below no longer gate that built work — they now gate **production rollout** (prod GCP, OpenAI billing) and the **stage-2 BFF proposal surface** (PM proposal-surface decision, forward-A/B). The Presidio redaction code gap is tracked in § "Implementation status", not here.
 
 | Blocker | Status | Owned by |
 |---|---|---|
@@ -169,11 +175,12 @@ Stage 1's load-bearing blocker (the training sweep) has cleared; the remaining b
 
 **Phase B — clear admin blockers in parallel (~1 week).** GCP project name (test wired; prod TBD); PM Google Group; OpenAI billing-owner. `Scope` + `Affected repos` above are filled.
 
-**Phase D — implementation (in progress).** Status as of 2026-05-27:
+**Phase D — implementation (in progress).** Status as of 2026-05-30 (all on `feature/WEB-1557`, not yet merged to `develop`):
 
-- ✅ **Done (WEB-1526 in review + WEB-1527 implemented):** extended the existing `Tofu.AI.Backend` solution with the `src/Analyses/` module (`Analyses.{Domain,Application,Infrastructure,Persistence}`; existing `Tofu.AI.Api` chat code untouched); BigQuery dataset + shared `account_metrics` via `IBigQueryMigration` (`V001_CreateAccountMetrics`) applied by the `migrate` CLI / pre-deploy K8s Job (per [`implementation/service.md`](implementation/service.md) + [`implementation/storage.md`](implementation/storage.md)); the four Mongo metrics collectors + discovery funnel; Hangfire jobs **in-process inside `Tofu.AI.Api`** streaming UPSERTs into BigQuery via Storage Write API **CDC** (no staging tables, no MERGE); the K8s overlay bumped (Hangfire co-hosted, migration Job added, Presidio sidecars) — no new Deployment objects.
-- ⬜ **Pending (analyze stage, future tickets):** per-analysis `account_fsm_fit` table + `v_fsm_fit` view; signal aggregator + Presidio redaction per [`investigation/privacy.md`](investigation/privacy.md); LLM client per [`investigation/provider.md`](investigation/provider.md); the scoring rule + tiering.
-- ⬜ **Pending (stage 2):** BFF read API; Looker Studio dashboard + checked-in `queries/*.sql`; privacy-policy + sub-processor list update.
+- ✅ **Done (WEB-1526 + WEB-1527):** extended the existing `Tofu.AI.Backend` solution with the `src/Analyses/` module (`Analyses.{Domain,Application,Infrastructure,Persistence}`; existing `Tofu.AI.Api` chat code untouched); BigQuery dataset + shared `account_metrics` via `IBigQueryMigration` (`V001_CreateAccountMetrics`) applied by the `migrate` CLI / pre-deploy K8s Job (per [`implementation/service.md`](implementation/service.md) + [`implementation/storage.md`](implementation/storage.md)); the four Mongo metrics collectors + discovery funnel; Hangfire jobs **in-process inside `Tofu.AI.Api`** streaming UPSERTs into BigQuery via Storage Write API **CDC** (no staging tables, no MERGE); the K8s overlay bumped (Hangfire co-hosted, migration Job added, Presidio sidecars) — no new Deployment objects.
+- ✅ **Done (WEB-1555 — analyze stage):** `account_fsm_fit` table (`V002`) + `v_fsm_fit` view (`V003`); OpenAI `gpt-4.1-nano` LLM client per [`investigation/provider.md`](investigation/provider.md); `FsmFitScorer` deterministic rule + tiering; `AnalyzeFsmFitJob` with FSM-using eligibility trim + input-hash cache + CDC-UPSERT. **Gap:** Presidio redaction is docs-only (no code) — payload is unredacted aggregated metrics + item names.
+- ✅ **Done (WEB-1557 — read API, pulled forward from stage 2):** `AccountAnalysesController` + `FsmFitReadService` returning the view-shaped FSM-fit JSON.
+- ⬜ **Pending:** Presidio redaction code; BFF in-app proposal surface in `Invoices.Backend`; Looker Studio dashboard + checked-in `queries/*.sql`; privacy-policy + sub-processor list update; SQL-rule baseline comparison.
 
 Full breakdown tracked in ClickUp.
 
