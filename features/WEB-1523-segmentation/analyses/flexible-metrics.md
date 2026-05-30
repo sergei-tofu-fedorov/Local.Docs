@@ -16,6 +16,7 @@ That is correct for v1. But the platform is multi-analysis by design, and every 
 4. **Lean on the TTL refresh loop as a free rolling backfill.** Because `MetricsRefreshJob` upserts the **full row** every time `expires_at` lapses, a newly-added column self-populates across the whole audience within one `RefreshTtl` (24 h) with zero extra code. Old rows read `NULL` ("metric predates this row") until their next refresh.
 5. **Add one lightweight version stamp** so "which rows used the old definition" is a `WHERE` filter, not a guess — and so a definition change can be *forced* faster than TTL by marking mismatched rows expired. This is the single net-new mechanism vs. today.
 6. **Keep a JSON `extras` escape hatch** for experimental metrics that haven't earned a typed column yet — graduate them to real columns once stable.
+7. **If churn gets fast enough that migration-per-metric is the bottleneck, change the *topology*, not the columns** — split into per-domain marts + a thin serving row over the mirrored sources (§ If metrics churn fast). The single-table points above optimise the stable case; that section is the escalation path.
 
 ## Design space (and why wide wins here)
 
@@ -75,6 +76,54 @@ The load-bearing realisation: [`metrics.md`](metrics.md) § Refresh states **"No
 
 **The one caveat — full-row coupling.** Because a refresh recomputes *all* metrics for a row, adding or backfilling one **cheap** metric re-runs every metric in that row. Today all metrics are cheap Mongo aggregations, so this is fine. It breaks if a future metric is **expensive** (e.g. an LLM-derived or cross-store signal): then full-row recompute on every TTL is wasteful, and you'd either (a) split that metric into its own table with its own expiry, or (b) move to per-metric expiry/`def_version` so only the changed metric recomputes. Flag this at the point an expensive metric is proposed, not before.
 
+## If metrics churn *fast*: change the topology, not the columns
+
+Everything above optimises the **single materialised wide table**. That model is right while metric definitions are stable — but it **couples three things that change at different rates**:
+
+| Axis | Changes when… | Today's cost to change |
+|---|---|---|
+| **Ingestion / CDC schema** (`AccountMetricsProto`) | the storage shape changes | new proto field + tag |
+| **Metric logic** (the Mongo collector aggregation) | a formula/window changes | code edit + redeploy |
+| **Serving shape** (the wide BQ columns the LLM reads) | a metric is added/removed | `V00N` DDL migration |
+
+A *single* metric change drags **all three** + a redeploy. When requirements churn fast, that coupling — not the column layout — is the bottleneck. The fix is to **split the three axes across storage layers** so each moves at its own pace. The patterns below are ordered from least to most decoupled.
+
+### Topology spectrum
+
+| Topology | Add/change a metric = | Serving read | Best when | Breaks when |
+|---|---|---|---|---|
+| **Single wide table** (today) | proto + DDL + collector + redeploy | O(1) cheap typed row | low churn, low-latency LLM read | churn is fast — migration-per-metric dominates |
+| **Per-domain tables + serving view** | touch *one* source's table only | join N domain tables / account | sources evolve **independently** (your case) | join fan-out; `account_id` grain must align |
+| **Materialised views (BQ)** over mirrors | `CREATE OR REPLACE VIEW`, BQ maintains | precomputed, auto-refresh | **single-source, append-mostly, simple aggregate** | multi-source outer joins / nesting — BQ MVs forbid them |
+| **Compute-on-read (dbt/SQL over mirrors)** | a PR-reviewed SQL edit | recomputed per read | high churn, modest read volume, exact freshness | LLM path can't pay per-read recompute |
+| **Schema-on-read (JSON landing)** | just query a new field | extract + cast per read | experimental / not-yet-stable metrics | as a *serving* tier — no typing, no contract |
+
+### You already own the "compute-on-read over mirrors" stack
+
+The Playfair DWH ([`../investigation/dwh.md`](../investigation/dwh.md)) is **Dagster + dbt + BigQuery** that already mirrors the Mongo source-of-truth collections (`data_layer.mongo_invoices_*`) and computes marts via dbt **on read** — i.e. a bronze (raw mirrors) + transform layer already exists; most Mongo streams are just *disabled*. `dwh.md` flagged "read metrics from BQ mirrors instead of Mongo" as an alternative and rejected it **for the LLM signal payload** — daily staleness, and the loader **MD5-hashes Client PII**, stripping the exact item text the LLM needs.
+
+That rejection **does not transfer to the numeric metrics**: `account_metrics` holds non-PII aggregates (counts, ratios, amounts) whose drift is weekly+ ([`metrics.md`](metrics.md) notes `RefreshTtl` could be 48 h / 7 d). Daily-stale, PII-hashed mirrors are *fine* for those. So the compute-on-read path is a genuine option **for the feature store specifically**, even though it was wrong for the LLM payload — the two have different freshness/PII needs and shouldn't be forced onto one read path.
+
+### Recommended escalation — medallion hybrid (bronze → silver → gold)
+
+When churn justifies it, restructure into three layers, each absorbing one of the coupled axes:
+
+- **Bronze — dumb stable mirrors.** Mongo source collections landed in BQ as-is (the Playfair mirror plumbing, or a dedicated `ai_analysis_v2` landing). **No metric logic here** → ingestion stops changing per metric. Kills the proto-per-metric pain at the source.
+- **Silver — per-domain metric marts, where churn lives.** One dbt model per source-of-truth instance — `account_invoice_metrics`, `account_estimate_metrics`, `account_client_metrics` — each owned by and aligned to its source (the data-mesh *source-aligned product* idea). A metric change is a **PR-reviewed SQL edit isolated to one domain**: changing an invoice metric never touches the estimates mart, its proto, or its collector. This is the direct answer to "separate instances of source-of-truth tables" — let the *metric* tables follow the same seams. Materialise heavy marts (dbt incremental / a single-source BQ MV); leave light ones as views.
+- **Gold — thin stable serving row.** A narrow `account_metrics` built by a dbt model selecting from silver, refreshed on schedule. The LLM still gets its **cheap, typed, O(1) row** — the one property the analyze path genuinely needs — but adding/changing a metric is now a dbt edit + scheduled rebuild, **not** proto + DDL + redeploy + backfill.
+
+**Hard constraint that shapes the gold layer:** the gold row must `LEFT JOIN` the per-domain marts (to keep accounts with no estimates/clients), and BigQuery **incremental materialised views forbid outer joins, nesting, and post-aggregate filtering**. So gold can't be an incremental MV — keep it a **dbt-built scheduled table** (or a non-incremental MV if its staleness window is acceptable), and reserve incremental MVs for the **single-source silver aggregates** where they're legal and cheap.
+
+### When *not* to escalate
+
+- **On-demand freshness need.** The current federation/collector path refreshes hourly and discovers a net-new account within ~2 h of its first invoice. A daily DWH mirror pushes cold-start metrics latency to ~1 day. Fine for FSM-fit (weekly drift) — not fine for any future near-real-time metric.
+- **Pipeline ownership.** The mirror path adds a hard dependency on the Playfair pipeline; `dwh.md` § Open questions flags that the disabled streams' *why* (cost? PII? broken?) is unconfirmed. Don't couple to it before that's answered.
+- **One stable metric set.** If churn is actually low, the single-table model wins — three layers is over-engineering. Escalate on *measured* churn, not anticipation.
+
+**Decision shorthand:** stable metrics + LLM read → **single wide table** (today). Sources evolve independently → **per-domain marts + gold serving view**. Fast-churn definitions + analyst reads → **dbt compute-on-read over mirrors**. Experimental → **JSON landing**, graduate later. The hybrid is the general answer when churn is high upstream but the LLM still needs a cheap stable row downstream.
+
+> **The concrete, phased plan to *get* from today's single table to this gold/medallion model — expand-contract, parallel-run, parity-gated cutover — is its own doc: [`metrics-gold-migration.md`](metrics-gold-migration.md).**
+
 ## Worked example — add `avg_payment_delay_days`
 
 1. **Catalog:** add a `MetricDescriptor("avg_payment_delay_days", DOUBLE, "90d", <hash>, "churn_risk")`.
@@ -90,6 +139,8 @@ The load-bearing realisation: [`metrics.md`](metrics.md) § Refresh states **"No
 - [ ] **Retention of superseded values.** UPSERT overwrites in place; there's no history of a metric's pre-change values. If "what did this account score under the old definition?" matters, lean on BigQuery time-travel (partitioning is in place) or an append-only audit table — same open question as [`versioning.md`](versioning.md) § Open questions.
 - [ ] **`extras` JSON governance.** An overflow lane rots into a dumping ground without a graduation policy (experimental → typed column within N releases or delete).
 - [ ] **Backfill completion signal.** With TTL-driven convergence, "is the rollout done?" needs a check — e.g. `COUNT(*) WHERE def_version != @current` trending to zero — rather than a job-complete event.
+- [ ] **Topology escalation trigger.** At what measured churn rate (metric changes / month) does the per-domain-marts + dbt-over-mirrors hybrid (§ If metrics churn fast) beat the single-table model? Tied to the Playfair-pipeline ownership question in [`../investigation/dwh.md`](../investigation/dwh.md) § Open questions — don't couple to those mirrors until the disabled-streams *why* is confirmed.
+- [ ] **Two-write-path reconciliation.** If gold migrates from CDC-collectors to a dbt-built table, decide whether both write paths coexist during transition or it's a hard cutover (the proto/CDC path and the dbt path must not both own `account_metrics`).
 
 ## Sources
 
@@ -104,3 +155,11 @@ The load-bearing realisation: [`metrics.md`](metrics.md) § Refresh states **"No
 - dbt Semantic Layer / MetricFlow (metric-as-code) — https://docs.getdbt.com/docs/use-dbt-semantic-layer/dbt-sl
 - Idempotent partition-scoped backfill — https://www.thedataops.org/backfill/ , https://medium.com/towards-data-engineering/building-idempotent-data-pipelines-a-practical-guide-to-reliability-at-scale-2afc1dcb7251
 - Definition/content hashing & drift detection — https://medium.com/mantisnlp/data-version-control-for-reproducible-analytical-pipelines-5255782d355d , https://medium.com/@manik.ruet08/drift-detection-monitoring-schema-logic-and-metric-changes-in-real-time-a2398428ccc1
+
+*Topology / fast-churn (§ If metrics churn fast):*
+- Precompute vs compute-on-read trade — https://www.databricks.com/glossary/materialized-views , https://usavps.com/blog/views-vs-materialized-views/
+- BigQuery materialised views — intro + SQL/JOIN/partition limits — https://docs.cloud.google.com/bigquery/docs/materialized-views-intro , https://docs.cloud.google.com/bigquery/docs/materialized-views-create
+- Medallion / ELT (bronze-silver-gold) — https://www.databricks.com/blog/what-is-medallion-architecture , https://learn.microsoft.com/en-us/azure/databricks/lakehouse/medallion
+- Data mesh / source-aligned per-domain products — https://martinfowler.com/articles/data-mesh-principles.html , https://martinfowler.com/articles/data-monolith-to-mesh.html
+- dbt semantic layer / MetricFlow (metric-as-code, compute-on-read) — https://docs.getdbt.com/docs/build/about-metricflow , https://docs.getdbt.com/docs/build/build-metrics-intro
+- Schema-on-read JSON in BigQuery — https://docs.cloud.google.com/bigquery/docs/json-data , https://www.owox.com/blog/articles/bigquery-json-data-manipulation-functions

@@ -10,6 +10,7 @@ Where to start
 - Authentication scenarios (Bearer JWT, Signature): `Backend/HowTo/Authentication.md`
 - Authorization flow and rules: `Backend/HowTo/Authorization.md`
 - Persistence and data stores overview: `Backend/Persistence.md`
+- Data-store inventory (quick agent lookup — datasets/collections/schemas, env, config keys): `Backend/Storage/AGENTS.md`
 - Database transactions: `Backend/HowTo/Transactions.md`
 - Email sending patterns and templates: `Backend/HowTo/EmailSending.md`
 - General backend code style: `Backend/HowTo/CodeStyle.md`
