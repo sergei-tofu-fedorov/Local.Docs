@@ -210,9 +210,13 @@ DiscoverAsync(ct):
     active  = discovery.SweepActiveAccountsAsync(DiscoveryWindowDays)   # Mongo invoices: CreatedTime ≥ now-90d, alive
     netNew  = repo.ExceptExistingAsync(active)                          # active EXCEPT existing account_metrics.account_id
     return    discovery.FilterEligibleAsync(netNew)                     # Mongo accounts: alive, non-technical
+                                                                        #   (account-age >90d is an FSM-fit AUDIENCE filter — see analyze.md § Audience eligibility,
+                                                                        #    not a metrics-discovery gate)
 ```
 
 The FSM-using-account trim that used to sit between `active` and `netNew` (`− PG probe(jobs.Jobs recent)`) is **gone from this stage** — `account_metrics` now covers FSM-using accounts too. The FSM-fit analyze job applies that exclusion itself; see [`analyze.md`](analyze.md) § Audience eligibility.
+
+> **Account maturity is not a discovery gate.** An earlier revision planned a 4th eligibility condition here (account created > 90 days ago). It was **relocated to the FSM-fit audience filter** — applied inside `AnalyzeFsmFitJob` at scoring time, alongside the FSM-using exclusion — see [`analyze.md`](analyze.md) § Audience eligibility § Account-maturity gate. `account_metrics` stays analysis-agnostic (rows exist for <90-day accounts too); only FSM-fit drops them from its scored set. `FilterEligibleAsync` therefore keeps just conditions 1–2 (alive, non-technical).
 
 **No once-per-day discovery guard (as built).** The full funnel runs **every tick** — there is no `MetricsRefreshState` row and no `LastDiscoveryAt` check. It's safe to run hourly because the funnel is idempotent (read-only sweep, `ExceptExistingAsync` dedupes net-new, the CDC upsert is repeat-safe) and cheap at current volume. Cross-tick serialisation comes from `[DisableConcurrentExecution(600)]` (PG advisory lock). Re-throttle (a durable Postgres claim, or a dedicated daily Hangfire job) only if the sweep cost grows.
 

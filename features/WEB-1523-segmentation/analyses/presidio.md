@@ -9,7 +9,7 @@ How the Presidio-based PII redaction step is wired into `Tofu.AI.Backend`. **Wha
 - **Sidecar deployment.** Microsoft Presidio runs as two sidecar containers in the **`tofu-ai-api-deployment`** pod (analyzer + anonymizer — `mcr.microsoft.com/presidio-analyzer` + `mcr.microsoft.com/presidio-anonymizer`, or the combined image once one is published). Since the AI service is single-pod in v1 (Hangfire embedded in `Tofu.AI.Api` — see [`../implementation/service.md`](../implementation/service.md) § Decision), the same pod that hosts the Hangfire jobs also hosts Presidio; HTTP loopback is intra-pod regardless.
 - **HTTP loopback** — the C# code talks to Presidio over `http://localhost:3000` (analyzer) + `http://localhost:5001` (anonymizer). No network egress; same pod, same network namespace, sub-ms latency.
 - **In-process is rejected.** No `.NET` Presidio port exists; running Presidio via Python.NET / IronPython would graft a Python runtime into the .NET process for no infrastructure benefit. The sidecar adds ~150 MB memory and zero ops complexity beyond a pod-spec line.
-- **Integration point — `IPayloadBuilder<T>.BuildAsync()`.** Redaction is the last transformation before the typed payload is serialised into the OpenAI request body. Every free-text field in the payload schema passes through `IRedactor.RedactAsync(...)` before assignment to the payload struct. The base `PayloadBuilderBase<T>` class enforces this — per-analysis builders cannot bypass.
+- **Integration point — `IFsmFitPayloadBuilder.BuildAsync()`.** Redaction is the last transformation before the typed payload is serialised into the OpenAI request body. **Notes route through `IRedactor.RedactAsync(...)`; item names are passed through raw** — the field-level split is owned by [`../investigation/privacy.md`](../investigation/privacy.md) § 2a (the 2026-05 A/B: redacting item names is the dominant source of mis-scoring, and the dense direct PII lives in notes). The builder is the single enforcement point.
 - **Fail-closed.** If the Presidio sidecar is unreachable, returns 5xx, or times out (>2s), `IRedactor` throws `RedactionUnavailableException`. `AnalyzeJob<T>` catches it, marks the row's refresh as failed (Hangfire retry), and **does not call the LLM**. No raw payload ever reaches OpenAI on a redactor failure.
 - **Per-analysis allow-list driven by config**, not code. The list of entity types Presidio is asked to find lives in `appsettings.json` under `Analyses:<AnalysisType>:Redaction:EnabledEntities`. Changing the allow-list is a config push, not a code deploy.
 
@@ -63,24 +63,17 @@ DI registration in `Analyses.Infrastructure/ServiceCollectionExtensions.cs`:
 - `services.AddHttpClient<IRedactor, PresidioRedactor>()` with named clients for the two Presidio endpoints.
 - Base URLs from `appsettings.json` (`Analyses:Redaction:AnalyzerUrl`, `Analyses:Redaction:AnonymizerUrl`); defaulted to `http://localhost:3000` / `http://localhost:5001` so local dev without a sidecar can stub via a fake `IRedactor`.
 
-**Where it's called.** Inside each `IPayloadBuilder<T>.BuildAsync()` impl, for every free-text field. Concrete for FSM-fit:
+**Where it's called.** Inside `FsmFitPayloadBuilder.BuildAsync()`, for **notes only** — item names are forwarded unchanged:
 
 ```csharp
 // FsmFitPayloadBuilder.BuildAsync(...)
-var allowList = _config.GetSection("Analyses:FsmFit:Redaction:EnabledEntities").Get<string[]>();
-var redactedItems = await _redactor.RedactAsync(rawItemNames, allowList, ct);
-
-return new FsmFitPayload(
-    BusinessName: account.BusinessName,                // direct PII — see privacy.md § 1 "What never leaves"; never redacted, by allow-list design
-    TopItemNames: redactedItems.Items,                  // ← only the redacted text reaches the LLM
-    BackendMetrics: metrics,
-    B2bClientsPresent: derived.B2bClientsPresent,
-    MultiAddressWork: derived.MultiAddressWork,
-    DistinctAddresses: derived.DistinctAddresses
-);
+// Item names pass through raw (the classifier's primary signal — see privacy.md § 2a).
+// Only notes are redacted; a redactor outage propagates (fail-closed, no LLM call).
+var redactedNotes = await RedactNotesAsync(signals.TopNotes, ct);
+return AnalysesMappings.ToPayload(metrics, new InvoiceSignals(signals.TopItemNames, redactedNotes));
 ```
 
-The redactor's batch API is preferred — `top_item_names` is a list of ~5–20 strings per account; one round-trip beats N.
+The redactor's batch API is used — `top_notes` is a list of ~5–20 strings per account; one round-trip beats N. (Entities default to `PresidioSettings.DefaultEntities`; the per-analysis allow-list is passed as `[]` to fall back to it.)
 
 ## Per-analysis allow-list (config shape)
 
@@ -122,7 +115,7 @@ Monitoring: emit a counter `analyses.redaction.failures{analysis_type, reason}` 
 
 Three layers:
 
-1. **Unit tests** against a faked `IRedactor` — verify `PayloadBuilderBase<T>` calls the redactor for every free-text field declared on the per-analysis payload schema, and refuses to assemble the payload if any field skips it (reflection-based contract test in `Tofu.AI.UnitTests/Redaction/PayloadBuilderRedactionContractTests.cs`).
+1. **Unit tests** against a faked `IRedactor` — verify `FsmFitPayloadBuilder` calls the redactor for **notes** (occurrence counts preserved, order-pairing intact) and forwards **item names unchanged** (redactor never invoked for them). Cover the fail-closed path: a redactor that throws `RedactionUnavailableException` propagates and no payload is assembled.
 2. **Integration tests** against the real Presidio sidecar — `Tofu.AI.FunctionalTests` uses Testcontainers to spin up the Presidio analyzer + anonymizer images; fixture set is the 2026-05-13 sample under `Investigation/main-1361-collect/` (per `privacy.md` § 1) — verify that the redacted output contains no PII strings from a known-PII set (regex-based assertion list: emails, US phone numbers, bank-account patterns, the seed accounts' real business names where they're sole-proprietor PII).
 3. **Smoke check on every deploy** — pre-deploy migration Job pings both Presidio endpoints with a fixed PII probe (`"Contact John Smith at john@example.com or 555-0100"`) and asserts the output contains no surface form of `John Smith`, `john@example.com`, or `555-0100`. Failed probe aborts the deploy — same gate pattern as the BigQuery migration.
 

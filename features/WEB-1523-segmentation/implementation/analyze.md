@@ -41,17 +41,23 @@ Registered in `AddAnalysesApplication` alongside the metrics job (which is itsel
 
 ## Audience eligibility
 
-Moved here from `metrics.md` (2026-05-24). `account_metrics` is analysis-agnostic — it holds a row for *every* invoice-active account, including ones already using FSM. Deciding which subset a given analysis scores is that analysis's concern, so the **FSM-using-account exclusion** (v1's audience is invoice-only users; see `../analyses/metrics.md` § Eligibility, which deliberately leaves this gate out) is an FSM-fit audience filter that runs inside `AnalyzeFsmFitJob`, not in metrics collection.
+`account_metrics` is analysis-agnostic — it holds a row for *every* invoice-active account, including ones already using FSM and ones created only days ago. Deciding which subset a given analysis scores is that analysis's concern. FSM-fit applies **two** audience filters, both inside `AnalyzeFsmFitJob` at scoring time (never in metrics collection):
+
+1. **FSM-using-account exclusion** — don't spend an LLM call telling an account that already runs jobs to adopt FSM. (Moved here from `metrics.md` 2026-05-24.)
+2. **Account-maturity gate** — only score accounts **created more than 90 days ago**; brand-new accounts haven't established a billing pattern, so scoring them is noise and the proposal would be premature.
+
+(See `../analyses/metrics.md` § Eligibility, which deliberately leaves *both* gates out — `account_metrics` rows exist for FSM users and <90-day accounts alike.)
 
 ### Where it plugs in
 
-`AnalyzeFsmFitJob` selects its candidate set from `account_metrics`, then drops accounts that have a recent FSM job *before* scoring them — no point spending an LLM call telling an FSM user to adopt FSM:
+`AnalyzeFsmFitJob` selects its candidate set from `account_metrics`, then drops both ineligible subsets *before* scoring:
 
 ```text
 AnalyzeFsmFitJob tick:
     candidates ← account_metrics rows due for (re)scoring
     fsmUsers   ← IFsmEligibilityProbe.GetAccountIdsWithRecentJobsAsync(candidates)
-    score      ← candidates − fsmUsers          # invoice-only audience
+    tooYoung   ← candidates whose account was created ≤ 90 days ago    # maturity gate
+    score      ← candidates − fsmUsers − tooYoung    # invoice-only, established audience
     FOR EACH account IN score:  redact → LLM → rule → write account_fsm_fit
 ```
 
@@ -70,6 +76,14 @@ Returns the subset of input ids that have a **non-deleted job completed in the l
 | `NoOpFsmEligibilityProbe` | `Analyses.Application/Eligibility/` | Returns `[]` (exclude nobody). Dev / test fallback when `ConnectionStrings:InvoicesJobs` is absent — lets the analyze pipeline run locally without the cross-repo PG. **Never prod:** with it, FSM users are scored. |
 
 > Naming note: the spec narrative in `../analyses/metrics.md` calls these `PgFsmEligibilityProbe` / `JobsDbDataSource`; the shipped code uses `InvoicesJobsEligibilityProbe` / `InvoicesJobsConnectionFactory`. This doc tracks the code.
+
+### Account-maturity gate (created > 90 days ago)
+
+The second audience filter: FSM-fit scores an account only if it was **created more than 90 days ago** (`Account.CreatedTime < analyzedAt.AddDays(-90)`). Brand-new accounts haven't had time to establish a billing pattern, so scoring them yields noise and a premature in-app proposal. Threshold is a uniform **90 days** (not calendar months), exposed as a knob `Analyses:FsmFit:MinAccountAgeDays` (default `90`).
+
+Like the FSM-using exclusion, this runs **inside `AnalyzeFsmFitJob` at scoring time**, not in metrics collection — `account_metrics` still holds rows for <90-day accounts (and a future analysis may well want to score young accounts, e.g. `churn_risk`); FSM-fit just drops them from its own `score` set. This is why the gate is **not** a metrics-eligibility condition — it would wrongly starve other analyses of young-account rows.
+
+**Account-age source (open — resolve when wiring).** `account_metrics` does not currently carry the account creation date, and the candidate query keys off `account_metrics` alone. Two options: (a) add an `account_created_at` column to `account_metrics` — cheap, since the metrics collector already reads the `accounts` doc for `business_name`, and it lets the gate run as a pure BQ predicate in the candidate query; or (b) read `accounts.CreatedTime` for the candidate batch at analyze time — a small extra Mongo lookup mirroring the invoice-signals read, keeping `account_metrics` unchanged. Either way, treat a null/missing `CreatedTime` as **eligible** (it pre-dates the field, so the account is old). Batch the lookup serially, outside the LLM fan-out — same shape as the FSM-using probe.
 
 ### Connection wiring — Postgres `jobs` schema in `Invoices.Backend`
 

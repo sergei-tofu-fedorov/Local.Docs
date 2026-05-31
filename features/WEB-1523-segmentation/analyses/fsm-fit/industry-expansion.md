@@ -59,7 +59,7 @@ Produce `industry-expansion/strong-other-specs.tsv` containing one row per `spec
 
 - `count` — number of accounts in the cohort emitting that exact `specialization` string.
 - `example_business_names` — up to 5 distinct `business_name` values for accounts emitting that spec.
-- `example_top_items` — up to 5 representative item-name strings from those accounts' Presidio-redacted top items (helps the clustering call disambiguate ambiguous specs like `"installation and repair"`).
+- `example_top_items` — up to 5 representative item-name strings from those accounts' (raw, unredacted — see [`../../investigation/privacy.md`](../../investigation/privacy.md) § 2a) top items (helps the clustering call disambiguate ambiguous specs like `"installation and repair"`).
 
 **Threshold rationale.** `count ≥ 5` is the working default — yields ~150–300 surviving specs, which fits in one `gpt-4.1-nano` call with room for the response. Alternative `count ≥ 10` (~60–100 specs) would be tighter but risks dropping legitimate sub-trades. **PM/eng pick before the run.**
 

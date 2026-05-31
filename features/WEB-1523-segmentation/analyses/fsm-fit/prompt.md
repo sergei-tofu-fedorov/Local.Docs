@@ -139,7 +139,7 @@ The DISAMBIGUATION block was added in `v6-industry-scheduling`. It targets three
 ### specialization & reasoning — the human-readable surface
 `specialization` is the field a sales rep reads first ("Pool maintenance" tells you more than `pool_spa_service`). `reasoning` is the audit trail — citing 2–3 specific item names so a human can spot-check the call.
 
-The PII clause in `reasoning` exists because `top_item_names` may contain unredacted PII that the Presidio pass missed — the LLM is the last line of defense, and is told to refer to addresses indirectly rather than quote them.
+The PII clause in `reasoning` exists because `top_item_names` is sent **raw** (no Presidio pass — see [`../../investigation/privacy.md`](../../investigation/privacy.md) § 2a) and can therefore contain client names / addresses embedded in item text — the LLM is the last line of defense, and is told to refer to addresses indirectly rather than quote them. (Notes are Presidio-redacted upstream, so the residual raw-PII risk is confined to item names.)
 
 ### HARD RULES — the conflict-resolution layer
 HARD RULES override the per-boolean TRUE/FALSE clauses when they conflict.

@@ -201,7 +201,7 @@ Every analysis plugs into the framework through a 6-slot contract — see [`anal
 | Slot | What it does | Concrete v1 value (FSM-fit) |
 |---|---|---|
 | Type tag | Identifier used everywhere (table name, prompt path, config key) | `"fsm_fit"` |
-| Payload schema | What the LLM sees — defines the per-analysis data contract | `business_name` + Presidio-redacted top-N invoice items + 8 backend metrics + 2 backend booleans |
+| Payload schema | What the LLM sees — defines the per-analysis data contract | `business_name` + raw top-N invoice item names + Presidio-redacted top-N notes + 8 backend metrics + 2 backend booleans |
 | Emit schema | What the LLM returns, wire-enforced via OpenAI strict structured outputs | 6 booleans + 24-ID industry enum + free-text specialization + reasoning |
 | Rule | Deterministic scoring run at write time; materialises score / tier / `recommended_offers` into typed columns. No rule SQL in views. | FSM-fit rule per [`analyses/fsm-fit/scoring.md`](analyses/fsm-fit/scoring.md) § Tiers |
 | Tier vocabulary | Typed `STRING` column values consumers can filter on | per [`analyses/fsm-fit/scoring.md`](analyses/fsm-fit/scoring.md) § Tiers |

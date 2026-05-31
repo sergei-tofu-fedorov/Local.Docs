@@ -1,69 +1,36 @@
-Backend Documentation
-=====================
+# Backend — documentation index
 
-Use this folder for backend‑specific documentation that applies across services.
+Backend documentation that applies across services. Up: [`../AGENTS.md`](../AGENTS.md).
 
-Where to start
---------------
+## Where to start
+- Architecture overview → [`HowTo/Architecture.md`](HowTo/Architecture.md)
+- Persistence overview → [`Persistence.md`](Persistence.md) · **data-store inventory** → [`Storage/AGENTS.md`](Storage/AGENTS.md)
+- Auth scenarios → [`HowTo/Authentication.md`](HowTo/Authentication.md), [`HowTo/Authorization.md`](HowTo/Authorization.md)
+- Code style → [`HowTo/CodeStyle.md`](HowTo/CodeStyle.md)
 
-- Overall backend architecture: `Backend/HowTo/Architecture.md`
-- Authentication scenarios (Bearer JWT, Signature): `Backend/HowTo/Authentication.md`
-- Authorization flow and rules: `Backend/HowTo/Authorization.md`
-- Persistence and data stores overview: `Backend/Persistence.md`
-- Data-store inventory (quick agent lookup — datasets/collections/schemas, env, config keys): `Backend/Storage/AGENTS.md`
-- Database transactions: `Backend/HowTo/Transactions.md`
-- Email sending patterns and templates: `Backend/HowTo/EmailSending.md`
-- General backend code style: `Backend/HowTo/CodeStyle.md`
+## Services (`Services/`)
+Per-service deep docs — each has its own `AGENTS.md`:
+- [`Services/Invoices.Backend/AGENTS.md`](Services/Invoices.Backend/AGENTS.md) — BFF / gateway exposed to web + mobile clients.
+- [`Services/Tofu.Invoices/AGENTS.md`](Services/Tofu.Invoices/AGENTS.md) — core invoices + estimates service.
+- [`Services/Tofu.Auth/AGENTS.md`](Services/Tofu.Auth/AGENTS.md) — authentication / authorization (sessions, OTP, permissions).
 
-API References
---------------
+## REST API references (`Api/`)
+`Api/<NAME>_API_REFERENCE.md`: ACCOUNT, AUTHORIZATION, CLIENTS, ESTIMATES, INVITATIONS, INVOICES, ITEMS, JOBS, NOTIFICATIONS, PAYMENTS, TEAMS, WORKER.
 
-All API reference docs live in `Backend/Api/`:
-- `ACCOUNT_API_REFERENCE.md` — Account management, subscriptions, currencies
-- `CLIENTS_API_REFERENCE.md` — Client records
-- `ESTIMATES_API_REFERENCE.md` — Estimates with PDF/timeline
-- `EXPENSES_API_REFERENCE.md` — Expenses, incomes, Plaid/Sensibill
-- `INVITATIONS_API_REFERENCE.md` — Tenant invitations
-- `INVOICES_API_REFERENCE.md` — Invoices with PDF/timeline
-- `ITEMS_API_REFERENCE.md` — Line items catalog
-- `JOBS_API_REFERENCE.md` — Jobs with visits/timeline
-- `NOTIFICATIONS_API_REFERENCE.md` — Notifications
-- `PAYMENTS_API_REFERENCE.md` — Payment providers and connections
-- `REPORTS_API_REFERENCE.md` — Financial reports
-- `TEAMS_API_REFERENCE.md` — Team members
-- `TIMELINE_API_REFERENCE.md` — Aggregated timeline
-- `WORKER_API_REFERENCE.md` — Worker visits
+## Flows (`Flows/`)
+AUTHENTICATION_FLOW, INVITATION_FLOWS, JOB_FROM_ESTIMATE_FLOWS, NOTIFICATIONS_FLOWS, OTP_FLOW, WORKER_FLOWS.
 
-Flows
------
+## How-to guides (`HowTo/`)
+Architecture, Authentication, Authorization, CodeStyle, DDD, EmailSending, IntegrationTests, OneLink, PushNotifications, Transactions, UnitOfWork.
 
-All flow/workflow docs live in `Backend/Flows/`:
-- `AUTHENTICATION_FLOW.md` — Complete authentication flow (JWT, Signature, OTP, sessions)
-- `OTP_FLOW.md` — One-time password authentication flow
-- `NOTIFICATIONS_FLOWS.md` — Notification delivery flows
-- `JOB_FROM_ESTIMATE_FLOWS.md` — Job creation from estimate flow
-- `WORKER_WORKFLOW_DIAGRAMS.md` — Worker/visit workflow diagrams
+## Domain notes (`Domain/`)
+permissions-architecture, permissions-migration-plan, plans-stripe, reports, users.
 
-Services
---------
+## Data stores (`Storage/`)
+Inventory of every dataset / collection / schema / bucket → [`Storage/AGENTS.md`](Storage/AGENTS.md) (BigQuery, Mongo, Postgres, GCS).
 
-- Tofu.Auth service  
-  - Docs entry: `Backend/Services/Tofu.Auth/AGENTS.md`  
-  - Repository: `https://github.com/m-unicorn/Tofu.Auth.Backend`  
-  - Description: authentication and authorization service (sessions, OTP, permissions)
-    used by other backend services and clients.
+## Ideas / proposals (`Ideas/`)
+caller_context, ddd_results, plan_upgrades, and `pdf_export_service/` (proposal + benchmark).
 
-- Invoices.Backend service  
-  - Docs entry: `Backend/Services/Invoices.Backend/AGENTS.md`  
-  - Repository: `https://github.com/m-unicorn/Tofu.Invoices.Backend`  
-  - Description: invoices and estimates gateway for web and mobile clients; the only
-    backend service exposed directly to external clients.
-
-- Tofu.Invoices service  
-  - Docs entry: `Backend/Services/Tofu.Invoices/AGENTS.md`  
-  - Repository: `https://github.com/m-unicorn/Tofu.Invoices.Backend`  
-  - Description: core invoices and estimates service used by other backend components.
-
-If you are unsure where to put a new backend document, prefer:
-- `Backend/HowTo` for task‑oriented guides,
-- `Backend/Services/<ServiceName>` for service‑specific rules and APIs.
+## Conventions
+New backend doc → `HowTo/` (task guides), `Services/<Service>/` (service internals), `Domain/` (cross-service domain notes), or `Api/`/`Flows/` (contracts & sequences). Each folder's index is `AGENTS.md`.

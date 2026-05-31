@@ -11,7 +11,7 @@ The six slots from [`../scoring.md`](../scoring.md) § Analysis contract, filled
 | Slot | FSM-fit value | Where defined |
 |---|---|---|
 | `analysis_type` | `"fsm_fit"` | catalog key; stored on every BigQuery row |
-| `payload_schema` | `FsmFitPayload` — `business_name` + Presidio-redacted top-N invoice item names + 8 backend metrics + 2 backend booleans + `distinct_addresses` count | full field-by-field table in [`../../investigation/privacy.md`](../../investigation/privacy.md) § 1 |
+| `payload_schema` | `FsmFitPayload` — `business_name` + raw top-N invoice item names + Presidio-redacted top-N notes + 8 backend metrics + 2 backend booleans + `distinct_addresses` count | full field-by-field table in [`../../investigation/privacy.md`](../../investigation/privacy.md) § 1 |
 | `emit_schema` | 6 evidence booleans + `industry` (24-ID enum) + `specialization` + `reasoning` (≤ 500 chars) — wire-enforced via OpenAI strict structured outputs | § Emit schema below |
 | `rule` | `FsmFitRule v1` — weighted sum of the 8 booleans + `+0.15` FSM-suited industry bonus, sum-capped at `1.0`; tier thresholds at `0.30` / `0.65`; also outputs `recommended_offers` (plural ARRAY, one winner per row in v1) via a 7-rule decision tree | § Rule + § Offer routing below |
 | `tier_vocabulary` | `strong \| weak \| none` | § Rule (thresholds row) |
