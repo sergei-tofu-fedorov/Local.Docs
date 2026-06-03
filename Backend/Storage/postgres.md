@@ -23,11 +23,8 @@ PostgreSQL databases/schemas across the workspace. Index: [`AGENTS.md`](AGENTS.m
 | `Notes` | job/client notes | `(AccountId,SequenceId)`; `(AccountId,ClientId,CreatedAt)` partial; `(VisitId,CreatedAt)` partial |
 | `JobSummaryView` | view | — |
 
-**WEB-1523 cross-service read:** `Tofu.AI.Backend` reads `jobs."Jobs"` (cols `AccountId`, `IsDeleted`, `CompletionTime`) for the FSM-using audience filter, via `ConnectionStrings:InvoicesJobs`.
-
 ### Links
 - Code: `Invoices.Backend/Src/Jobs/Jobs.Infrastructure/Database/JobsDbContext.cs:24`; options `JobsOptions.cs:5`
-- Audience filter: [`features/WEB-1523-segmentation/implementation/analyze.md`](../../features/WEB-1523-segmentation/implementation/analyze.md) § Audience eligibility
 
 ---
 

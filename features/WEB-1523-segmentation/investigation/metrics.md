@@ -6,7 +6,7 @@ The locked plan today (per [`../analyses/metrics.md`](../analyses/metrics.md) §
 
 > **As built (2026-05-27, WEB-1527).** The direct-Mongo path shipped: batched `$in` aggregations (`AggregationBatchSize`/`MaxConcurrentBatches`, not a per-account `MaxConcurrentAccounts`), the discovery sweep runs **every tick** (not daily), into dataset **`ai_analysis_v2`**. The discovery-cadence and knob wording below predate this — read it as research context.
 
-> **Update (2026-05-24):** the PG `jobs.Jobs` batch probe discussed below as a "job-eligibility" step in the metrics funnel has since moved **out of metrics collection** into the FSM-fit **audience filter**, applied at scoring time by `AnalyzeFsmFitJob` — see [`../implementation/analyze.md`](../implementation/analyze.md) § Audience eligibility. `account_metrics` is now analysis-agnostic (no FSM-using gate). Read the PG-eligibility passages below as historical context; the connection still exists, just consumed by the analyze stage rather than the discovery sweep.
+> **Update (2026-06-02):** the PG `jobs.Jobs` batch probe discussed below as a "job-eligibility" step has since been **removed entirely** — job filtering is not used at this stage (see [`../implementation/analyze.md`](../implementation/analyze.md) § Audience eligibility). `account_metrics` is analysis-agnostic (no FSM-using gate), and no cross-service Postgres connection remains in either the metrics or the analyze stage. Read the PG-eligibility passages below as historical context only.
 
 > Out of scope: the output schema (locked in `storage.md`), the per-metric query shapes (locked in `analyses/metrics.md`), and the LLM payload shape (locked in `privacy.md`). This doc is about *where the numbers come from*, not what they look like.
 
@@ -46,9 +46,10 @@ The 12 fields that have to be filled per row, extracted from [`../analyses/metri
 |---|---|---|---|
 | Alive / non-technical | Mongo (Invoices.Backend) | `accounts` | `IsDeleted`, `IsTechnical` |
 | Has invoiced in last 90d (proof-of-life) | Mongo (Tofu.Invoices.Backend) | `invoices` | `AccountId`, `Date`, `IsDeleted` (also drives the discovery sweep) |
-| Has no recent jobs (invoice-only audience) | **Postgres** (Invoices.Backend, schema `jobs`) | `Jobs` | `AccountId`, `IsDeleted`, `CompletionTime` |
 
-**Two source Mongos + one Postgres.** The metric columns themselves only touch Mongo; Postgres enters only through the eligibility probe. No metric depends on `Tofu.Auth.Backend`, Stripe, or any external service in v1.
+> The original "has no recent jobs (invoice-only audience)" gate — a read of `Invoices.Backend`'s Postgres `jobs."Jobs"` — was **removed** (job filtering is not used at this stage; see [`../implementation/analyze.md`](../implementation/analyze.md) § Audience eligibility).
+
+**Source Mongos only.** The metric columns and the eligibility gate touch Mongo exclusively; no metric or gate depends on Postgres, `Tofu.Auth.Backend`, Stripe, or any external service in v1.
 
 Two characteristic properties drive sourcing:
 
@@ -61,7 +62,6 @@ Two characteristic properties drive sourcing:
 
 - `secondaryPreferred` on `Invoices.Backend` Mongo (`accounts`, `clients`).
 - `secondaryPreferred` on `Tofu.Invoices.Backend` Mongo (`invoices`, `estimates`).
-- Read-only PG on `Invoices.Backend` (`jobs.Jobs` for eligibility).
 
 Detail in [`../analyses/metrics.md`](../analyses/metrics.md).
 

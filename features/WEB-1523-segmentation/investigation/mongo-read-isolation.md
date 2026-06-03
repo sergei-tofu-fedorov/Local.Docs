@@ -31,7 +31,6 @@ FSM-fit's read shape, copied from [`../analyses/metrics.md`](../analyses/metrics
 - Refresh: hourly `MetricsRefreshJob` cron with 24h `RefreshTtl`; per-account aggregation × ~4,200 accounts/hour ≈ 1.2/s sustained.
 - Cold-start budget: ~2h from first invoice to first `v_fsm_fit` row (proposal-surface SLA).
 - Pipelines hit existing indexes — `ix_invoices.accountid.date.createdtime`, `ix_estimates.accountid.date.createdtime`, `ix_clients.accountid` — and run in single-digit ms each.
-- PG eligibility probe (`jobs.Jobs`) is out of scope for this doc — Mongo-read isolation options don't cover it.
 
 ## Options surveyed
 
@@ -61,7 +60,6 @@ FSM-fit's read shape, copied from [`../analyses/metrics.md`](../analyses/metrics
 | **Ongoing ops surface** | none new | none beyond Atlas | one extra Mongo node | mongosync process + lag monitor | sync worker + lag monitor + resume-token store | snapshot lifecycle, federation IAM | trivial | trivial | warehouse pipeline ownership |
 | **Failure / drift risk** | nil | nil (replica-set guarantee) | nil (replica-set guarantee) | bounded by mongosync resume support; silent drift if not monitored | unbounded if resume tokens lost; can silently miss writes | snapshot can fail without alarm; per-cycle staleness | nil if Atlas-managed | nil | depends on CDC pipeline health |
 | **Cold-start latency (first invoice → first score)** | ~2h | ~2h | ~2h | ~2h | ~2h | next snapshot (up to 24h) | ~2h (hot writes go to live) | ~2h | ~24h |
-| **Covers PG eligibility probe** | no — separate PG conn | no | no | no | no | no | no | no | no |
 | **Best fit scenario** | small scoped set, no BFF contention | BFF and analytics must not share secondaries | self-managed Mongo equivalent of #2 | want full physical isolation, no custom code | want isolation + ingest-time PII shaping or schema slimming | want batch sweeps, accept daily freshness | most reads are hot; cold rows rarely scanned | cross-source join in one MQL query | multi-analysis future, daily ok, share with BI |
 
 ## Pricing detail
@@ -146,6 +144,6 @@ FSM-fit's read shape, copied from [`../analyses/metrics.md`](../analyses/metrics
 ## Cross-references
 
 - [`metrics.md`](metrics.md) — broader sourcing-category investigation (direct reads vs. event-sourced vs. DWH vs. Amplitude). This doc deep-dives the "direct reads" branch under the lens of prod-cluster isolation.
-- [`postgres-read-isolation.md`](postgres-read-isolation.md) — Postgres-side counterpart for the eligibility-probe read path (`jobs.Jobs`). Same framework, smaller load, recommendation is a Cloud SQL read replica.
+- [`postgres-read-isolation.md`](postgres-read-isolation.md) — ❌ obsolete tombstone: the eligibility-probe PG read path (`jobs.Jobs`) it covered was removed (job filtering is not used at this stage).
 - [`../analyses/metrics.md`](../analyses/metrics.md) — locked per-metric query plan, eligibility funnel, refresh strategy. Read paths in this doc must not change those.
 - [`../implementation/storage.md`](../implementation/storage.md) — BigQuery layout for `account_metrics` (the destination, unchanged by any option here).

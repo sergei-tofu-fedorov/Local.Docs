@@ -8,7 +8,7 @@ How `Tofu.AI.Backend` actually wires up the Mongo read path that populates the s
 >
 > **Metrics only.** This doc covers the `account_metrics` read path *exclusively*. The analyze pipeline that consumes `account_metrics` (redaction → LLM → rule → score → `account_fsm_fit`) — including the `AnalyzeJob<TAnalysis>` / `AnalyzeFsmFitJob` / `SmokeProbeJob` classes, the `ILlmClient` / `IPromptLoader` registrations, and the `openai-ping` CLI — lives in [`analyze.md`](analyze.md). The metrics stage ships first and stands alone.
 >
-> **Audience eligibility deferred to the next stage.** The FSM-using-account exclusion (drop accounts already using FSM, since v1's audience is invoice-only) is **not** part of the metrics stage. `account_metrics` is analysis-agnostic and is populated for *all* invoice-active accounts; deciding which subset a given analysis scores is that analysis's concern. The `IFsmEligibilityProbe` (+ its `NoOp` dev fallback and the cross-repo `Invoices.Backend` Postgres `jobs.Jobs` probe) is therefore an FSM-fit audience filter and lives in [`analyze.md`](analyze.md) § Audience eligibility. The metrics discovery funnel keeps only the cheap single-store gates (invoice-active, alive, non-technical).
+> **Audience eligibility is the analyze stage's concern.** `account_metrics` is analysis-agnostic and is populated for *all* invoice-active accounts; deciding which subset a given analysis scores is that analysis's concern. FSM-fit applies an account-maturity gate in [`analyze.md`](analyze.md) § Audience eligibility. (An earlier FSM-using-account exclusion — a cross-repo `Invoices.Backend` Postgres `jobs.Jobs` probe — was **removed**; job filtering is not used at this stage.) The metrics discovery funnel keeps only the cheap single-store gates (invoice-active, alive, non-technical).
 
 ## Decision
 
@@ -16,7 +16,7 @@ How `Tofu.AI.Backend` actually wires up the Mongo read path that populates the s
 - **Job class lives at `src/Analyses/Analyses.Application/Jobs/MetricsRefreshJob.cs`.** Hangfire registration + dashboard wiring lives at `src/Tofu.AI.Api/Hangfire/HangfireConfiguration.cs` (the three-method `AddAnalysesHangfire` / `AddAnalysesHangfireServer` / `UseAnalysesHangfireDashboard` shape). Recurring-job binding is done from `Program.cs` via `Analyses.Application.DependencyInjection.RegisterAnalysesRecurringJobs(IRecurringJobManager, MetricsOptions)` after `app.Build()` — it `AddOrUpdate`s the job when `Analyses:Metrics:Enabled`, else `RemoveIfExists`.
 - **Signal collectors live at `src/Analyses/Analyses.Infrastructure/Metrics/Collectors/`** (with `MetricWindow.cs` + `AccountDiscovery.cs` one level up in `Metrics/`, and shared Mongo helpers in `Metrics/../Mongo/`). One collector per source collection (`InvoiceMetricsCollector`, `EstimateMetricsCollector`, `ClientMetricsCollector`, `AccountMetricsCollector`) behind the `MetricsCollector` façade — sized to match the per-metric pipelines in `analyses/metrics.md` § Per-metric query plan.
 - **One Hangfire recurring job — `MetricsRefreshJob` — runs hourly** (cron from `Analyses:Metrics:Cadence`, default `0 * * * *`; the job is **disabled by default** via `Analyses:Metrics:Enabled = false` until an env opts in). Composes the signal collectors + the BigQuery CDC writer. Runs against a **single** Mongo connection resolved from `ConnectionStrings:Mongo` — the Federation endpoint in prod, a plain connection to the real prod Mongo in stage. `Invoices.Backend` and `Tofu.Invoices.Backend` collections share one database, so one connection serves all four. **No per-env code branches** — only the connection-string *value* differs by env.
-- **Two read-only data connections, no shared abstraction.** Each has a distinct lifetime and a distinct identity in DI: `IMongoClient` (Federation / live) and the `BigQueryClient` already used by the persistence layer (for `EXCEPT` lookups against `account_metrics.account_id`). Wrapping them in a generic `IReadSource<T>` adds nothing — the call sites are stable. (The third connection — read-only Postgres against `Invoices.Backend`'s `jobs` schema — belonged to the FSM eligibility probe and moves with it to [`analyze.md`](analyze.md).)
+- **Two read-only data connections, no shared abstraction.** Each has a distinct lifetime and a distinct identity in DI: `IMongoClient` (Federation / live) and the `BigQueryClient` already used by the persistence layer (for `EXCEPT` lookups against `account_metrics.account_id`). Wrapping them in a generic `IReadSource<T>` adds nothing — the call sites are stable. (A third connection — read-only Postgres against `Invoices.Backend`'s `jobs` schema — once backed the FSM eligibility probe; it was **removed** with that filter, so only the two Mongo/BigQuery connections remain.)
 - **Cross-replica safety.** API is at 2 replicas. `MetricsRefreshJob.RunAsync` already declares `[DisableConcurrentExecution(timeoutInSeconds: 600)]`; `Hangfire.PostgreSql`'s distributed advisory lock serialises the recurring tick across pods. No bespoke leader election needed.
 - **No incremental field-level updates and no in-memory caching across ticks.** Each refreshed account produces one full upsert row per tick; CDC ingestion handles the merge. Idempotency falls out of the BQ primary key.
 - **Batched reads and writes — never per single account.** Each tick chunks its candidate accounts into batches of `AggregationBatchSize` (default ~300). Per batch: one `$match {AccountId: {$in: batch}} → $group {_id: "$AccountId"}` aggregation per source family (4 reads cover the whole batch), composed into one `AccountMetricsRow` per account, then a single batched Storage Write API append. Round-trips are ~4 reads + 1 write per *batch*, not per *account* — and the leading `$in` `$match` still uses the `AccountId` index. `AggregationBatchSize` bounds the per-batch server-side `$group` working set; `MaxConcurrentBatches` bounds concurrency.
@@ -214,7 +214,7 @@ DiscoverAsync(ct):
                                                                         #    not a metrics-discovery gate)
 ```
 
-The FSM-using-account trim that used to sit between `active` and `netNew` (`− PG probe(jobs.Jobs recent)`) is **gone from this stage** — `account_metrics` now covers FSM-using accounts too. The FSM-fit analyze job applies that exclusion itself; see [`analyze.md`](analyze.md) § Audience eligibility.
+The FSM-using-account trim that used to sit between `active` and `netNew` (`− PG probe(jobs.Jobs recent)`) is **gone** — it was removed entirely (job filtering is not used at this stage; see [`analyze.md`](analyze.md) § Audience eligibility). `account_metrics` covers all invoice-active accounts.
 
 > **Account maturity is not a discovery gate.** An earlier revision planned a 4th eligibility condition here (account created > 90 days ago). It was **relocated to the FSM-fit audience filter** — applied inside `AnalyzeFsmFitJob` at scoring time, alongside the FSM-using exclusion — see [`analyze.md`](analyze.md) § Audience eligibility § Account-maturity gate. `account_metrics` stays analysis-agnostic (rows exist for <90-day accounts too); only FSM-fit drops them from its scored set. `FilterEligibleAsync` therefore keeps just conditions 1–2 (alive, non-technical).
 
@@ -233,7 +233,7 @@ The FSM-using-account trim that used to sit between `active` and `netNew` (`− 
 
 **Collection names are identical in both cases** — Federation exposes `invoices` / `estimates` / `clients` / `accounts` under their native names (no prefix, no alias map). So collector code is **env-invariant**: only the connection-string *value* changes between prod and stage.
 
-> The read-only Postgres connection to `Invoices.Backend`'s `jobs` schema (`ConnectionStrings:InvoicesJobs`) is **not** wired in this stage — it served the FSM eligibility probe only. Its connection factory, settings, and the cross-repo role/grant prerequisite move to [`analyze.md`](analyze.md) § Audience eligibility.
+> The read-only Postgres connection to `Invoices.Backend`'s `jobs` schema (`ConnectionStrings:InvoicesJobs`) served the FSM eligibility probe only and has been **removed** — job filtering is not used at this stage (see [`analyze.md`](analyze.md) § Audience eligibility). Neither the metrics nor the analyze stage reads any cross-service Postgres.
 
 ### BigQuery
 
@@ -266,8 +266,6 @@ As built, a single **`BigQueryAccountMetricsRepository` (implements `IAccountMet
 }
 ```
 
-The `Analyses:Postgres:JobsDb` connection (read-only role on `Invoices.Backend`'s `jobs.Jobs`) is added by the analyze stage — see [`analyze.md`](analyze.md) § Audience eligibility.
-
 Bound to a strongly-typed `MetricsOptions` record via `services.Configure<MetricsOptions>(config.GetSection("Analyses:Metrics"));`. **No env-specific overrides** — `appsettings.Production.json` provides the per-env connection strings via the GSM mount; `appsettings.Development.json` provides local equivalents for dev / unit tests.
 
 `Cadence`, `RefreshTtl`, `ExpiredScanBatchSize`, `AggregationBatchSize`, `MaxConcurrentBatches` are deliberately knobs (operability lever — see `analyses/metrics.md` § Performance budget § "What would break this"). They are not used to gate logic — only to size loops; `AggregationBatchSize` is the main lever bounding the per-batch `$group` working set.
@@ -283,8 +281,6 @@ Registration is split across three module DI files, all called from `Tofu.AI.Api
 | `IMongoDatabase` | Singleton | `AddAnalysesInfrastructure` | via `MongoDatabaseFactory` from `ConnectionStrings:Mongo` (DB name from URL); all four collectors share it; resolved lazily so the `migrate` CLI never opens Mongo |
 | 4 `*MetricsCollector` + `MetricsCollector` (+ `IMetricsCollector`) + `IAccountDiscovery` | Singleton | `AddAnalysesInfrastructure` | stateless aggregation |
 | `IAccountMetricsRepository`, `StorageWriteApiHelper`, BigQuery clients | Scoped / Singleton | `AddAnalysesPersistence` | repository scoped; `BigQueryClient` + `BigQueryWriteClient` + helper singletons |
-
-The `IFsmEligibilityProbe` registrations (`NoOp` default + the PG-backed real probe + its `NpgsqlDataSource`) move to the analyze stage — see [`analyze.md`](analyze.md) § Audience eligibility § DI.
 
 `Tofu.AI.Api/Program.cs` is the only composition root. Wiring order:
 
@@ -322,7 +318,7 @@ LLM-call telemetry is **not** here — that belongs to `AnalyzeJob<TAnalysis>` (
 
 Per the skill's testing requirement, this lands with at least one integration test in `tests/Tofu.AI.FunctionalTests` (or whatever the repo's existing functional-test project ends up named):
 
-- **`MetricsRefreshJob_runs_full_tick_against_fixture_mongo_and_writes_account_metrics_row`** — uses TestContainers Mongo + the BQ emulator (or a mock writer if the emulator is too heavy in CI); seeds one invoice-active account and one deleted account; asserts that one row lands in BQ with the expected typed columns. End-to-end through the actual `MetricsCollector` fan-out + CDC upsert path — not a unit test over a single collector. (The FSM-using-account exclusion is no longer this stage's concern — its integration test lives in `analyze.md` § Audience eligibility and needs the PG container.)
+- **`MetricsRefreshJob_runs_full_tick_against_fixture_mongo_and_writes_account_metrics_row`** — uses TestContainers Mongo + the BQ emulator (or a mock writer if the emulator is too heavy in CI); seeds one invoice-active account and one deleted account; asserts that one row lands in BQ with the expected typed columns. End-to-end through the actual `MetricsCollector` fan-out + CDC upsert path — not a unit test over a single collector. (The FSM-using-account exclusion was removed — job filtering is not used at this stage; see `analyze.md` § Audience eligibility.)
 - **`MetricsCollector_build_batch_returns_one_row_per_account_and_defaults_empties`** — the batching contract proof: seed 2–3 accounts (one full, one with no invoices/estimates/clients) into the TestContainers Mongo, call `BuildBatchAsync` over all of them in **one** call, and assert one `AccountMetricsRow` per account, the empty one defaulting to count 0 / null averages, and **no cross-account bleed** from the shared `$in` `$group` (each account's metrics are its own). (There is no single-account `BuildAsync` — `BuildBatchAsync` is the only entry point.)
 
 Unit tests over each `*MetricsCollector` are useful but secondary — they verify each Mongo pipeline shape against the fixture data. They do **not** replace the integration test; the contract proof is the full tick.
@@ -338,7 +334,7 @@ These must land before WEB-1523 ships, but they are **not** WEB-1523 commits:
 | Mongo Data Federation endpoint provisioned in prod, snapshots cover `invoices` / `estimates` / `clients` / `accounts` with windows ≥ 12mo | Platform / DBA | Federation config; out of repo |
 | New partial index `invoices.{CreatedTime: 1}` with `partialFilterExpression: {IsDeleted: {$in: [false, null]}}` | `Tofu.Invoices.Backend` | `MongoDbContext.cs` `Configure(...)` block — separate PR in that repo |
 
-The two `Invoices.Backend` Postgres prerequisites (read-only `jobs.Jobs` role + the `{AccountId}` index) belonged to the FSM eligibility probe and move with it to [`analyze.md`](analyze.md) § Audience eligibility § Cross-repo prerequisites — they no longer gate the metrics stage.
+The two `Invoices.Backend` Postgres prerequisites (read-only `jobs.Jobs` role + the `{AccountId}` index) belonged to the FSM eligibility probe, which has been **removed** (job filtering is not used at this stage — see [`analyze.md`](analyze.md) § Audience eligibility). They no longer apply to either stage.
 
 The `Affected repos` table in the parent `README.md` should grow to list `Tofu.Invoices.Backend` as a v1 touch point for the new `invoices` index once it's scheduled — even though the change is tiny, it's a separate PR that gates the WEB-1523 deploy.
 

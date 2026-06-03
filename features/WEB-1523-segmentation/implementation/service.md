@@ -167,17 +167,14 @@ Tofu.AI.Backend/
 │   │   │   │   └── README.md                        # empty placeholder brief until v2 ticket lands
 │   │   │   ├── SuspiciousUser/                      # v2 — same
 │   │   │   │   └── README.md                        # empty placeholder brief until v2 ticket lands
-│   │   │   ├── Eligibility/                         # IFsmEligibilityProbe + value objects
 │   │   │   ├── Redaction/                           # Presidio port + shared value objects
 │   │   │   ├── Repositories/                        # IAccountMetricsRepository, IAnalysisResultRepository
 │   │   │   └── Analyses.Domain.csproj
 │   │   ├── Analyses.Application/
 │   │   │   ├── Jobs/                                # MetricsRefreshJob, AnalyzeJob<T>, AnalyzeFsmFitJob, SmokeProbeJob — Hangfire entry points
-│   │   │   ├── Eligibility/                         # NoOpFsmEligibilityProbe (dev fallback)
 │   │   │   ├── Llm/                                 # ILlmClient + IPromptLoader + stubs
 │   │   │   └── DependencyInjection.cs               # AddAnalysesApplication + RegisterAnalysesRecurringJobs
 │   │   ├── Analyses.Infrastructure/
-│   │   │   ├── Eligibility/                         # PgFsmEligibilityProbe — read-only `jobs.Jobs` probe
 │   │   │   ├── Llm/                                 # real OpenAI client (swapped in when Analyses:OpenAi:Enabled = true)
 │   │   │   ├── PayloadBuilders/                     # per-analysis IPayloadBuilder<T> implementations
 │   │   │   ├── Redaction/                           # Presidio HTTP adapter (swapped in when Analyses:Redaction:Enabled = true)
@@ -210,7 +207,7 @@ Tofu.AI.Backend/
 
 **Tofu.Docs remains the single source of truth** for design decisions; the briefs are an index + business framing, not duplicated content. Colocating the briefs with the per-analysis C# folder (rather than a separate `analyses-catalog/` tree at repo root) means adding a new analysis adds **one** folder (`src/Analyses/Analyses.Domain/<NewType>/`) that contains both the engineering code and the BA/PM brief — no parallel path to maintain. The module structure mirrors `Src/Jobs/` in `Invoices.Backend` (`Jobs.Domain/`, `Jobs.Application/`, `Jobs.Infrastructure/`, `Jobs.Contracts/` as sibling projects under a module folder), adapted to the analyses domain.
 
-**Cross-repo signal sources.** v1 reads Mongo via the BFF-style aggregator pattern, but routed to the Federation endpoint (prod) or a plain default connection to prod Mongo (stage), as the other services use (see "Mongo read routing" note above). v1 also opens a **read-only Postgres connection against `Invoices.Backend`'s `jobs` schema** — `AnalyzeFsmFitJob`'s audience filter (Layer B, **not** metrics collection) batch-probes `jobs.Jobs` to exclude FSM-using accounts before scoring (invoice-only audience; see [`analyze.md`](analyze.md) § Audience eligibility). Read-only, secondary-preferred if the workspace PG instance exposes one. No new gRPC client in v1. v2 brings the `Tofu.Auth.Api.Client` gRPC dependency for `churn_risk` / `suspicious_user` login/session signals — flagged here so the v1 design doesn't preclude wiring it in.
+**Cross-repo signal sources.** v1 reads Mongo via the BFF-style aggregator pattern, but routed to the Federation endpoint (prod) or a plain default connection to prod Mongo (stage), as the other services use (see "Mongo read routing" note above). v1 opens **no** cross-repo Postgres connection — `AnalyzeFsmFitJob`'s audience filter (Layer B, **not** metrics collection) is the account-maturity gate, which reads only the source `accounts` Mongo collection (see [`analyze.md`](analyze.md) § Audience eligibility). The earlier FSM-using-account exclusion over `Invoices.Backend`'s `jobs.Jobs` was removed — job filtering is not used at this stage. No new gRPC client in v1. v2 brings the `Tofu.Auth.Api.Client` gRPC dependency for `churn_risk` / `suspicious_user` login/session signals — flagged here so the v1 design doesn't preclude wiring it in.
 
 **Single image, single K8s Deployment.** The `Dockerfile` publishes `Tofu.AI.Api` (with `Analyses.Domain` + `Analyses.Application` + `Analyses.Infrastructure` + `Analyses.Persistence` pulled in transitively via `<ProjectReference>`). K8s declares one Deployment off that image — API (2 replicas, HTTP entry point **and** Hangfire server + dashboard in-process). The closest peer template is `Deploy/Invoices.Kubernetes/overlays/prod/tofu-invoices.yaml`'s `invoices-api-deployment` block, minus the BFF-specific PDF/GCS plumbing. The earlier `tofu-ai.yaml` overlay (chat-proxy era) is the file extended in-place; resource sizing is bumped to absorb the Hangfire workload, but the probe + lifecycle pattern stays workspace-standard.
 
@@ -257,16 +254,17 @@ No `gcs-secret-acc-key` volume — that's an `Invoices.Backend` BFF concern (PDF
 
 **Storage backing — Postgres, schema `analyses`.** Hangfire persists job state + retry queue + dashboard history across pod restarts in a Postgres schema dedicated to the AI service. Connection string at `ConnectionStrings:Analyses` in `appsettings.json` → GSM secret `tofu-ai-api-secret`. With `PrepareSchemaIfNecessary = true`, the schema + Hangfire tables are created on first API startup outside CLI mode — no separate migration step. With the API at 2 replicas, **both pods run the Hangfire server**; `Hangfire.PostgreSql`'s distributed lock (`SET LOCAL lock_timeout` + `pg_advisory_xact_lock` under the hood) serialises recurring-job execution across replicas so the same tick is not processed twice. `[DisableConcurrentExecution]` on long-running job methods enforces the same guarantee at the job level — `MetricsRefreshJob.RunAsync` already declares it with a 600s timeout.
 
-**Data-store landscape for `Tofu.AI.Backend`.** The service talks to four logical stores via three connection types:
+**Data-store landscape for `Tofu.AI.Backend`.** The service talks to three logical stores via three connection types:
 
 | Connection | Role | Owner | Mode |
 |---|---|---|---|
 | Mongo — **prod**: Data Federation endpoint over snapshots of `invoicesDB` from both `Invoices.Backend` and `Tofu.Invoices.Backend` clusters. **stage**: a plain default connection to the live prod Mongo clusters, as the other services use (same collection names; only the connection string differs). | Signal aggregation (`MetricsRefreshJob`, `AnalyzeJob<T>` payload builders) | `Invoices.Backend` + `Tofu.Invoices.Backend` (snapshot owners TBD) | Read-only |
-| Postgres — `Invoices.Backend`'s `jobs` schema (`ConnectionStrings:InvoicesJobs`) | `AnalyzeFsmFitJob` audience filter (exclude FSM-using accounts) — **not** metrics collection; see `analyze.md` § Audience eligibility | `Invoices.Backend` | Read-only |
 | Postgres — `tofu-ai-backend` schema `analyses` (`ConnectionStrings:Analyses`) | Hangfire job state + retry queue + dashboard history | `Tofu.AI.Backend` (owned) | Read/write |
 | BigQuery dataset `ai_analysis_v2` | Analysis output (`account_metrics`, `account_<type>`, `v_<type>`) | `Tofu.AI.Backend` (owned) | Write from the API pod, read from stage-2 controllers in the same pod |
 
-Pick a shared workspace Postgres instance for the Hangfire schema at deploy time — no dedicated provisioning in v1. The read-only `jobs` connection points at the existing `Invoices.Backend` PG cluster; coordinate the read user / connection-string secret with the BFF team before deploy.
+> The read-only Postgres connection to `Invoices.Backend`'s `jobs` schema (`ConnectionStrings:InvoicesJobs`) that once backed the `AnalyzeFsmFitJob` FSM-using-account exclusion has been **removed** — job filtering is not used at this stage (see `analyze.md` § Audience eligibility). No cross-service Postgres read remains.
+
+Pick a shared workspace Postgres instance for the Hangfire schema at deploy time — no dedicated provisioning in v1.
 
 **Specific job decomposition is deferred to implementation.** Whether the workload is one job, two (analyze + merge), or N (per-trigger-type, per-analysis-type) is a tactical choice that depends on what feels clean once the code is being written. Hangfire supports either shape with the same primitives — `RecurringJob.AddOrUpdate(...)` + `BackgroundJob.Enqueue(...)`. Lock the decomposition during implementation or in a follow-up spike if the choice turns out to matter; don't over-design it here.
 

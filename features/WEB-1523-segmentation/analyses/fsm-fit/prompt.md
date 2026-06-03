@@ -2,11 +2,11 @@
 
 The system prompt sent to OpenAI `gpt-4.1-nano` for the FSM-fit analysis instance ([`scoring.md`](scoring.md)).
 
-**Production source of truth:** [`Investigation/main-1361-collect/analyze-exports.js`](../../../../Investigation/main-1361-collect/analyze-exports.js) — `SYSTEM_PROMPT` constant. The block below is a verbatim mirror so docs-only readers see what the model is told. **If the source changes, this block must be updated in lockstep.**
+**Production source of truth:** [`Investigation/main-1361-collect/analyze-exports.js`](../../../../Investigation/main-1361-collect/analyze-exports.js) — `SYSTEM_PROMPT` constant (mirrored in `Tofu.AI.Backend` as `FsmFitPrompt.cs`). The block below is the mirror so docs-only readers see what the model is told. **If the source changes, this block must be updated in lockstep.**
 
 The companion user-message template is `buildUserMessage(acct)` in the same file — it wraps the per-account payload (described in [`../../investigation/privacy.md`](../../investigation/privacy.md) § 1) in a `Classify this account:` prefix.
 
-Current version: `v6-industry-scheduling`. Open issues at the bottom of this doc.
+Current shipped version: `v6-industry-scheduling`. **Intended next version: `v7-notes` (2026-05-30)** — adds an explicit `top_notes` payload field to INPUT FORMAT and tells the model to weigh redacted note text equally with item names (see [`scoring.md`](scoring.md) § Notes as evidence and [`../../investigation/privacy.md`](../../investigation/privacy.md) § 1 *Notes decision*). The block below already reflects `v7-notes`; the production `SYSTEM_PROMPT` + `FsmFitPrompt.cs` **lag and must be updated to match before the notes field ships**. Open issues at the bottom of this doc.
 
 ## Prompt (verbatim)
 
@@ -30,7 +30,7 @@ WHAT FSM IS POORLY SUITED FOR
 - Wholesale or B2B product distribution.
 
 INPUT FORMAT
-The payload is pre-redacted by a server-side PII pass before it reaches you. You may see placeholders like [PERSON], [LOCATION], [ADDRESS], [EMAIL], [PHONE] in item names or notes — treat their PRESENCE as positive evidence of what they masked (e.g. a [LOCATION] inside an item name is a strong signal of on-site work, just like an unredacted street name would be). Do not try to reconstruct what was masked.
+You are given the account's top_item_names (invoice line-item text) and top_notes (free-text notes the operator wrote on their invoices), plus backend aggregates. Both free-text fields are pre-redacted by a server-side PII pass before they reach you. You may see placeholders like [PERSON], [LOCATION], [ADDRESS], [EMAIL], [PHONE] in item names or notes — treat their PRESENCE as positive evidence of what they masked (e.g. a [LOCATION] inside an item name is a strong signal of on-site work, just like an unredacted street name would be). Weigh note text as evidence on equal footing with item names for every boolean below — notes often state scheduling, "call back" / "follow up" / "return visit", recurring cadence, and crew / worker names explicitly. Do not try to reconstruct what was masked.
 
 OUTPUT
 Emit a STRICT JSON object matching the response schema with these fields:
@@ -81,7 +81,7 @@ Emit a STRICT JSON object matching the response schema with these fields:
 
 HARD RULES
 - Every boolean must be inferable from the provided fields. If a signal is absent or unclear, return FALSE — never guess up or hallucinate.
-- When item-text signal and backend-aggregate signal conflict, prefer item text — backend aggregates summarise patterns, but item text is direct evidence of work nature. Example: `repeat_customer_ratio = 0.30` (below the recurring threshold) combined with item names "Weekly pool service" → recurring_billing=true (item text overrides aggregate).
+- When item-text signal and backend-aggregate signal conflict, prefer item text — item names AND notes are direct evidence of work nature, while backend aggregates only summarise patterns. Example: `repeat_customer_ratio = 0.30` (below the recurring threshold) combined with item names "Weekly pool service" or a note "back next week, same as usual" → recurring_billing=true (item text overrides aggregate).
 - industry MUST be exactly one of the 24 enum values listed above. No variations.
 - reasoning must contain no client names, no full addresses, no phone numbers, no email addresses.
 - If business_name is missing or "Unknown business", infer from item names alone.
@@ -114,6 +114,8 @@ The negative list exists because of failure modes seen during iteration: tennis 
 > *"You may see placeholders like [PERSON], [LOCATION], [ADDRESS] ... treat their PRESENCE as positive evidence of what they masked."*
 
 The payload runs through a PII redactor before it hits OpenAI ([`../../investigation/privacy.md`](../../investigation/privacy.md) § 2). Without this clause the model treated `[ADDRESS]` placeholders as missing data and under-fired `on_site_work`. The fix is conceptually one line: tell the model the placeholder is itself a signal. "Do not try to reconstruct" exists to head off the failure mode where the model puts a fabricated street name in `reasoning`.
+
+**`top_notes` (v7-notes, 2026-05-30).** The payload now also carries operator-written invoice notes, redacted on the **same** Presidio path as item names ([`../../investigation/privacy.md`](../../investigation/privacy.md) § 1 *Notes decision*). Notes are weighed equally with item names because they often state workflow facts the line items omit — "follow up next Tuesday" (→ `scheduling`), "monthly service" (→ `recurring_billing`), or crew names like "[PERSON] + helper" (team operation). Higher PII density than item names, so the redactor-quality gate matters most here; raw notes never reach the model.
 
 ### OUTPUT — six evidence booleans, each defined by TRUE/FALSE rules
 The six booleans were chosen to map directly to FSM product surfaces:

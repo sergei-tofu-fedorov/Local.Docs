@@ -37,6 +37,6 @@ sequenceDiagram
     end
 ```
 
-The two stores touched per tick — Mongo and BigQuery — are independent connections ([`metrics.md`](metrics.md) § Connection wiring), no shared abstraction. The discovery branch (`opt`) writes nothing; it only enqueues `account_id`s into the same parallel loop the expired-row pass feeds. The FSM-using-account exclusion is **not** part of this tick — `account_metrics` is analysis-agnostic. Dropping FSM users is an FSM-fit audience filter applied by `AnalyzeFsmFitJob`; see [`analyze.md`](analyze.md) § Audience eligibility.
+The two stores touched per tick — Mongo and BigQuery — are independent connections ([`metrics.md`](metrics.md) § Connection wiring), no shared abstraction. The discovery branch (`opt`) writes nothing; it only enqueues `account_id`s into the same parallel loop the expired-row pass feeds. Analysis-specific audience filtering is **not** part of this tick — `account_metrics` is analysis-agnostic. FSM-fit applies its own maturity gate in `AnalyzeFsmFitJob`; see [`analyze.md`](analyze.md) § Audience eligibility. (The earlier FSM-using-account exclusion was removed — job filtering is not used at this stage.)
 
 > Method name `SelectMissingAccountIdsAsync` (BQ `EXCEPT`) is illustrative — `metrics.md` describes the call but does not name the method. Reconcile with the real signature once the code lands.

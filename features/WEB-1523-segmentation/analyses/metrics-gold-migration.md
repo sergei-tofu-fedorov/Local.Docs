@@ -67,7 +67,7 @@ SERVING SEAM
                         ▼                                     ▼
 CONSUMERS (unchanged by the migration)
   AnalyzeFsmFitJob (hourly)                      v_fsm_fit (analyst view)
-   batch read → FSM-using trim →                  account_metrics ⟕ account_fsm_fit
+   batch read → maturity trim →                   account_metrics ⟕ account_fsm_fit
    input_hash cache → LLM + scorer
    → account_fsm_fit
 ```

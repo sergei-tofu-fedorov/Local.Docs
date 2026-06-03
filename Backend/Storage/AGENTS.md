@@ -33,7 +33,6 @@ Cross-service reads
 -------------------
 
 Stores one service **reads but does not own** (worth knowing for blast-radius):
-- `Tofu.AI.Backend` → `jobs."Jobs"` in `Invoices.Backend` PG (FSM-using audience filter), via `ConnectionStrings:InvoicesJobs`.
 - `Tofu.AI.Backend` → the four source Mongo collections (Federation in prod), via `ConnectionStrings:Mongo`.
 
 GCP projects
