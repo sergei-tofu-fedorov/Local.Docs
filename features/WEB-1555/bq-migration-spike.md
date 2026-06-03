@@ -4,6 +4,10 @@
 **Date:** 2026-06-02
 **Goal:** Move the WEB-1555 account-metrics / FSM-fit pipeline off **live MongoDB queries** onto a **BigQuery-sourced flow**, where source collections are loaded from Atlas snapshot exports into BQ and the metric collectors become SQL. Keep only the OpenAI FSM-fit step in C#.
 
+> **Actionable build plan:** [`bq-tables-build-plan.md`](bq-tables-build-plan.md) — the step-by-step "4 source tables → `account_metrics`" plan derived from these findings.
+> **Decision locked (2026-06-02):** **(a) SQL-materialized `account_metrics` + daily `LOAD DATA OVERWRITE` full-replace** (not the C# CDC path). Snapshots are full dumps, so overwrite handles deletes for free.
+> **Signals finding:** `account_metrics` can carry the metrics **+ `top_item_names`** in pure SQL (item names go to the LLM raw). **Notes cannot** — `FsmFitPayloadBuilder` redacts them via Presidio and raw notes must never land in BigQuery, which SQL can't do. See the build plan's § "The notes problem" (Design A: redact notes at analyze time from BQ `invoices`; Design B: a C# Presidio pass writes redacted notes into `account_metrics`).
+
 ---
 
 ## TL;DR / verdict
@@ -220,6 +224,7 @@ Measured: the 30d window query billed **78.5 MB** (2.8% of the table) thanks to 
 
 ## Open decisions
 
+- **Notes in `account_metrics`** — Design A (notes redacted at analyze time from BQ `invoices`; pure-SQL refresh; recommended) vs Design B (C# Presidio pass stores redacted notes in BQ → fully self-sufficient `account_metrics`, but persists redacted notes + needs privacy sign-off). See [`bq-tables-build-plan.md`](bq-tables-build-plan.md) § "The notes problem".
 - Live freshness (Mongo) vs snapshot freshness (BQ) — acceptable for FSM-fit? (Probably yes; confirm.)
 - Canonical vs **Relaxed** Extended-JSON export (Relaxed massively simplifies typing).
 - Keep `accounts_raw`/raw landing, or go straight external-table → typed (no raw).
