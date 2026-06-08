@@ -12,6 +12,7 @@ Cross-product / cross-repo feature docs and plans. One folder per feature; `feat
 | `WEB-1527` | Account-metrics collection implementation in `Tofu.AI.Backend`. | [README](WEB-1527/README.md) |
 | `WEB-1529` | Assign admin role on business-account creation (eager path + backfill). | [README](WEB-1529/README.md) |
 | `WEB-1479` | Pass auth from mobile into a Safari web view via Firebase (ID vs custom token); land users on the web-app home. | [README](WEB-1479/README.md) |
+| `WEB-1617` | Providing demo access to our application. | [README](WEB-1617/README.md) |
 | `ai_summary` | Earlier AI-Summary / FSM-compatibility exploration (superseded by WEB-1523). | [README](ai_summary/README.md) |
 
 ## Convention
