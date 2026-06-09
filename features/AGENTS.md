@@ -14,6 +14,7 @@ Cross-product / cross-repo feature docs and plans. One folder per feature; `feat
 | `WEB-1529` | Assign admin role on business-account creation (eager path + backfill). | [README](WEB-1529/README.md) |
 | `WEB-1479` | Pass auth from mobile into a Safari web view via Firebase (ID vs custom token); land users on the web-app home. | [README](WEB-1479/README.md) |
 | `WEB-1617` | Providing demo access to our application. | [README](WEB-1617/README.md) |
+| `WEB-1600-recurring-jobs` | Recurring client service → generated visits + per-period draft invoices. Holds the ServiceTitan-style "bill-on-agreement" design (the Option A period-Job plan lives in the `Invoices.Backend` repo). | [AGENTS](WEB-1600-recurring-jobs/AGENTS.md) |
 | `ai_summary` | Earlier AI-Summary / FSM-compatibility exploration (superseded by WEB-1523). | [README](ai_summary/README.md) |
 
 ## Convention
