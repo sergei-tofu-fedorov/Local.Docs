@@ -74,6 +74,29 @@ PostgreSQL databases/schemas across the workspace. Index: [`AGENTS.md`](AGENTS.m
 
 ---
 
+## `tofu_ai` / `investigations` schema — Tofu.AI.Backend
+
+**Owner / writer:** `Tofu.AI.Backend` (Investigations module, FS-1111) · **Config key:** `ConnectionStrings:Investigations`
+**Env:** dev = `Host=localhost;Port=55333;Database=tofu_ai` (docker-compose Postgres, named volume `tofu-ai-pgdata`; 55333 dodges Windows WinNAT excluded ranges that swallowed 55433) · prod = **not deployed** (Phase 1 is local-only)
+**Migration / write path:** raw-SQL `M0001_CreateInvestigationsSchema` (`IModuleMigration`, idempotent "ensure schema" — additive changes appended, not chained); self-skips when the connection string is unset.
+
+> Five tables by design — the agent's knowledge (taxonomy, known issues, past-run digests) lives as **text files** (git-versioned sources + `.tofu-ai/` projections), not DB rows; relatedness derives from fingerprints. See [`features/FS-1111/agent-context-pull.md`](../../features/FS-1111/agent-context-pull.md). *(Code on `feature/FS-1111` still creates the legacy extra objects — dropped at implementation.)*
+
+### Objects
+| Table | Purpose | Key indexes |
+|---|---|---|
+| `investigation_runs` | one AI investigation run (status, hints, Slack correlation, tokens, `report_md`) | `(status,created_at)`; `(created_at desc)` |
+| `investigation_findings` | findings + citations jsonb + fingerprint (dedupe + related-runs derivation) | `UNIQUE(run_id,seq)`; `(fingerprint)`; GIN `citations` |
+| `investigation_tags` | multi-valued run tags, validated app-side vs `taxonomy.json` | PK `(run_id,key,value)`; `(key,value)` |
+| `investigation_events` | live progress timeline (tool calls, messages); identity `id` = poll cursor | `(run_id, id)` |
+| `proposed_actions` | propose→approve→execute write path (kind `restore_account`) | `(status,created_at)`; `(run_id)` |
+
+### Links
+- Code: `Tofu.AI.Backend/src/Investigations/Investigations.Infrastructure/Migrations/M0001_CreateInvestigationsSchema.cs`
+- Service docs: [`Backend/Services/Tofu.AI/Investigations.md`](../Services/Tofu.AI/Investigations.md)
+
+---
+
 ## `tofu_auth` — Tofu.Auth.Backend
 
 **Owner / writer:** `Tofu.Auth.Backend` (`AuthContext`) · **Config key:** `ConnectionStrings:pgsql_db`

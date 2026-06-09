@@ -6,6 +6,7 @@ Cross-product / cross-repo feature docs and plans. One folder per feature; `feat
 
 | Feature | What it is | Entry |
 |---|---|---|
+| `FS-1111` | Service which will use AI for investigating diff issues for our application. | [README](FS-1111/README.md) |
 | `WEB-1523-segmentation` | AI-powered user-analysis platform (FSM-fit) — the framework/spec home; large tree (`analyses/`, `implementation/`, `investigation/`). | [README](WEB-1523-segmentation/README.md) |
 | `WEB-1526` | CI/CD changes for the `Tofu.AI.Backend` FSM-fit pipeline. | [README](WEB-1526/README.md) |
 | `WEB-1526-prep` | Groundwork: `Tofu.AI.Backend` to canonical form (src/ move, ports/adapters) + `Invoices.Kubernetes` fixes. | [README](WEB-1526-prep/README.md) |

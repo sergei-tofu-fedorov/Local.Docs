@@ -18,12 +18,14 @@ Index
 | Store | Type | Env / location | Owner (writer) | Config key | Detail |
 |---|---|---|---|---|---|
 | `ai_analysis_v2` | BigQuery | test=`invoicesapp-project-test` · prod=deploy-time (not in config) | `Tofu.AI.Backend` | `Analyses:BigQuery` | [`bigquery.md`](bigquery.md) |
+| BQ live survey (all datasets in `inv-project` / test, incl. analytics, GA4, pubsub_audit) | BigQuery | prod=`inv-project` · test=`invoicesapp-project-test` | mixed (analytics pipelines, Firebase, Pub/Sub, Tofu.AI) | — | [`bigquery-sources.md`](bigquery-sources.md) |
 | `invoicesDB` (BFF) | MongoDB | dev=`localhost:27017` · prod=TODO | `Invoices.Backend` | `ConnectionStrings:MongoDb` | [`mongo.md`](mongo.md) |
 | `invoicesDB` (Tofu.Invoices) | MongoDB | dev=`localhost:27017` · prod via Data Federation | `Tofu.Invoices.Backend` | `ConnectionStrings:MongoDb` | [`mongo.md`](mongo.md) |
 | `jobs` schema (FSM) | PostgreSQL | dev=`localhost:5432/postgres` · prod=TODO | `Invoices.Backend` | `Jobs:ConnectionString` | [`postgres.md`](postgres.md) |
 | `notifications` schema | PostgreSQL | dev=`localhost:5432/postgres` · prod=TODO | `Invoices.Backend` | `Notifications:ConnectionString` | [`postgres.md`](postgres.md) |
 | `tofu_invoices` (event store) | PostgreSQL | dev=`localhost:5432/tofu_invoices` · prod=TODO | `Tofu.Invoices.Backend` | `ConnectionStrings:pgsql_db` | [`postgres.md`](postgres.md) |
 | `tofu_ai` / `analyses` schema (Hangfire) | PostgreSQL | dev=`localhost:5432/tofu_ai` · prod=TODO | `Tofu.AI.Backend` | `ConnectionStrings:Analyses` | [`postgres.md`](postgres.md) |
+| `tofu_ai` / `investigations` schema (FS-1111) | PostgreSQL | dev=`localhost:55333/tofu_ai` (compose) · prod=not deployed | `Tofu.AI.Backend` | `ConnectionStrings:Investigations` | [`postgres.md`](postgres.md) |
 | `tofu_auth` | PostgreSQL | dev=`localhost/tofu_auth` · prod=TODO | `Tofu.Auth.Backend` | `ConnectionStrings:pgsql_db` | [`postgres.md`](postgres.md) |
 | `tofu_payments` (PaymentOrders) | PostgreSQL | prod=TODO | Tofu Payments (external) | — | [`postgres.md`](postgres.md) |
 | GCS — `contents`/`temp_contents`/`tofu-bdui*` | Object storage | buckets | `Invoices.Backend` | `ContentsService:*` | [`gcs.md`](gcs.md) |

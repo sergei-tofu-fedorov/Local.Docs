@@ -1,7 +1,7 @@
 BigQuery stores
 ===============
 
-All BigQuery datasets across the workspace. Index: [`AGENTS.md`](AGENTS.md). Store-level inventory — full DDL lives in the owning migration code (linked).
+All BigQuery datasets across the workspace **that our code writes**. Index: [`AGENTS.md`](AGENTS.md). Store-level inventory — full DDL lives in the owning migration code (linked). For the live survey of *everything* in the GCP projects (analytics, GA4 export, pubsub audit, etc.), see [`bigquery-sources.md`](bigquery-sources.md).
 
 ---
 

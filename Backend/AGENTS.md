@@ -13,18 +13,19 @@ Per-service deep docs — each has its own `AGENTS.md`:
 - [`Services/Invoices.Backend/AGENTS.md`](Services/Invoices.Backend/AGENTS.md) — BFF / gateway exposed to web + mobile clients.
 - [`Services/Tofu.Invoices/AGENTS.md`](Services/Tofu.Invoices/AGENTS.md) — core invoices + estimates service.
 - [`Services/Tofu.Auth/AGENTS.md`](Services/Tofu.Auth/AGENTS.md) — authentication / authorization (sessions, OTP, permissions).
+- [`Services/Tofu.AI/AGENTS.md`](Services/Tofu.AI/AGENTS.md) — AI services: analyses (FSM-fit) + investigations (agentic issue RCA).
 
 ## REST API references (`Api/`)
 `Api/<NAME>_API_REFERENCE.md`: ACCOUNT, AUTHORIZATION, CLIENTS, ESTIMATES, INVITATIONS, INVOICES, ITEMS, JOBS, NOTIFICATIONS, PAYMENTS, TEAMS, WORKER.
 
 ## Flows (`Flows/`)
-AUTHENTICATION_FLOW, INVITATION_FLOWS, JOB_FROM_ESTIMATE_FLOWS, NOTIFICATIONS_FLOWS, OTP_FLOW, WORKER_FLOWS.
+ANALYTICS_EVENTS_FLOWS (Amplitude + event bus), AUTHENTICATION_FLOW, INVITATION_FLOWS, JOB_FROM_ESTIMATE_FLOWS, NOTIFICATIONS_FLOWS, OTP_FLOW, WORKER_FLOWS.
 
 ## How-to guides (`HowTo/`)
 Architecture, Authentication, Authorization, CodeStyle, DDD, EmailSending, IntegrationTests, OneLink, PushNotifications, Transactions, UnitOfWork.
 
 ## Domain notes (`Domain/`)
-permissions-architecture, permissions-migration-plan, plans-stripe, reports, users.
+permissions-architecture, permissions-migration-plan, plans-stripe, product-prices, reports, users.
 
 ## Data stores (`Storage/`)
 Inventory of every dataset / collection / schema / bucket → [`Storage/AGENTS.md`](Storage/AGENTS.md) (BigQuery, Mongo, Postgres, GCS).
