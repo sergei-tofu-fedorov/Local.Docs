@@ -62,7 +62,7 @@ sequenceDiagram
 
     U->>C: GET /api/investigations/{id}
     C->>DB: GetAsync()
-    C-->>U: 200 {findings[3], tags, limitations, links}
+    C-->>U: 200 {findings[3], tags, limitations, proposed actions}
 ```
 
 What the diagram can't carry:

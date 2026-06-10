@@ -1,4 +1,16 @@
-# FS-1111 — Web Spike: AI investigation system over ClickUp / tickets / GCP logs / Sentry / Amplitude / Stripe / source code
+# FS-1111 — Web spikes (research)
+
+Three point-in-time web spikes backing the design in [`overview.md`](./overview.md) and [`agent-context.md`](./agent-context.md). Each is a dated research snapshot — findings are directional, not benchmarked, and were the basis for decisions that may have since evolved (the design docs are the current source of truth).
+
+**Contents:**
+
+1. [Buy-vs-build, architecture, per-source survey, framework & storage](#spike-1--buy-vs-build-architecture-per-source-survey-framework--storage) — 2026-06-06
+2. [Error fingerprinting, tag taxonomy, cross-run linking](#spike-2--error-fingerprinting-tag-taxonomy-cross-run-linking) — 2026-06-06
+3. [Storing & deploying the agent knowledge tree](#spike-3--storing--deploying-the-agent-knowledge-tree) — 2026-06-07
+
+---
+
+## Spike 1 — Buy-vs-build, architecture, per-source survey, framework & storage
 
 Research for an AI system that investigates issues and bugs by correlating ClickUp tasks, support tickets, GCP Cloud Logging, Sentry, Amplitude, Stripe, and the backend/mobile/web source code. The feature needs a buy-vs-build verdict, a reference architecture that keeps connectors pluggable (sources onboarded one at a time — Amplitude access does not exist yet), a per-source integration survey with access prerequisites for phase ordering, and a framework + internal-storage choice for a .NET shop.
 
@@ -224,7 +236,9 @@ Combined with incident.io's vector-demotion lesson (Q2): store findings as **LLM
 - [ ] **incident.io self-host claim** came from a secondary source (Better Stack) — verify with vendor only if buy re-enters consideration.
 - [ ] Sentry publishes no numeric API rate limits — validate empirically during Phase 1 if the investigator fans out heavily.
 
-# FS-1111 — Web Spike: error fingerprinting, tag taxonomy, cross-run linking
+---
+
+## Spike 2 — Error fingerprinting, tag taxonomy, cross-run linking
 
 Follow-up research (2026-06-06): how to recognize that an error found in GCP logs is the same underlying error as one covered by a previous investigation, and how to organize investigations beyond exact citations.
 
@@ -268,9 +282,13 @@ Sentry merging lesson: > "We don't infer any new grouping rules from how you mer
 - Tags (already decided, Option A): rows + FK-enforced taxonomy; add per-row `source (llm|human)` so human corrections are distinguishable — Grab's verification loop in miniature.
 - Links: `investigation_links` typed edge table, agent- or human-created, with rationale; never mutates fingerprints (Sentry lesson).
 
-# FS-1111 — Web Spike: storing/deploying the agent knowledge file tree
+> **Adopted differently in the final design** (see [`overview.md`](./overview.md) + [`agent-context.md`](./agent-context.md)): fingerprinting shipped as specified. But the taxonomy FK and the `investigation_links` table were *not* built — the tag vocabulary moved to a git-versioned `taxonomy.json` (validated app-side, reviewed via PR), and "related runs" derive from `findings.fingerprint` at read time rather than from stored edges. The `source (llm|human)` column on tags was kept.
 
-Follow-up research (2026-06-07) for [`agent-context-pull.md`](./agent-context-pull.md): the `.tofu-ai/` knowledge tree is the agent's read interface — where should it live and how should it deploy in the container phase? Options surveyed: separate git repo (commit-per-run), GCS sync / FUSE mount, K8s persistent volume, rebuild-from-Postgres at startup (current baseline). Plus prior art: how shipping agent products store file-based memory.
+---
+
+## Spike 3 — Storing & deploying the agent knowledge tree
+
+Follow-up research (2026-06-07) for [`agent-context.md`](./agent-context.md): the `.tofu-ai/` knowledge tree is the agent's read interface — where should it live and how should it deploy in the container phase? Options surveyed: separate git repo (commit-per-run), GCS sync / FUSE mount, K8s persistent volume, rebuild-from-Postgres at startup (current baseline). Plus prior art: how shipping agent products store file-based memory.
 
 ## Questions
 
@@ -321,9 +339,9 @@ Two patterns directly validate the FS-1111 design: **(a)** Claude Code's own aut
 
 ## Implications for the design
 
-- **Container phase storage = rebuild-from-PG into local ephemeral disk (emptyDir).** No PV, no bucket, no FUSE — every external option adds ops/PII surface to solve durability PG already provides (anchor: `agent-context-pull.md` deployment story; already consistent with it).
+- **Container phase storage = rebuild-from-PG into local ephemeral disk (emptyDir).** No PV, no bucket, no FUSE — every external option adds ops/PII surface to solve durability PG already provides (anchor: [`agent-context.md`](./agent-context.md) deployment story; already consistent with it).
 - **GCS FUSE is explicitly disqualified** for this workload shape (grep over many small files) — record it so it doesn't resurface (anchor: container-phase infra choices).
-- **Git mirror = optional Phase 2+, push-after-persist, single writer, failure-tolerant** — gives diffable history and human browsing; must be a *derived mirror*, never primary; **PII gate before pushing to an external host** (findings carry account ids / error details). Self-hosted or private repo + the no-PII-in-findings rule are prerequisites (anchor: the deferred git-repo idea in `agent-context-pull.md`).
+- **Git mirror = optional Phase 2+, push-after-persist, single writer, failure-tolerant** — gives diffable history and human browsing; must be a *derived mirror*, never primary; **PII gate before pushing to an external host** (findings carry account ids / error details). Self-hosted or private repo + the no-PII-in-findings rule are prerequisites (anchor: the deferred git-repo idea in [`agent-context.md`](./agent-context.md)).
 - **Cap `INDEX.md` like Claude Code caps `MEMORY.md`** (~25 KB): when exceeded, INDEX keeps recent + stats and the agent greps `runs/` for the tail (anchor: `.tofu-ai/` tree spec).
 - **Single-writer invariant must be stated**: `MaxConcurrentRuns=1` makes tree writes safe today; if replicas ever scale, tree generation must stay single-writer (git/GCS multi-writer hazards above) (anchor: container-phase scaling notes).
 

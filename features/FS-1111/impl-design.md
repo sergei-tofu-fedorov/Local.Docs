@@ -2,9 +2,7 @@
 
 A new `Investigations` module in `Tofu.AI.Backend`: REST API → `pending` run in Postgres → Hangfire job → Claude-CLI agent subprocess (read-only tools) → findings/tags/limitations/fingerprints persisted, events streamed live. Contracts are Slack-bot-shaped (async, compact summary, progress timeline). This doc is the abstraction surface only — no bodies.
 
-> **Scope guardrail.** Schema (tables/columns/indexes), endpoint shapes, taxonomy seed, and fingerprint rules are locked in [`overview.md`](overview.md); the research backing is in [`web-spike.md`](web-spike.md). On conflict, `overview.md` wins. No tests here — `/tests` later.
->
-> **2026-06-07:** this doc was updated to incorporate [`agent-context-pull.md`](agent-context-pull.md) — pull-only file-tree context, 5-table schema, text-file sources for taxonomy/known-issues. It now describes the **target design**; code on `feature/FS-1111` predates the redesign and catches up at implementation time.
+> **Scope guardrail.** Schema (tables/columns/indexes), endpoint shapes, taxonomy seed, and fingerprint rules are the source of truth in [`overview.md`](overview.md); the agent's `.tofu-ai/` read-time context is in [`agent-context.md`](agent-context.md); the research backing is in [`web-spike.md`](web-spike.md). On conflict, `overview.md` wins. No tests here — `/tests` later.
 
 Source of plan: [`overview.md`](overview.md) (consumed in full).
 
@@ -15,11 +13,11 @@ Source of plan: [`overview.md`](overview.md) (consumed in full).
 - **Writes = propose → approve → execute, agent never writes.** The fenced report gains `proposedActions:[{kind, payload, rationale}]`; the job persists them as `proposed` rows (validated against registered executors, drop+log unknowns — the taxonomy rule). `IProposedActionExecutor` (Domain port: `Kind` + `ExecuteAsync(payload)`) is implemented per kind in Infrastructure — Phase 1 only `RestoreAccountActionExecutor` (Mongo driver, separate `InvestigationsMongoActions` connection string, user scoped to update-on-accounts). Approve executes synchronously in the API request; double-approve is guarded by conditional `UPDATE … WHERE status='proposed'` → `409`.
 - **The agent port is the only seam Application sees:** `IInvestigationAgentPort.RunAsync(AgentRunRequest, onEvent, ct) → AgentRunResult`. Stream-json parsing, fenced-report parsing, `--allowed-tools`, MCP config are all internal to `Investigations.Agent.ClaudeCli`. Adapter selection by `Investigations:Agent:Type` switch in DI (only `ClaudeCli` in Phase 1).
 - **`RunInvestigationJob` is enqueue-based Hangfire** (`IBackgroundJobClient.Enqueue`), not recurring — reuses the existing Hangfire host (`src/Tofu.AI.Api/Hangfire/HangfireConfiguration.cs`); no new infrastructure. `[DisableConcurrentExecution]`-style serialization is *not* used — concurrency is governed by `MaxConcurrentRuns` checked in the job (queued runs stay `pending`).
-- **Repositories are raw Npgsql** (this repo has no EF) behind `IInvestigationRunRepository` / `IProposedActionRepository` in Domain. One `NpgsqlDataSource` singleton built from `ConnectionStrings:Investigations`. No taxonomy/known-issues repositories — those are **text source files** (see `agent-context-pull.md`); no links — relatedness derives from `findings.fingerprint`.
+- **Repositories are raw Npgsql** (this repo has no EF) behind `IInvestigationRunRepository` / `IProposedActionRepository` in Domain. One `NpgsqlDataSource` singleton built from `ConnectionStrings:Investigations`. No taxonomy/known-issues repositories — those are **text source files** (see [`agent-context.md`](agent-context.md)); no links — relatedness derives from `findings.fingerprint`.
 - **Migrations reuse the existing `IModuleMigration` runner** (`src/Analyses/Analyses.Infrastructure/Migrations/IModuleMigration.cs`) — `Investigations.Infrastructure` takes a project reference to `Analyses.Infrastructure` for the migration interfaces only. Accepted coupling; extracting the runner to a shared project is deliberately deferred (open question #1).
 - **Fingerprinting is a pure Domain service** (`IErrorFingerprinter`, no IO): sentry-ref verbatim → typed-error hash → normalized-message hash (Datadog rules), returning `(value, version)`. The **job** computes fingerprints at persist time; the agent's `error` block is input, never trusted as the hash.
 - **Code sources: dev workspace + read-only git in Phase 1; bare-clone cache in the container phase.** The agent reads `WorkspaceRoot` checkouts directly (disk-fast) and gets `Bash(git fetch/log/show/diff:*)` — history for change↔spike correlation, `git show origin/<default>:<path>` for deployed-ref reads; `git checkout` is excluded so the dev's working tree is never mutated. The container phase replaces `WorkspaceRoot` with a service-owned bare-clone cache (clone once, fetch per run) — an adapter-workspace concern, no new port.
-- **Prompt assembly is one class** (`InvestigationPromptBuilder` in Application): task verbatim + system appendix (source inventory, read-only + no-PII rules, report-JSON instruction, **`.tofu-ai/` pointer lines** — "FIRST Read known-issues.md", "Read taxonomy.json before tagging"). No injected knowledge blocks, no recall queries — the agent pulls from the text tree (`agent-context-pull.md`). Before the prompt, the job calls `IAgentContextWriter` to refresh the tree.
+- **Prompt assembly is one class** (`InvestigationPromptBuilder` in Application): task verbatim + system appendix (source inventory, read-only + no-PII rules, report-JSON instruction, **`.tofu-ai/` pointer lines** — "FIRST Read known-issues.md", "Read taxonomy.json before tagging"). No injected knowledge blocks, no recall queries — the agent pulls from the text tree ([`agent-context.md`](agent-context.md)). Before the prompt, the job calls `IAgentContextWriter` to refresh the tree.
 - **Controller maps domain → DTOs inline** in `Tofu.AI.Api` (matches `ChatController.cs` — this API has no separate mapper layer).
 - Runtime order, in prose (sequence diagram in [`impl-interaction.md`](impl-interaction.md)): controller persists `pending` + enqueues → job: refresh `.tofu-ai/` (context writer) → prompt → `running` → agent port (events appended as they stream; agent greps the tree for recall) → parse result → fingerprints → persist findings/tags/limitations/proposed-actions (one tx) → append run file + INDEX line → final status. `StaleRunSweep` runs once at host start (and rebuilds the tree).
 
@@ -79,8 +77,8 @@ Tofu.AI.Backend/
         │   ├── InvestigationService.cs                   # NEW — StartAsync (persist pending + enqueue), GetAsync, GetEventsAsync, ListAsync
         │   ├── ProposedActionService.cs                  # NEW — ListAsync(status), ApproveAsync (conditional flip + execute), RejectAsync
         │   ├── Jobs/
-        │   │   └── RunInvestigationJob.cs                # NEW — the tick: recall → prompt → agent → fingerprint → link → persist
-        │   ├── InvestigationPromptBuilder.cs             # NEW — task verbatim + system appendix (taxonomy, recall block, rules)
+        │   │   └── RunInvestigationJob.cs                # NEW — the tick: refresh .tofu-ai → prompt → agent → fingerprint → persist
+        │   ├── InvestigationPromptBuilder.cs             # NEW — task verbatim + system appendix (.tofu-ai pointers, rules, report contract)
         │   ├── StaleRunSweep.cs                          # NEW — IHostedService; marks orphaned 'running' rows failed at start
         │   └── DependencyInjection.cs                    # NEW — AddInvestigationsApplication()
         │
@@ -221,7 +219,7 @@ public interface IProposedActionRepository
 // text sources: the agent Reads them; persist-time tag validation parses taxonomy.json directly.
 ```
 
-Domain model records/enums (`Models/`) carry the schema from `overview.md` 1:1 — `InvestigationRun` (aggregate root with `MarkRunning()` / `MarkSucceeded()` / `MarkFailed(error)` / `MarkTimedOut()` transition guards), `InvestigationFinding`, `Citation` + `CitationKind`, `InvestigationEvent` + `InvestigationEventKind`, `InvestigationHints`, `SlackContext`, `TagAssignment(Key, Value, TagSource)`, `InvestigationLink` + `LinkRelationKind`, `RelatedInvestigation`. API DTOs are as specified in `overview.md` § DTOs.
+Domain model records/enums (`Models/`) carry the schema from `overview.md` 1:1 — `InvestigationRun` (aggregate root with `MarkRunning()` / `MarkSucceeded()` / `MarkFailed(error)` / `MarkTimedOut()` transition guards), `InvestigationFinding`, `Citation` + `CitationKind`, `InvestigationEvent` + `InvestigationEventKind`, `InvestigationHints`, `SlackContext`, `TagAssignment(Key, Value, TagSource)`, and `ProposedAction` + `ProposedActionStatus`. There is no link type — relatedness derives from `findings.fingerprint` via `FindRunIdsByFingerprintAsync`. API DTOs are as specified in `overview.md` § DTOs.
 
 ## Class skeletons
 

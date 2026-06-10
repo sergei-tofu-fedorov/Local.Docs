@@ -80,7 +80,7 @@ PostgreSQL databases/schemas across the workspace. Index: [`AGENTS.md`](AGENTS.m
 **Env:** dev = `Host=localhost;Port=55333;Database=tofu_ai` (docker-compose Postgres, named volume `tofu-ai-pgdata`; 55333 dodges Windows WinNAT excluded ranges that swallowed 55433) · prod = **not deployed** (Phase 1 is local-only)
 **Migration / write path:** raw-SQL `M0001_CreateInvestigationsSchema` (`IModuleMigration`, idempotent "ensure schema" — additive changes appended, not chained); self-skips when the connection string is unset.
 
-> Five tables by design — the agent's knowledge (taxonomy, known issues, past-run digests) lives as **text files** (git-versioned sources + `.tofu-ai/` projections), not DB rows; relatedness derives from fingerprints. See [`features/FS-1111/agent-context-pull.md`](../../features/FS-1111/agent-context-pull.md). *(Code on `feature/FS-1111` still creates the legacy extra objects — dropped at implementation.)*
+> Five tables by design — the agent's knowledge (taxonomy, known issues, past-run digests) lives as **text files** (git-versioned sources + `.tofu-ai/` projections), not DB rows; relatedness derives from fingerprints. See [`features/FS-1111/agent-context.md`](../../features/FS-1111/agent-context.md).
 
 ### Objects
 | Table | Purpose | Key indexes |

@@ -1,7 +1,7 @@
 Tofu.AI — Investigations module
 ===============================
 
-Reference for the `Investigations` module (FS-1111): domain structure, knowledge files, database schema, runtime flows, endpoints, and configuration. This describes the **module design** (including the 2026-06-07 agent-context-pull redesign — rationale in [`features/FS-1111/agent-context-pull.md`](../../../features/FS-1111/agent-context-pull.md)); implementation lives on `Tofu.AI.Backend@feature/FS-1111` and may lag individual sections.
+Reference for the `Investigations` module (FS-1111): domain structure, knowledge files, database schema, runtime flows, endpoints, and configuration. This describes the **module design**; the agent-context rationale is in [`features/FS-1111/agent-context.md`](../../../features/FS-1111/agent-context.md). Implementation lives on `Tofu.AI.Backend@feature/FS-1111`.
 
 **What it is.** AI-driven issue investigations: a REST API accepts a free-form ask ("checkout 500s spiked at 14:00 — why?"), a Hangfire job hands it to a headless `claude` CLI agent with read-only access to GCP logs, Sentry, source code, and (curated) MongoDB; findings, tags, a progress timeline, and proposed remediation actions are persisted to Postgres. The agent's accumulated knowledge — past investigations, human-verified known issues, the tag taxonomy — lives as **greppable text files** (git-versioned sources + DB-projected digests), never as DB queries by the agent. Contracts are shaped for a future Slack bot (async, compact summaries, incremental event polling).
 
