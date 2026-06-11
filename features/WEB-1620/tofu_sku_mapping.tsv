@@ -1,0 +1,92 @@
+app_name	product_id	sub_length	trial_period	sub_price	trial_price
+field_service	com.getpaidapp.fieldservice.solo.monthly.intro19	31	31	29	19
+field_service	com.getpaidapp.fieldservice.solo.monthly.trial7d	31	7	29	0
+field_service	com.getpaidapp.fieldservice.team.monthly.trial7d	31	7	79	0
+field_service	com.getpaidapp.fieldservice.business.monthly.trial7d	31	7	149	0
+field_service	com.getpaidapp.fieldservice.invoicing.yearly.base	365	0	139.99	
+field_service	com.getpaidapp.fieldservice.solo.yearly.base	365	0	179.99	
+field_service	com.getpaidapp.fieldservice.team.yearly.base	365	0	479	0
+field_service	com.getpaidapp.fieldservice.business.yearly.base	365	0	959	0
+field_service	com.getpaidapp.fieldservice.invoicing.weekly.intro499	7	7	9.99	4.99
+field_service	com.getpaidapp.fieldservice.invoicing.weekly.trial3d	7	3	9.99	0
+invoices	com.getpaidapp.invoices.unlimited_monthly	31	0		
+invoices	com.getpaidapp.invoices.pro_monthly	31	0		
+invoices	com.getpaidapp.invoices.premium_monthly	31	0		
+invoices	com.getpaidapp.invoices.pro14.99_monthly	31	3		
+invoices	com.getpaidapp.invoices.premium_monthly_new	31	0		
+invoices	com.getpaidapp.invoices.premium_plan_monthly	31	0		
+invoices	com.getpaidapp.invoices.month_premium	31	0		
+invoices	com.getpaidapp.invoices.unlimited_monthly_premium	31	0		
+invoices	com.getpaidapp.invoices.pro17.99_monthly_premium	31	0		
+invoices	com.getpaidapp.invoices.pro_monthly_premium	31	0		
+invoices	invoices.1monthly.pri_01jnk16mc34bbr84d0y9cgnarj	31	0		
+invoices	com.getpaidapp.invoices.month_premium_trial	31	3		
+invoices	com.getpaidapp.invoices.unlimited_annual	365	0		
+invoices	com.getpaidapp.invoices.pro_annual	365	0		
+invoices	com.getpaidapp.invoices.premium_annual	365	0		
+invoices	com.getpaidapp.invoices.pro99.99_annual	365	0		
+invoices	com.getpaidapp.invoices.premium_annual_trial	365	3		
+invoices	com.getpaidapp.invoices.premium_annual_trial_7	365	0		
+invoices	com.getpaidapp.invoices.year_premium	365	0		
+invoices	com.getpaidapp.invoices.pro_annual_premium	365	0		
+invoices	com.getpaidapp.invoices.pro179.99_annual_premium	365	0		
+invoices	com.getpaidapp.invoices.unlimited_annual_premium	365	0		
+invoices	com.getpaidapp.invoices.premium_plan_annual	365	0		
+invoices	com.getpaidapp.invoices.plus_plan_annual	365	0		
+invoices	com.getpaidapp.invoices.unlimited_weekyl	7	3		
+invoices	com.getpaidapp.invoices.pro_weekly	7	3		
+invoices	com.getpaidapp.invoices.premium_weekly	7	3		
+invoices	com.getpaidapp.invoices.premium_weekly_no_trial	7	0		
+invoices	com.getpaidapp.invoices.premium_plan_weekly	7	3		
+invoices	invoices.1weekly.pri_01jnk15k4r45s4qn2vr5j4w9md	7	0		
+invoices	com.getpaidapp.invoices.plus_weekly_trial	7	3		
+invoices	com.getpaidapp.invoices.plus_weekly_no_trial	7	0		
+invoices	com.getpaidapp.invoices.weekly_plus_no_trial	7	0	7.99	0
+invoices	com.getpaidapp.invoices.weekly_plus_trial	7	3	7.99	0
+invoices	com.getpaidapp.invoices.premium_plan_weekly_no_trial	7	0		0
+invoices	com.getpaidapp.invoices.week_plus_trial	7	3	9.99	0
+invoices	com.getpaidapp.invoices.week_plus_no_trial	7	0	9.99	0
+invoices_android	com.getpaidapp.android.invoices.premium:month	31	0		
+invoices_android	com.getpaidapp.android.invoices.pro:month	31	0		
+invoices_android	com.getpaidapp.android.invoices.premium:year	365	0		
+invoices_android	com.getpaidapp.android.invoices.pro:year	365	0		
+invoices_android	com.getpaidapp.android.invoices.premium:week	7	3		
+invoices_android	com.getpaidapp.android.invoices.pro:week	7	3		
+tofu_web	tofu.1monthly.prod_RSsJ6xTIcLRqoy	31	7		
+tofu_web	tofu.1monthly.prod_RSsJ6xTIcLRqoy.price_1QZwZ6Jnc2Yr4yxF11AWy527	31	7	19	0
+tofu_web	tofu.1monthly.prod_RSsJ6xTIcLRqoy.price_1RbKCUJnc2Yr4yxF9agFfOJ8	31	31	17.99	1.79
+tofu_web	tofu.1monthly.prod_RSsJ6xTIcLRqoy.price_1RnytVJnc2Yr4yxFFveN5o6q	31	3	17.99	1.79
+tofu_web	tofu.1monthly.prod_RSsJ6xTIcLRqoy.price_1RyAAQJnc2Yr4yxFPFgCrDpn	31	3	19	1.99
+tofu_web	tofu.1monthly.prod_RSsJ6xTIcLRqoy.price_1RyA9xJnc2Yr4yxFTMTO1aJZ	31	7	19	0
+tofu_web	tofu.1monthly.prod_RSsJ6xTIcLRqoy.price_1SInkDJnc2Yr4yxFEdOhYbHW	31	7	19	4.99
+tofu_web	tofu.invoicing.1monthly.prod_TuqwDeiXn9S3xp.price_1Sx1EyJnc2Yr4yxFOsZo1oZC	31	3	19	0
+tofu_web	tofu.fsm_solo.1monthly.prod_Tur9txcpGbDZFA.price_1Sx1R5Jnc2Yr4yxFtTis1auO	31	7	29	0
+tofu_web	tofu.fsm_solo.1monthly.prod_Tur9txcpGbDZFA.price_1Sx1R5Jnc2Yr4yxFZsBMoNhZ	31	3	29	1.99
+tofu_web	tofu.fsm_solo.1monthly.prod_Tur9txcpGbDZFA.price_1Sx1R5Jnc2Yr4yxFuMdYWpWj	31	7	29	1.99
+tofu_web	tofu.invoicing.1monthly.prod_TuqwDeiXn9S3xp.price_1Sx1EyJnc2Yr4yxFuyKTdisp	31	3	19	1.99
+tofu_web	tofu.fsm_team.1monthly.prod_U2lcEk1EmstDUi.price_1T4g5NJnc2Yr4yxF3NARgyCy	31	7	79	0
+tofu_web	tofu.fsm_business.1monthly.prod_U2lceCNatplg8D.price_1T4g5UJnc2Yr4yxFqNfQTeVZ	31	7	149	0
+tofu_web	tofu.fsm_solo.1monthly.prod_Tur9txcpGbDZFA.price_1TJvz9Jnc2Yr4yxF5QzBUWOB	31	7	29	1
+tofu_web	tofu.fsm_team.1monthly.prod_U2lcEk1EmstDUi.price_1TJw0SJnc2Yr4yxFQdqoeiA1	31	7	79	1
+tofu_web	tofu.fsm_team.1monthly.prod_U2lcEk1EmstDUi.price_1TJw0gJnc2Yr4yxFEcIem9kd	31	14	79	1
+tofu_web	tofu.fsm_solo.1monthly.prod_Tur9txcpGbDZFA.price_1TJvznJnc2Yr4yxFzTEtwBGN	31	14	29	1
+tofu_web	tofu.fsm_business.1monthly.prod_U2lceCNatplg8D.price_1TJw1RJnc2Yr4yxFpyzEfk6w	31	7	149	1
+tofu_web	tofu.1yearly.prod_RSsJ6xTIcLRqoy	365	14		
+tofu_web	tofu.1yearly.prod_S1ij0BqbWrxLjC	365	14		
+tofu_web	invoices.1yearly.pri_01jnk14nm2q2vp5g4pzvwxb5j0	365	0		
+tofu_web	tofu.1yearly.prod_RSsJ6xTIcLRqoy.price_1QZwZ6Jnc2Yr4yxF50ZxBUEL	365	14	179.99	0
+tofu_web	tofu.1yearly.prod_S1ij0BqbWrxLjC.price_1R7fHyJnc2Yr4yxFv0fIHMcX	365	14	99.99	0
+tofu_web	tofu.1yearly.prod_RSsJ6xTIcLRqoy.price_1RyvCwJnc2Yr4yxFnS2XaFId	365	0	99	0
+tofu_web	tofu.1yearly.prod_RSsJ6xTIcLRqoy.price_1Ryv4kJnc2Yr4yxFxqe381rG	365	14	156	0
+tofu_web	tofu.1yearly.prod_S1ij0BqbWrxLjC.price_1S0znRJnc2Yr4yxFFLKNYTOm	365	14	99	0
+tofu_web	tofu.invoicing.1yearly.prod_TuqwDeiXn9S3xp.price_1Sx1EyJnc2Yr4yxFVEFmCcQD	365	3	120	0
+tofu_web	tofu.fsm_solo.1yearly.prod_Tur9txcpGbDZFA.price_1Sx1R5Jnc2Yr4yxFoJNKBC2z	365	7	180	0
+tofu_web	tofu.fsm_team.1yearly.prod_U2lcEk1EmstDUi.price_1T4g5NJnc2Yr4yxFSpLydhfq	365	7	600	0
+tofu_web	tofu.fsm_business.1yearly.prod_U2lceCNatplg8D.price_1T4g5TJnc2Yr4yxFSJfXZK9D	365	7	1200	0
+tofu_web	tofu.fsm_team.1yearly.prod_U2lcEk1EmstDUi.price_1TJw28Jnc2Yr4yxFZLLaPj7T	365	0	600	0
+tofu_web	tofu.fsm_business.1yearly.prod_U2lceCNatplg8D.price_1TJw2WJnc2Yr4yxFs5pxHcQu	365	0	1200	0
+tofu_web	tofu.weekly.prod_RSsJ6xTIcLRqoy	7	7		
+tofu_web	tofu.1weekly.prod_RSsJ6xTIcLRqoy	7	7		
+tofu_web	tofu.1weekly.prod_RSsJ6xTIcLRqoy.price_1QZwZ6Jnc2Yr4yxFw2rCetyZ	7	0	5.99	
+tofu_web	tofu.1weekly.prod_RSsJ6xTIcLRqoy.price_1RyvEiJnc2Yr4yxFq5nqLAdi	7	0	9	0
+tofu_web	tofu.1weekly.prod_S1ij0BqbWrxLjC.price_1S0znhJnc2Yr4yxFgeXpGNFz	7	0	9	0

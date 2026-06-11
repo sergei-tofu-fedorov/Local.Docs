@@ -15,6 +15,8 @@ Cross-product / cross-repo feature docs and plans. One folder per feature; `feat
 | `WEB-1479` | Pass auth from mobile into a Safari web view via Firebase (ID vs custom token); land users on the web-app home. | [README](WEB-1479/README.md) |
 | `WEB-1617` | Providing demo access to our application. | [README](WEB-1617/README.md) |
 | `WEB-1600-recurring-jobs` | Recurring client service → generated visits + per-period draft invoices. Holds the ServiceTitan-style "bill-on-agreement" design (the Option A period-Job plan lives in the `Invoices.Backend` repo). | [AGENTS](WEB-1600-recurring-jobs/AGENTS.md) |
+| `WEB-1625` | Add sync endpoints to clients and items (similar to existing jobs / invoices / estimates). | [README](WEB-1625/README.md) |
+| `WEB-1620` | Event-derived SKU catalog (`sku_mapping`) in playfair BigQuery via a daily Scheduled Query; replaces the `tofu_sku_mapping` Google-Doc catalog. | [README](WEB-1620/README.md) |
 | `ai_summary` | Earlier AI-Summary / FSM-compatibility exploration (superseded by WEB-1523). | [README](ai_summary/README.md) |
 
 ## Convention

@@ -1,0 +1,730 @@
+[
+  {
+    "app_name": "field_service",
+    "product_id": "com.getpaidapp.fieldservice.solo.monthly.intro19",
+    "sub_length": "31",
+    "trial_period": "31",
+    "sub_price": "29",
+    "trial_price": "19"
+  },
+  {
+    "app_name": "field_service",
+    "product_id": "com.getpaidapp.fieldservice.solo.monthly.trial7d",
+    "sub_length": "31",
+    "trial_period": "7",
+    "sub_price": "29",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "field_service",
+    "product_id": "com.getpaidapp.fieldservice.team.monthly.trial7d",
+    "sub_length": "31",
+    "trial_period": "7",
+    "sub_price": "79",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "field_service",
+    "product_id": "com.getpaidapp.fieldservice.business.monthly.trial7d",
+    "sub_length": "31",
+    "trial_period": "7",
+    "sub_price": "149",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "field_service",
+    "product_id": "com.getpaidapp.fieldservice.invoicing.yearly.base",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "139.99",
+    "trial_price": ""
+  },
+  {
+    "app_name": "field_service",
+    "product_id": "com.getpaidapp.fieldservice.solo.yearly.base",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "179.99",
+    "trial_price": ""
+  },
+  {
+    "app_name": "field_service",
+    "product_id": "com.getpaidapp.fieldservice.team.yearly.base",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "479",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "field_service",
+    "product_id": "com.getpaidapp.fieldservice.business.yearly.base",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "959",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "field_service",
+    "product_id": "com.getpaidapp.fieldservice.invoicing.weekly.intro499",
+    "sub_length": "7",
+    "trial_period": "7",
+    "sub_price": "9.99",
+    "trial_price": "4.99"
+  },
+  {
+    "app_name": "field_service",
+    "product_id": "com.getpaidapp.fieldservice.invoicing.weekly.trial3d",
+    "sub_length": "7",
+    "trial_period": "3",
+    "sub_price": "9.99",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.unlimited_monthly",
+    "sub_length": "31",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.pro_monthly",
+    "sub_length": "31",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.premium_monthly",
+    "sub_length": "31",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.pro14.99_monthly",
+    "sub_length": "31",
+    "trial_period": "3",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.premium_monthly_new",
+    "sub_length": "31",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.premium_plan_monthly",
+    "sub_length": "31",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.month_premium",
+    "sub_length": "31",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.unlimited_monthly_premium",
+    "sub_length": "31",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.pro17.99_monthly_premium",
+    "sub_length": "31",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.pro_monthly_premium",
+    "sub_length": "31",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "invoices.1monthly.pri_01jnk16mc34bbr84d0y9cgnarj",
+    "sub_length": "31",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.month_premium_trial",
+    "sub_length": "31",
+    "trial_period": "3",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.unlimited_annual",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.pro_annual",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.premium_annual",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.pro99.99_annual",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.premium_annual_trial",
+    "sub_length": "365",
+    "trial_period": "3",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.premium_annual_trial_7",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.year_premium",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.pro_annual_premium",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.pro179.99_annual_premium",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.unlimited_annual_premium",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.premium_plan_annual",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.plus_plan_annual",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.unlimited_weekyl",
+    "sub_length": "7",
+    "trial_period": "3",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.pro_weekly",
+    "sub_length": "7",
+    "trial_period": "3",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.premium_weekly",
+    "sub_length": "7",
+    "trial_period": "3",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.premium_weekly_no_trial",
+    "sub_length": "7",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.premium_plan_weekly",
+    "sub_length": "7",
+    "trial_period": "3",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "invoices.1weekly.pri_01jnk15k4r45s4qn2vr5j4w9md",
+    "sub_length": "7",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.plus_weekly_trial",
+    "sub_length": "7",
+    "trial_period": "3",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.plus_weekly_no_trial",
+    "sub_length": "7",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.weekly_plus_no_trial",
+    "sub_length": "7",
+    "trial_period": "0",
+    "sub_price": "7.99",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.weekly_plus_trial",
+    "sub_length": "7",
+    "trial_period": "3",
+    "sub_price": "7.99",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.premium_plan_weekly_no_trial",
+    "sub_length": "7",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.week_plus_trial",
+    "sub_length": "7",
+    "trial_period": "3",
+    "sub_price": "9.99",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "invoices",
+    "product_id": "com.getpaidapp.invoices.week_plus_no_trial",
+    "sub_length": "7",
+    "trial_period": "0",
+    "sub_price": "9.99",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "invoices_android",
+    "product_id": "com.getpaidapp.android.invoices.premium:month",
+    "sub_length": "31",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices_android",
+    "product_id": "com.getpaidapp.android.invoices.pro:month",
+    "sub_length": "31",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices_android",
+    "product_id": "com.getpaidapp.android.invoices.premium:year",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices_android",
+    "product_id": "com.getpaidapp.android.invoices.pro:year",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices_android",
+    "product_id": "com.getpaidapp.android.invoices.premium:week",
+    "sub_length": "7",
+    "trial_period": "3",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "invoices_android",
+    "product_id": "com.getpaidapp.android.invoices.pro:week",
+    "sub_length": "7",
+    "trial_period": "3",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1monthly.prod_RSsJ6xTIcLRqoy",
+    "sub_length": "31",
+    "trial_period": "7",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1monthly.prod_RSsJ6xTIcLRqoy.price_1QZwZ6Jnc2Yr4yxF11AWy527",
+    "sub_length": "31",
+    "trial_period": "7",
+    "sub_price": "19",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1monthly.prod_RSsJ6xTIcLRqoy.price_1RbKCUJnc2Yr4yxF9agFfOJ8",
+    "sub_length": "31",
+    "trial_period": "31",
+    "sub_price": "17.99",
+    "trial_price": "1.79"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1monthly.prod_RSsJ6xTIcLRqoy.price_1RnytVJnc2Yr4yxFFveN5o6q",
+    "sub_length": "31",
+    "trial_period": "3",
+    "sub_price": "17.99",
+    "trial_price": "1.79"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1monthly.prod_RSsJ6xTIcLRqoy.price_1RyAAQJnc2Yr4yxFPFgCrDpn",
+    "sub_length": "31",
+    "trial_period": "3",
+    "sub_price": "19",
+    "trial_price": "1.99"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1monthly.prod_RSsJ6xTIcLRqoy.price_1RyA9xJnc2Yr4yxFTMTO1aJZ",
+    "sub_length": "31",
+    "trial_period": "7",
+    "sub_price": "19",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1monthly.prod_RSsJ6xTIcLRqoy.price_1SInkDJnc2Yr4yxFEdOhYbHW",
+    "sub_length": "31",
+    "trial_period": "7",
+    "sub_price": "19",
+    "trial_price": "4.99"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.invoicing.1monthly.prod_TuqwDeiXn9S3xp.price_1Sx1EyJnc2Yr4yxFOsZo1oZC",
+    "sub_length": "31",
+    "trial_period": "3",
+    "sub_price": "19",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.fsm_solo.1monthly.prod_Tur9txcpGbDZFA.price_1Sx1R5Jnc2Yr4yxFtTis1auO",
+    "sub_length": "31",
+    "trial_period": "7",
+    "sub_price": "29",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.fsm_solo.1monthly.prod_Tur9txcpGbDZFA.price_1Sx1R5Jnc2Yr4yxFZsBMoNhZ",
+    "sub_length": "31",
+    "trial_period": "3",
+    "sub_price": "29",
+    "trial_price": "1.99"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.fsm_solo.1monthly.prod_Tur9txcpGbDZFA.price_1Sx1R5Jnc2Yr4yxFuMdYWpWj",
+    "sub_length": "31",
+    "trial_period": "7",
+    "sub_price": "29",
+    "trial_price": "1.99"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.invoicing.1monthly.prod_TuqwDeiXn9S3xp.price_1Sx1EyJnc2Yr4yxFuyKTdisp",
+    "sub_length": "31",
+    "trial_period": "3",
+    "sub_price": "19",
+    "trial_price": "1.99"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.fsm_team.1monthly.prod_U2lcEk1EmstDUi.price_1T4g5NJnc2Yr4yxF3NARgyCy",
+    "sub_length": "31",
+    "trial_period": "7",
+    "sub_price": "79",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.fsm_business.1monthly.prod_U2lceCNatplg8D.price_1T4g5UJnc2Yr4yxFqNfQTeVZ",
+    "sub_length": "31",
+    "trial_period": "7",
+    "sub_price": "149",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.fsm_solo.1monthly.prod_Tur9txcpGbDZFA.price_1TJvz9Jnc2Yr4yxF5QzBUWOB",
+    "sub_length": "31",
+    "trial_period": "7",
+    "sub_price": "29",
+    "trial_price": "1"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.fsm_team.1monthly.prod_U2lcEk1EmstDUi.price_1TJw0SJnc2Yr4yxFQdqoeiA1",
+    "sub_length": "31",
+    "trial_period": "7",
+    "sub_price": "79",
+    "trial_price": "1"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.fsm_team.1monthly.prod_U2lcEk1EmstDUi.price_1TJw0gJnc2Yr4yxFEcIem9kd",
+    "sub_length": "31",
+    "trial_period": "14",
+    "sub_price": "79",
+    "trial_price": "1"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.fsm_solo.1monthly.prod_Tur9txcpGbDZFA.price_1TJvznJnc2Yr4yxFzTEtwBGN",
+    "sub_length": "31",
+    "trial_period": "14",
+    "sub_price": "29",
+    "trial_price": "1"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.fsm_business.1monthly.prod_U2lceCNatplg8D.price_1TJw1RJnc2Yr4yxFpyzEfk6w",
+    "sub_length": "31",
+    "trial_period": "7",
+    "sub_price": "149",
+    "trial_price": "1"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1yearly.prod_RSsJ6xTIcLRqoy",
+    "sub_length": "365",
+    "trial_period": "14",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1yearly.prod_S1ij0BqbWrxLjC",
+    "sub_length": "365",
+    "trial_period": "14",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "invoices.1yearly.pri_01jnk14nm2q2vp5g4pzvwxb5j0",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1yearly.prod_RSsJ6xTIcLRqoy.price_1QZwZ6Jnc2Yr4yxF50ZxBUEL",
+    "sub_length": "365",
+    "trial_period": "14",
+    "sub_price": "179.99",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1yearly.prod_S1ij0BqbWrxLjC.price_1R7fHyJnc2Yr4yxFv0fIHMcX",
+    "sub_length": "365",
+    "trial_period": "14",
+    "sub_price": "99.99",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1yearly.prod_RSsJ6xTIcLRqoy.price_1RyvCwJnc2Yr4yxFnS2XaFId",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "99",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1yearly.prod_RSsJ6xTIcLRqoy.price_1Ryv4kJnc2Yr4yxFxqe381rG",
+    "sub_length": "365",
+    "trial_period": "14",
+    "sub_price": "156",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1yearly.prod_S1ij0BqbWrxLjC.price_1S0znRJnc2Yr4yxFFLKNYTOm",
+    "sub_length": "365",
+    "trial_period": "14",
+    "sub_price": "99",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.invoicing.1yearly.prod_TuqwDeiXn9S3xp.price_1Sx1EyJnc2Yr4yxFVEFmCcQD",
+    "sub_length": "365",
+    "trial_period": "3",
+    "sub_price": "120",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.fsm_solo.1yearly.prod_Tur9txcpGbDZFA.price_1Sx1R5Jnc2Yr4yxFoJNKBC2z",
+    "sub_length": "365",
+    "trial_period": "7",
+    "sub_price": "180",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.fsm_team.1yearly.prod_U2lcEk1EmstDUi.price_1T4g5NJnc2Yr4yxFSpLydhfq",
+    "sub_length": "365",
+    "trial_period": "7",
+    "sub_price": "600",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.fsm_business.1yearly.prod_U2lceCNatplg8D.price_1T4g5TJnc2Yr4yxFSJfXZK9D",
+    "sub_length": "365",
+    "trial_period": "7",
+    "sub_price": "1200",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.fsm_team.1yearly.prod_U2lcEk1EmstDUi.price_1TJw28Jnc2Yr4yxFZLLaPj7T",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "600",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.fsm_business.1yearly.prod_U2lceCNatplg8D.price_1TJw2WJnc2Yr4yxFs5pxHcQu",
+    "sub_length": "365",
+    "trial_period": "0",
+    "sub_price": "1200",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.weekly.prod_RSsJ6xTIcLRqoy",
+    "sub_length": "7",
+    "trial_period": "7",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1weekly.prod_RSsJ6xTIcLRqoy",
+    "sub_length": "7",
+    "trial_period": "7",
+    "sub_price": "",
+    "trial_price": ""
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1weekly.prod_RSsJ6xTIcLRqoy.price_1QZwZ6Jnc2Yr4yxFw2rCetyZ",
+    "sub_length": "7",
+    "trial_period": "0",
+    "sub_price": "5.99",
+    "trial_price": ""
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1weekly.prod_RSsJ6xTIcLRqoy.price_1RyvEiJnc2Yr4yxFq5nqLAdi",
+    "sub_length": "7",
+    "trial_period": "0",
+    "sub_price": "9",
+    "trial_price": "0"
+  },
+  {
+    "app_name": "tofu_web",
+    "product_id": "tofu.1weekly.prod_S1ij0BqbWrxLjC.price_1S0znhJnc2Yr4yxFgeXpGNFz",
+    "sub_length": "7",
+    "trial_period": "0",
+    "sub_price": "9",
+    "trial_price": "0"
+  }
+]
