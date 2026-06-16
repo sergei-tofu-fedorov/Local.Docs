@@ -2,6 +2,9 @@
 
 **Affected repos:** `Invoices.Backend` (BFF), `Tofu.Invoices.Backend`, `Deploy/Invoices.WebRoot` (nginx)
 
+> 📌 **Resuming this work?** Read [`status.md`](status.md) — current working/deployed state, corrected
+> findings (the plan below has errors), the open design decision, and next steps.
+
 ## Goal
 
 Make a single user request one continuous distributed trace, from the frontend Sentry
