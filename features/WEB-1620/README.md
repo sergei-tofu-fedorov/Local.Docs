@@ -19,7 +19,8 @@ is being retired and is no longer a run-time dependency.
 | File | What |
 |---|---|
 | `README.md` | This doc — feature plan / status. |
-| `fields.md` | Per-column derivation logic for `sku_mapping`. |
+| `sku-mapping-logic.md` | Human-readable build logic — web/iOS/Android differences, the `is_in_intro_offer_period` (no-intro) condition, upsert semantics. |
+| `fields.md` | Per-column derivation logic for `sku_mapping` (terse reference). |
 | `schedule-setup.md` | How to (re)create the daily Scheduled Query + the live MERGE query. |
 | `sku_mapping_merge.sql` | **Production** MERGE → `playfair-project.dbt_external.sku_mapping`. |
 | `sku_mapping_from_events.sql` | The same SELECT without MERGE (exploration / ad-hoc). |
