@@ -19,6 +19,11 @@ is being retired and is no longer a run-time dependency.
 | File | What |
 |---|---|
 | `README.md` | This doc — feature plan / status. |
+| `ai_analysis_us_tables.md` | **The `inv-project.ai_analysis_us` clone (`sku_mapping`) + `account_subscriptions` (active sub + computed expiration) + `account_identifiers` (account↔device-id bridge).** Deployed 2026-06-18. |
+| `sku_mapping_merge_ai_analysis_us.sql` | MERGE targeting `inv-project.ai_analysis_us.sku_mapping` (in-project clone of the playfair job). |
+| `account_subscriptions_rebuild.sql` | Daily `CREATE OR REPLACE` rebuild of `account_subscriptions`; resolves `platform_user_id`/`master_user_id` (masterUser first, accountIdentifiers fallback). |
+| `reload_master_user.sh` | Periodic load of `platform_user_accounts` (platform-user ↔ owned accounts, clustered by `platform_user_id`) from the Atlas `masterUser` collection (tofu-ai SA; load job). |
+| `reload_account_identifiers.sh` | Periodic load of `account_identifiers` (fallback bridge) from the Atlas snapshot (tofu-ai SA; load job). |
 | `sku-mapping-logic.md` | Human-readable build logic — web/iOS/Android differences, the `is_in_intro_offer_period` (no-intro) condition, upsert semantics. |
 | `fields.md` | Per-column derivation logic for `sku_mapping` (terse reference). |
 | `schedule-setup.md` | How to (re)create the daily Scheduled Query + the live MERGE query. |
