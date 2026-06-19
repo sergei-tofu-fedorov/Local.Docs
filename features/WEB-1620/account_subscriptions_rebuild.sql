@@ -2,11 +2,13 @@
 -- Grain: one row per subscription = (app_name, account_id, original_transaction_id). Trials included.
 -- Identity: playfair-invoices@inv-project (runs + writes in inv-project). Run daily as a Scheduled Query (US).
 --
--- account_id = the SUBSCRIBER / store account id from analytics events (iOS/Android PublicId-style,
---   Stripe customer id). It does NOT equal the invoices account id, so we RESOLVE the invoices account
---   via device identifiers (firebase_id / appsflyer_id / idfa) against ai_analysis_us.account_identifiers
---   (loaded from the Atlas Mongo snapshot: _id = invoices account id). Coalesce priority:
---   firebase -> appsflyer -> idfa. Coverage ~93% all-time, ~97% last 180d.
+-- account_id = the SUBSCRIBER / store account id from analytics events = PublicId (first 25 chars of the
+--   platform user id; Stripe customer id on web). It does NOT equal the invoices account id. We RESOLVE the
+--   invoices account (tofu_account_id) by a UserId match on the subz account_id, NOT device identifiers:
+--     1. accountIdentifiers: account_id (= _id) where SUBSTR(user_id,1,25) = subz account_id, else
+--     2. masterUser: the owned account of the canonical IsFirstLink link (ai_analysis_us.platform_user_accounts).
+--   platform_user_id = the canonical IsFirstLink identity via platform_user_canonical (maps ANY link's public_id
+--   -> the master's first-link platform user), else the raw accountIdentifiers UserId.
 --
 -- Expiration is NOT emitted by Subz (events carry only `subscription_duration`), so it is computed:
 --   expires_at = last subscription_paid.event_time + sub_length_days
@@ -72,21 +74,23 @@ ev2 AS (
   FROM ev
   WHERE account_id IS NOT NULL AND otx IS NOT NULL
 ),
--- identifier -> single invoices account_id maps (collapse fan-out with ANY_VALUE)
-id_fb AS (SELECT firebase_id, ANY_VALUE(account_id) acct FROM `inv-project.ai_analysis_us.account_identifiers` WHERE firebase_id IS NOT NULL GROUP BY 1),
-id_af AS (SELECT appsflyer_id, ANY_VALUE(account_id) acct FROM `inv-project.ai_analysis_us.account_identifiers` WHERE appsflyer_id IS NOT NULL GROUP BY 1),
-id_idfa AS (SELECT idfa, ANY_VALUE(account_id) acct FROM `inv-project.ai_analysis_us.account_identifiers` WHERE idfa IS NOT NULL GROUP BY 1),
--- PLATFORM-USER resolution (the correct domain model: subscription belongs to a platform user who owns N accounts).
--- account_id in events = PublicId = first 25 chars of the platform user id (Account.GetShortUserId).
--- masterUser first (gives master_user_id + owned accounts via master_user_accounts), else accountIdentifiers
--- (recovers the full platformUserId from its UserId, since PublicId = SUBSTR(UserId,1,25)).
-mu_map AS (
-  SELECT public_id, ANY_VALUE(platform_user_id) platform_user_id, ANY_VALUE(master_user_id) master_user_id
-  FROM `inv-project.ai_analysis_us.platform_user_accounts` GROUP BY public_id
+-- ACCOUNT + PLATFORM-USER resolution. account_id in events = PublicId = first 25 chars of the platform user id.
+-- Invoices account (tofu_account_id): accountIdentifiers (UserId match) first, else the masterUser first-link
+-- owned account. Platform user: the canonical IsFirstLink identity -- platform_user_canonical maps ANY link's
+-- public_id -> the master's first-link platform user, so a non-first-link UserId (e.g. from accountIdentifiers)
+-- still resolves to the first-link identity/subscription -- else the raw accountIdentifiers UserId.
+canon AS (
+  SELECT public_id, ANY_VALUE(first_link_platform_user_id) first_link_platform_user_id,
+         ANY_VALUE(master_user_id) master_user_id
+  FROM `inv-project.ai_analysis_us.platform_user_canonical` GROUP BY public_id
 ),
 ai_map AS (
-  SELECT SUBSTR(user_id,1,25) public_id, ANY_VALUE(user_id) platform_user_id
+  SELECT SUBSTR(user_id,1,25) public_id, ANY_VALUE(user_id) user_id, ANY_VALUE(account_id) account_id
   FROM `inv-project.ai_analysis_us.account_identifiers` WHERE user_id IS NOT NULL GROUP BY 1
+),
+mu_acct AS (
+  SELECT public_id, ANY_VALUE(account_id) account_id
+  FROM `inv-project.ai_analysis_us.platform_user_accounts` GROUP BY public_id
 ),
 agg AS (
   SELECT
@@ -113,21 +117,19 @@ agg AS (
 ),
 resolved AS (
   SELECT a.*,
-    COALESCE(f.acct, af.acct, d.acct) AS tofu_account_id,
-    CASE WHEN f.acct IS NOT NULL THEN 'firebase'
-         WHEN af.acct IS NOT NULL THEN 'appsflyer'
-         WHEN d.acct IS NOT NULL THEN 'idfa' END AS resolved_via,
-    -- platform-user resolution: masterUser first, else accountIdentifiers
-    COALESCE(mu.platform_user_id, ai.platform_user_id) AS platform_user_id,
-    mu.master_user_id AS master_user_id,
-    CASE WHEN mu.public_id IS NOT NULL THEN 'masterUser'
+    -- invoices account: accountIdentifiers (UserId match) first, else masterUser first-link owned account
+    COALESCE(ai.account_id, mu.account_id) AS tofu_account_id,
+    CASE WHEN ai.account_id IS NOT NULL THEN 'accountIdentifiers'
+         WHEN mu.account_id IS NOT NULL THEN 'masterUser-firstLink' END AS resolved_via,
+    -- platform user: canonical IsFirstLink identity (any link -> first link), else accountIdentifiers UserId
+    COALESCE(c.first_link_platform_user_id, ai.user_id) AS platform_user_id,
+    c.master_user_id AS master_user_id,
+    CASE WHEN c.public_id IS NOT NULL THEN 'masterUser'
          WHEN ai.public_id IS NOT NULL THEN 'accountIdentifiers' END AS user_resolved_via
   FROM agg a
-  LEFT JOIN id_fb   f  ON a.firebase_id  = f.firebase_id
-  LEFT JOIN id_af   af ON a.appsflyer_id = af.appsflyer_id
-  LEFT JOIN id_idfa d  ON a.idfa         = d.idfa
-  LEFT JOIN mu_map  mu ON a.account_id   = mu.public_id
-  LEFT JOIN ai_map  ai ON a.account_id   = ai.public_id
+  LEFT JOIN ai_map  ai ON a.account_id = ai.public_id
+  LEFT JOIN canon   c  ON a.account_id = c.public_id
+  LEFT JOIN mu_acct mu ON a.account_id = mu.public_id
 ),
 joined AS (
   SELECT r.*,
@@ -153,9 +155,9 @@ SELECT
   account_id,                 -- subscriber/store account (events) = PublicId = platform_user_id[:25]
   platform_user_id,           -- full platform user id (owns N invoices accounts via master_user_accounts)
   master_user_id,             -- masterUser id (NULL when resolved via accountIdentifiers fallback)
-  user_resolved_via,          -- 'masterUser' | 'accountIdentifiers' | NULL
-  tofu_account_id,            -- (interim) device-id-resolved invoices account id; kept for reference
-  resolved_via,               -- (interim) device identifier that resolved tofu_account_id
+  user_resolved_via,          -- 'accountIdentifiers' | 'masterUser' | NULL
+  tofu_account_id,            -- invoices account: accountIdentifiers UserId match, else masterUser first-link
+  resolved_via,               -- 'accountIdentifiers' | 'masterUser-firstLink' | NULL
   original_transaction_id,
   product_id,
   store_country,
