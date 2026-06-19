@@ -22,7 +22,11 @@ is being retired and is no longer a run-time dependency.
 | `ai_analysis_us_tables.md` | **The `inv-project.ai_analysis_us` clone (`sku_mapping`) + `account_subscriptions` (active sub + computed expiration) + `account_identifiers` (account↔device-id bridge).** Deployed 2026-06-18. |
 | `sku_mapping_merge_ai_analysis_us.sql` | MERGE targeting `inv-project.ai_analysis_us.sku_mapping` (in-project clone of the playfair job). |
 | `account_subscriptions_rebuild.sql` | Daily `CREATE OR REPLACE` rebuild of `account_subscriptions`; resolves `platform_user_id`/`master_user_id` (masterUser first, accountIdentifiers fallback). |
-| `reload_master_user.sh` | Periodic load of `platform_user_accounts` (platform-user ↔ owned accounts, clustered by `platform_user_id`) from the Atlas `masterUser` collection (tofu-ai SA; load job). |
+| `reload_master_user.sh` | **Legacy** load of `masterUser` → the original `platform_user_accounts` (link×account cartesian, no `is_first_link`). Still live: the deployed `account_subscriptions` scheduled query reads it. |
+| `rebuild_master_marts.sh` | **New three-layer rebuild (built 2026-06-19, `ai_analysis_us_tables.md` §3):** loads `master_user_raw` (landing, raw STRING; persisted) → builds `master_owned_accounts` + `master_platform_links`. Additive; does not touch the legacy table. |
+| `master_owned_accounts.sql` | Build of the `(master_user_id, account_id, role)` bridge mart (cluster: `account_id`). |
+| `master_platform_links.sql` | Build of the `(master_user_id, platform_user_id, public_id, is_first_link, …)` bridge mart (cluster: `platform_user_id`; web `public_id` not truncated). |
+| `account_current_plan.sql` | Build of the final per-account primary-plan mart (PK `account_id`). v0 — tier ordering pending GAP 3 (§5). |
 | `reload_account_identifiers.sh` | Periodic load of `account_identifiers` (fallback bridge) from the Atlas snapshot (tofu-ai SA; load job). |
 | `sku-mapping-logic.md` | Human-readable build logic — web/iOS/Android differences, the `is_in_intro_offer_period` (no-intro) condition, upsert semantics. |
 | `fields.md` | Per-column derivation logic for `sku_mapping` (terse reference). |
