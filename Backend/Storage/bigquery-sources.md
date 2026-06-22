@@ -31,7 +31,7 @@ All `US` location. Sizes/rows as of 2026-06-05.
 | `attribution` | **AppsFlyer raw attribution export** | `appsflyer_attribution` (4.1M rows, 2.9 GB) + dedupe view `analytics.appsflyer_attribution_uniq` | 2.9 GB | ⚠️ **stale since 2023-07-24** | AppsFlyer (apparently stopped) |
 | `event_stream` | **Pub/Sub→BQ audit of the product event bus** | `incoming_events_audit`, `enriched_events_audit` (3.7M rows each, ~2 GB each) — raw Pub/Sub envelope (`data`, `attributes`, `publish_time`) | ~4 GB | ✅ daily | Pub/Sub BQ subscription (since 2024-12) |
 | `pubsub_audit` | **Store server-to-server billing notifications** | `apple_server_to_server_notifications` (3.25M rows, **61 GB**, since 2025-03) · `android_server_to_server_notifications` (269K rows, since 2025-08) | 61+ GB | ✅ daily | Pub/Sub BQ subscription |
-| `ai_analysis_us` | **Tofu.AI prod DWH** (FSM-fit) | `account_metrics`, `account_fsm_fit`, `v_fsm_fit`, **warehouse mirror**: `accounts`, `clients`, `invoices`, `estimates` (partitioned/clustered), `warehouse_state`, `migration_history` | — | ✅ | `Tofu.AI.Backend` (see [`bigquery.md`](bigquery.md)) |
+| `ai_analysis_us` | **Tofu.AI prod DWH** (FSM-fit) | `account_metrics`, `account_fsm_fit`, `v_fsm_fit`, **warehouse mirror**: `accounts`, `clients`, `invoices`, `estimates`, `items` (saved catalog / price lists; clustered by `account_id`) (partitioned/clustered), `warehouse_state`, `migration_history` | — | ✅ | `Tofu.AI.Backend` (see [`bigquery.md`](bigquery.md)) |
 | `dev_agiletich` / `dev_akibuk` / `dev_bolshakov` / `dev_kgulyaev` / `dev_piskarev` | Per-analyst sandboxes | ad-hoc | — | — | analysts |
 
 ### Schemas worth knowing
