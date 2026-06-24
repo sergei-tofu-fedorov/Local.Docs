@@ -43,6 +43,10 @@ downstream sees it uniformly:
 The synthetic sub MUST use an adapter that is **not** `Stripe`/`Paddle`. Add a dedicated
 value to `AccountSubscriptionAdapterType` (e.g. `Comp = 7`), or reuse `None`.
 
+> **`Comp` = complimentary** — a plan granted for free (promo/pilot/trial), outside any payment
+> provider. A dedicated value (vs `None`) keeps it visible in analytics/logs as "granted, not
+> purchased" and auto-excludes it from the Stripe/Paddle billing gates.
+
 Rationale — the billing-mutating flows already gate on `Stripe`/`Paddle`, so a non-Stripe
 synthetic sub is **auto-excluded** with zero changes to those services:
 
@@ -64,7 +68,7 @@ New Mongo collection `PlanGrants` (BFF-owned):
 | Field | Notes |
 |---|---|
 | `Id` | grant id (also used as synthetic `AccountSubscription.Id`, prefixed e.g. `grant_…`) |
-| `MasterUserId` **or** `AccountId` | grant key — see open question below |
+| `PlatformUserId` | grant key — platform user id (`IsFirstLink` id for a master user, else from `accountIdentifiers`) |
 | `ProductKey` | which product the grant applies to |
 | `ProductType` | granted tier (`Premium` / `FsmBusiness` / …) |
 | `Duration` | for DTO display |
@@ -85,12 +89,13 @@ New Mongo collection `PlanGrants` (BFF-owned):
      price lookup, portal, `PlanInfoProvider`, migration calc).
 
 3. **Injection in `SubscriptionService.GetSubscriptions`**
-   - After fetching real subs, look up active grants for the (user/account, productKey) and
+   - After fetching real subs, look up active grants for the (platform user id, productKey) and
      append a synthetic `AccountSubscription` (`AdapterType = Comp`, `IsActive = true`,
      `IsTrial = true`, `IsAutoRenewEnabled = false`, `ProductType` set directly,
      `ExpirationTime` from grant).
-   - Ensure priority: if granted tier must win over a real lower-tier sub,
-     `GetPrimarySubscription` already orders by tier priority → fine.
+   - Ensure priority: a *higher* granted tier wins via `GetPrimarySubscription` tier ordering.
+     On an **equal** tier the real sub must win (decision 2) — add a tie-break so the synthetic
+     `Comp` sub ranks **below** a real sub of the same tier.
 
 4. **`IsTrialAvailable` correction**
    - `ResolvePlanAsync` sets `IsTrialAvailable = subscriptions.Count == 0`. With a synthetic
@@ -128,16 +133,20 @@ New Mongo collection `PlanGrants` (BFF-owned):
 - **`plans/active`**: the grant appears as an active plan with **no** manage/portal link.
   Verify client rendering handles an active plan without a portal link.
 
-## Open questions
+## Resolved decisions
 
-1. **Grant key: `MasterUserId` vs `AccountId`?** `PlansAccessProvider` resolves the plan from the
-   account **owner** (`FindOwnerForAccountId`) and worker members inherit it — so an account-level
-   grant propagates to the whole team. Decide whether that's intended or grants should be
-   per-master-user.
-2. **Tier-vs-real-sub policy**: if the user later buys a *higher* real sub, primary selection
-   handles it; if they buy an *equal/lower* one, the grant keeps winning until expiry — is that OK?
-3. **Adapter value vs `None`**: dedicated `Comp` is cleaner for analytics/debugging but touches
-   more `switch` sites; `None` is zero-enum-change but semantically overloaded.
+1. **Grant key = platform user id.** Use the platform user id as the grant key: the `IsFirstLink`
+   identifier when it's a master user, otherwise the one from `accountIdentifiers`. (Replaces the
+   earlier `MasterUserId` vs `AccountId` question — the grant is keyed per platform user, not
+   per account, so it does not blanket-propagate to a whole team via the account owner.)
+2. **Real subscription wins on equal tier.** If the user buys a *higher* real sub, primary
+   selection already handles it. If they buy an *equal*-tier real sub, the **real subscription
+   wins** over the grant (the synthetic must lose the tie). Only a strictly-higher grant tier
+   beats a real sub. → Adjust `GetPrimarySubscription` tie-breaking so the synthetic ranks below
+   a real sub of the same tier.
+3. **Dedicated `Comp` adapter type.** Add `AccountSubscriptionAdapterType.Comp` rather than reusing
+   `None` — cleaner for analytics/debugging. Accept the cost of auditing all adapter-type
+   `switch`/filter sites (see work item 2).
 
 ## Testing
 
