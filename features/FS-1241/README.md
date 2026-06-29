@@ -82,7 +82,30 @@ Numbered, repo-scoped steps that can be ticked off during implementation.
 
 ## API / DTO changes
 
-<only if applicable — list new endpoints, request/response shapes, breaking changes>
+### `RecurringPatternDto.monthlyAmount` — расчётное ежемесячное значение
+
+Поле добавлено во все слои цепочки:
+
+```
+build_recurring_offer_cohort.sql  →  proto RecurringGroup.monthly_amount (field 8)
+  →  RecurringOfferGroup.MonthlyAmount  (Tofu.AI.Backend domain)
+  →  RecurringPattern.MonthlyAmount     (Invoices.Backend domain)
+  →  RecurringPatternDto.monthlyAmount  (BFF REST response, camelCase)
+```
+
+**Формула:**
+
+```
+monthlyAmount = invoiceAmount × multiplier
+```
+
+| Cadence bucket | avg_gap_days | Multiplier |
+|----------------|-------------|------------|
+| `week`         | < 11 дней   | × 4        |
+| `2weeks`       | < 22 дней   | × 2        |
+| `month`        | ≥ 22 дней   | × 1        |
+
+Используется тот же `cadence`-бакет, что уже вычислен в `recurring_offer_groups`, поэтому `monthlyAmount` и `cadence` всегда согласованы. Значение не округляется — тип `double` в proto / `decimal` в C#.
 
 ## Breaking changes
 
