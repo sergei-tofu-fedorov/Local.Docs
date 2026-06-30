@@ -1,0 +1,2202 @@
+{
+ "4n6m7du095-a5397a5a7724414c8bbb8e727e15c938-8304c6913512a8baaaa178fffd0520e0": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "0n1xhdb9cn-7d0535e53f8c4e91982bf90f2488583c-5fdf88532548c4ba6d7425c3d11c6abe": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "qyhcaa7o5k-8590e095078a4524a98797bca806554d-b5053340a78248103cf4c9f8815e5d61": {
+  "industry": "mechanical_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "f4ljvgvrd8-156dfcd10b76453f96fb1638bf842d2e-666af207184979462fb13a3eac1410d8": {
+  "industry": "appliance_repair",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "yvabzydhsx-65cfcbb85a3f47b6ad8f593fe5a8f5dd-7db84d3b1dd6b11dc07ea84df71e6f6a": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "n0nx6knsdm-9405b2460bd94fbb8311858988bf38da-62181c52be5c56466917ef5b9c621abf": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "v12iznhvme-035fbc4cd86046f9ad3cd4a93c67a772-4e1f8d37aa571181c14a08146f6566e8": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "3c6t8nl24a-e01d8c9e9ff748c49c673eeb9569c462-e4679a390d290a5452b8c3fb35bde757": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "z2eg0wmbov-f2b8952d02f5407f891778da5954d4fc-4e4176542f9c39ec1e06705e8ad146cc": {
+  "industry": "arborist_tree_care",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "olekt34sq8-7b71e79e62a44f92ada38d8fdf0fd112-1a826237dc7364346039de61cb41dcf6": {
+  "industry": "arborist_tree_care",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "d3k28xtiac-fad6516298704ceea83f4286c09ad1fc-6a22037b0a8320ab6300f3dc783f3c47": {
+  "industry": "arborist_tree_care",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "ce2m2vgovy-ae72f06f99774a95933200ee04088729-1e74354966045d1f997f69f653d220ab": {
+  "industry": "arborist_tree_care",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "vwmz4ffnff-c45c2683655a497986aad74a0f140f14-4637961be9b9036f357cb79ebe46d072": {
+  "industry": "arborist_tree_care",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "cmigutn19a-4aa2e5b6770a40f0bc952b0f520c8f6c-6372db87bdc231e8fc07cee1cb6d3a81": {
+  "industry": "arborist_tree_care",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "2b4zn7e6co-b68ef71eb3cd4814882600cb173ae474-6b1ecbdbc85eabefd3d987fecfda6eb8": {
+  "industry": "arborist_tree_care",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "768imzn30d-cbceb997105a44859c6a86cb56e46083-9287f4c8dc385283146c2b48a5238e3a": {
+  "industry": "arborist_tree_care",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "xgbeccmguc-6bf55bc283944dc09161dcae6b4553af-3e900317659cff53924b0363a0d37c1f": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "580dk43kc8-7d46af30047b4cd78ab70ec852066b3f-0dcf8958e13301cd3c69b737869a60e4": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "fyrilw10fx-c4a38d3a848c4b22a5f9a132e045ae62-31b52481aa3e5de75cc84a8613b6f98c": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "9lrqyerzvc-82fe1592e0fd4440a13d82afa1fe88b9-7c26de3c552db7530f42d1649a54ad57": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "yvz7kaekdp-7cee70ad78af4c1d85dea58f0e7a2c82-b85c97a4fe4cb608e899fde68d17d126": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "bwqutnjjo3-bc8f821ce36045fb9a32d0d6a8d9863f-74af50e0fea2b2320fc4da699d2a5599": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "v5nlwkknv2-d78a48843f844619bb10fe3d9840632f-42f790f42bf75391f7c5c3ab6feaf8cb": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "tv44c7ypee-8a02460e4a0d4f1da0f1f7bfadfe29c6-b084fd2be46c4c71277eee35c54d24e4": {
+  "industry": "computers_it",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "3hn9m31n4s-457f3ab57e1146c986a9615d4fce911d-59f2c64b423f3d7ac39005f67a4c3bba": {
+  "industry": "electrical",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "qt6jufin2c-b1867c593e334f6993c751084e752cb6-1cfe56ea103eafc7d95caeb5cbc69f22": {
+  "industry": "electrical",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "72yq1vzfeq-645eb2a302504af6aae2d18e155a3da5-52c5e06829859115d8bab1baa6c38962": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "nxl6m8coz9-b31239a8483943f381a6e88b8b6f6076-8243729ea63a88dc260a4af8de01da36": {
+  "industry": "electrical",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ppjdahmmw7-ca9fe2c779b34fffb7cdf202203db148-2d97bf90b9ffde15f0e7d4d10ef94d4e": {
+  "industry": "electrical",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "5tjl5fugq8-9e810f6f288f474b9036dfa73854f286-caee31b9a2007c4d9f94dd4e47c8034e": {
+  "industry": "electrical",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "w8mtfcjcm0-8ea3607971c14a06973b7871174fb2a7-1e9808532205c92a131aed621c807937": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": true
+  }
+ },
+ "biu02kpmny-fc254839b206440a830d668ad4eb3f8a-72e8fc55ae26860df99dd335786d9815": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "chqrv9zqqo-ce4b6940070d498e98dc15e77720458c-94b2ce306c131a80a38cb05145b35752": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "avqhzs1gen-650e33786069427486027b25fdda0a27-2b58abb4fdec0df863f228c02c968c60": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "i9gb7hej2u-251c2e2cf1004a9a8959e43768715515-1760273533a775c512220798aeb96bc7": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "8gloq60jfm-d3aaebd459bd4c11baf3b5bc8215c2b1-9413a8dd7b724745e330b407ae8251ee": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "q4r3udqc0k-8b71fa844e074582ac2d2eda1de9ad14-1a568dfe3ed64139d2d5ec689c7f3784": {
+  "industry": "general_contracting",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ryld3ph2fq-51eadf2d644c491b89029dc7c7674c17-6c37c2ae30246ea485979d05caf4154d": {
+  "industry": "flooring",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "mmcoewhkv0-413f097527b4440888212b522b4ba1e8-ef49c67377e9c80bffb3e29058c76312": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "l2x0bzvkpf-9ef20ba560c14bbebf53fdb2ae73ecc5-ba759a3248d7f405cef20e7ca4c32b6c": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "b3gpve0of6-87b4e16fdb9c42fd8c6f23a5f2ffffb3-28692d8cd47d9857ad4bcee17e489e34": {
+  "industry": "general_contracting",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": true
+  }
+ },
+ "1zdiepjk8l-32b1d8eceaa0410db9b7f2a954820733-5558a72b6e6be72da912e4d889c372ea": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": true
+  }
+ },
+ "m0w8zrj0ft-280db6e8bd73413e8e8c41c332e7b546-c1b049d32888dba1bb4670d3741fbcbf": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "7auppj20yn-65c6ea695e4a40c886fd546fda206745-91e3bdd8e3eca43db4fcb84e955c0c86": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "734o5s3jxc-b4d012e271da4673aa44424610ee6653-ae0b07f5dbf97268c82ec5afaf26a5ea": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": true
+  }
+ },
+ "5ku52mj1kc-f2349c678a394d068df7c5ebda214cb5-88e67fb830c9be0d6cfbce2e8ef5a97d": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": true
+  }
+ },
+ "ul31z1ts6n-96485912dc4d4b9f920e47598b8fd2f5-c70b57ea32a369362ac3958eaa8758f4": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "u2p3y15ej1-23092e1803d14fa090a7e031cb060f92-140493f48bf103805dbf2b30939ca294": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "9pkkgpiomi-a2cd1382e27a4ec28aa3d8e8349824f8-4ed3490ce5435eaf158ab27d29e3afb8": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "nssbn4vqsa-b637d25cc53c4f8882131daca415822c-1e87cab304710a8c44e80a54948ac0d3": {
+  "industry": "handyman",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "n15ed4af78-ea2adb5129514fbfa94b025c89299817-391ce420c3abb35872c074f0cc1e0381": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "0aprgau9m8-e8ab2dae307d421fb2f51a79002c9c29-b7c58a6f222b4af6059d532a8896e9c1": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "0i7ninmm93-98b349c08c8343b6b1726afc5af966a7-56f7998ea2cf1038aaa88cf629f34ccc": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ceftutfeql-433af2048ac044b1ba6c3b459dd3083c-4fe993fd658a969ec2c4a11586b17e98": {
+  "industry": "cleaning",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "295bd27z75-7f60c70a8bf5494f97f3b4c6621ebe00-00a5fdd65973b156eeda1adf567059ea": {
+  "industry": "handyman",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "zxnl7udfnd-3b15cccb03ae40278eaab165e0a767c5-1f5f1e2e26b2838c9ac8b218ddfdc186": {
+  "industry": "handyman",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "jct524fn6s-284a1508184d4430838a82d3fda79fdc-6ae56e1592ac5c22692f057cd473fb5f": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "e1e2di8hzg-690248c1e3e24f25acd1538ea3252732-2d133be580c76734dbc79da26b39f6f4": {
+  "industry": "home_theater",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "64wldrnkz1-2b9fee3dee82466a9b5f3d8f365d29f0-5c76d74ec134308f8ba4fae8e673042d": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "yuhxl3708m-599592f3edb445dd9cdd24e061819bfe-82eb93e3e6c27337ce1b3864cbfd43a7": {
+  "industry": "cleaning",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "3az2sgkidv-d989840ba1534296946780b94b2457af-3420d9a94990b17eeb2bceb3b77a3949": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "tyuslivaj0-917dd56486754166b973af0d000f88f7-2597e055b92919e447b346bc1539db3b": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "rdwm8f8mw6-7b76fa59430a4503bcb41ab254b066e1-42efb50a8fcb480d4b52cba298d02fcc": {
+  "industry": "cleaning",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "d46e0vzbfm-16e2904c8f714df6b2dd3e8cad48a5da-e63e0ef94b0a1e7b7312ce4d9f92acf8": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "q2jk36p38r-0e7007809a5247c38382e4682d97338e-f8aa32520782a531110bc721ffb98b58": {
+  "industry": "mechanical_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "dp3hjjkkwh-c30c95cf89e942408fae5a98a50af987-ece98d0b1e91586f0274dac1d0ffb6b4": {
+  "industry": "hvac",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "qlbl504lkk-4e5c566493aa4c49a24ddceed6d84163-4ea492e09b830d614fd71841fec610e1": {
+  "industry": "mechanical_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ee8ou4htrv-7c30d562ad714ea29ab9be64b914346d-7514cf44814fb76d2f0cd9a350beb43f": {
+  "industry": "hvac",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ajuhnm0lwb-d46774a9336b409a96153ce74b986807-13e0c0e159538ce1106b58d3335421d8": {
+  "industry": "hvac",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "pimtpoprp4-5be0076c6d124a658103a9afb726749d-ec48cc32b39f3cf1c8b2613400f4ec5f": {
+  "industry": "mechanical_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "yrrynbdc3j-dcfbd35a8e574f569f5d9a6fa757629b-3226b1ec4c9d117448101dcd4de111ae": {
+  "industry": "hvac",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "98y6yw9j6z-907c47b2395747e5bfd9028f5c660d88-ea5ea88e5aa5603108bca7afda3318a5": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "3k9woio013-3da9d38e171843e48806c0963ab22ce6-96641ba7f1aaff791d7fa5ec6649def8": {
+  "industry": "junk_removal",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "ilfmix7bp3-1e94a5815ee342729fed87cdd1ba886b-97d30494f523448db7ed369b703e3a02": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "fbqkzosyy4-fbcfe4ef1956474d9dcf7b3c4898931b-5b368faf5fd0a630d05cf79fe5329f20": {
+  "industry": "junk_removal",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "w1hlt6mi3h-a6229380a2af459ebfcb51f893211a4f-ab7f176055959a0f5b4be3196a40e5ea": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "x2k5inwqcr-3acc44af7f144535a9ac3f5fdb202867-d3dc70a9b4b416467e882541ecad4896": {
+  "industry": "junk_removal",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "yfpzmbzbn7-0e357416ca3342fcbc14d9b6219e95e5-aebf6e7ea81176e2fb9cd46d9263bc9a": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "1rqdnm8xcd-4dc277ae2d89451d900c50a38995ee35-eba493cb1b492dc1fbc558c409a38c33": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "05c392ox83-3ff9f06129d74e0cb0c903f08b66fa1c-46c2317b9d0fa875df0c0f1942794048": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "6ky121q2j8-886c1ccbcce142cb819dc1ba4b4dbb66-f8f52693fe0fadd6cac9b865a3ee4f00": {
+  "industry": "locksmith",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "zgi9q2yj0g-cee9fcef84344621a6a841fd5fcf664a-bba617b88f082bc4c1977912af391ea3": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "znbq5x5ok2-4f37e1bb3ee3446283a7f08b297498c8-4fad7503c3c985fd29a01b438cf0354f": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "17hetwmmp1-64b5088c60b24582997c5b0b835aafd8-22db5b3b939563ccada5297e92b0d629": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "w28avnldzj-5b1f4a818c58494190422bfb966b8f04-ec744a6ad6640e2d1b46a55719321861": {
+  "industry": "locksmith",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "9pcvuleegg-20d9cc9e03a346ac9a8872fefd7adb3a-85657ab5d1d2f302b3d909a75e9b5a4c": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "3mds9wqkmb-141cc0a8bd004d8aad79a2ee418ae151-bc672e1f3995b43f66735124fde0263e": {
+  "industry": "security_alarm",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "4a7t1zt6ah-c84a1d012d7f478185199ddc1043f6e1-671558118ca9e8286070508b75842456": {
+  "industry": "locksmith",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "u3dj9vijy9-fcda2234e3ba485e86ede75f05eb896d-b78a888c6c45fb217490e64a61bb375c": {
+  "industry": "mechanical_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "bz9b5i6tcc-8058ecf6cb3a4770be74649a3dcc7d14-b9b8b63d84dc72dc41abdc1ab51a1e96": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "xkemiymuh1-d199a44a9f7649af836f37eda0577605-84ad9f583c6c2ee006f17228a6b422b7": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "uypc2hgk5d-32817efe94d94e13be8e5a73407c3a06-5d9bd46bf964a96d29b67bd07e36fef6": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "c8m3au1wd2-e86ae34327d24a11b7896d1ea39cd4dd-ec235abaa1343f30867f75788e338b22": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "iin4azmmad-a36c33fe608340adb1ccd88ba73c9fc6-6921fbe4fd1e0f945e6a00e6301a95dc": {
+  "industry": "mechanical_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "a4anyvqp04-015c6783dd6c403fac0d1aacf7b45fc2-39efac69f0e167cfdb881a9cf04ac3d9": {
+  "industry": "mechanical_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "o8omuk8fb7-7c4d02dd06ea4c86a76e26ecf7cd316d-4df7e34777474a47ff9771a810c67bf3": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "x821ysh9c3-9d6e5daf1ed143058454bb7a1b9b7026-2d4c65d4080fcb8f1f8620581f4d48f3": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "py0khzfofv-c103c73505d14b3f912a82192ff3ced9-1e9dc343a6c7ff467a41ddb035dbdfc5": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "vgte4t0rq1-b3d255e9ac954c33b7e004ee90ebcee5-c49e4e3ad7240ce28777001a01cf18a6": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "xb0tofibin-840adb3afbcb4fe480dc59d2b8640ab6-e0fa500c11fbb8e117cf1662d4f33b6e": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "qa6p9vgz06-0ade565235e6400987a7560e642f7bec-cb86efc0a20ab4d17e5877359abf1491": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "r7xmm5hj8q-e0c661ecce694eaf9cd5cdbd686a7329-eed56509a33b2ebf61a8c696a43c82af": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "5jgsi8rwra-83083f3d37c14af8b77c26c325d540bd-9e2015e5e5c0244e18fea20f449ed401": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "2wjnooq0v0-c9f84301edde432e8ebe6655d0ca5fd3-e064d61ffc33931a3e9ce270316df259": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "7jbhhryiw0-83ba090926d849d58e9811885cf989b7-85bbbba4a334d811176f173ee7ae7896": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "ijyvin49rf-047454e9410340b398dc016204522d77-7550d7615b94ab88be8559730ac47c41": {
+  "industry": "painting",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "uxjkw507ez-ab4e112764644079908f6a877c3d365b-eed79b645521c543471d37cb390f2b2a": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "6qmbggmrz1-97b95237171c4476979c29be679a6796-d65d70277c78e85316aa9ddc7bd1afd7": {
+  "industry": "painting",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "0v69fcag3z-cb75b6673fb5487195b618a51d1c7942-b039869fa12794b6e15c813c110c9216": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "skvetccz8x-c24056c01a214280b2cc9df40099c05e-951dd79f8e25b9787651a6adb7b37331": {
+  "industry": "renovations",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "2da3q8aiqp-74dc28156a95454cb5cab9cda16d1416-121fa2adcb24c0d6f21688484e3cca20": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "xd0ndym0a9-266a60c98a1344479591dd8f49b75396-f20a0c4a878caec01cb1a4de202a391e": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "zornez6w4e-6fbce8142e3a4afdb2c4637a14c59fd9-72accc1d1631dd61bc6d39786b322dcd": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "cr7feo19jw-fadbfbffed0042bfa7c368313c2d9389-4f2130776ed28ee2a2c303ca6970c000": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "a8jr3gd7uq-84ae7ec32ef240cc9e3400a8eff5ce9b-054ec694df8ff657e80319254c709f8d": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "51c0q5osmz-ee61e273c5544e18a3b75cf3b619bad2-227e3d69e762f4d041e6fd748eafb9f5": {
+  "industry": "pest_control",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "3ejn2etqur-5d4efc15f465405886ed6bd42712852f-cbe1b86e5ddc69bdb9e5174ab9de6400": {
+  "industry": "pest_control",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "0liu0ej693-0697888c89b64d34ab85ea5f01dda769-467d1987445aafc64ad0afa681e490c8": {
+  "industry": "general_contracting",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": true
+  }
+ },
+ "tsy6aaauqi-8622f7605f804ff48ae8f03093e9ba6f-0447a401e38dd5cdd17ba743db06105d": {
+  "industry": "pest_control",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "8dzvxmpe5d-212ac4a372bc4a1481a29b8293242d43-457d8b9d420c25568c3ee6bab78f3595": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "qdwlapnms8-096581add44f4c96a5ec90aa53431fda-95902790a88f2c544562708566b18803": {
+  "industry": "plumbing",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "v8j6785lc9-5b729d4cea2e4995a8dff5b3cec9be50-6c5ebe27b56fce317e9c309a1fb72bff": {
+  "industry": "plumbing",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "upjcj36vcq-3f0724ab1dd741a4b32e61a836a6a5be-83b5d72b76b28358802223c43368f22a": {
+  "industry": "plumbing",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "nunq4pe62h-6a4383a38ade46909cac54486f0bd279-74f0bf70d048a25271996c41fb72d726": {
+  "industry": "mechanical_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "kli6ucj2ay-df0f54dfcc5a4dad9950566a333069e6-174a2b6a2da4171d8e35721cae4bb28c": {
+  "industry": "plumbing",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "5h0zg26xxu-b67b93a5c2264100acd109f6930e5473-903c9667090063ce3bbb650ef20efb67": {
+  "industry": "plumbing",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "jbgmpk9bzd-c2ffc5ca43824def8affb988f5fbb8ce-80b457f28ef99a12f9b00f958496428b": {
+  "industry": "handyman",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "izqht8a0r9-c76b8e773e374e81b349ec96968ab9fe-58b1aa750072763f8ac5c0f5a5bc7f3b": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "d1p3qh2k1q-34b50e25d2f341ccb3df7910c4ded8dc-2df0ab72b1e6ecd0556ba031226b65d9": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": true
+  }
+ },
+ "bhrepl04ey-d799f4b614284c8c9c46ef9e74ba6b03-014097a12c83cad46d8019bf96ff33dc": {
+  "industry": "general_contracting",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "vb5ywpdw1n-6ad4a8ee7a6345d891c52916b9c8b225-4b730a22c54bd0f821971bd41b6158e6": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "v6203ctmv2-20b83b59cf26480e87333296eea159e1-2c231ad64decd97e5526e54760d88082": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "cj0cz6ckj8-0076352ffba74047ac01eb4cf0162639-c78f0ac062dfe03bba67d34cd8c99802": {
+  "industry": "general_contracting",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "srz2byznjc-8eb3bc6d214e4357ad605d4212232483-af94b60d909fbb155f2f4908c5bad60d": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "yttgarothv-43c0184ff46e46f68e2715cf866d9a76-26489c9b1a6a669e2a11ec3eaf872b0a": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": true
+  }
+ },
+ "ailouh819h-ae864a04c5cb46a0b39df7c04583805b-ea102ae7b9df6320b23475264e356183": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "mp4fh6lte8-b7c2f841ed424e60bdb19b1e279f69ec-23bf8cc298e6adccdef42452201c954e": {
+  "industry": "general_contracting",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "obouof08l5-9a5e6c7b6c894830a7c60edb4d20ae19-13614d45633a1f3cb87cdb8ad2061785": {
+  "industry": "general_contracting",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "3isjgilzas-220ec48c97c749db83c20d4b83b66a3b-0accd09d9e0273ac06c3e0a02446ac54": {
+  "industry": "roofing",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "dn0jtkdtpv-eb2a552fe6974273ade7fcaad231083c-bf25ef3959411f26781abb04f17c2568": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "9lx2gp5aup-1ffbf95f49d741ca9e618f1e6965c37a-22c1ef9076030a913aaa2addf00ed0e5": {
+  "industry": "roofing",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "gt03xnlcsm-a0a57379bbc2401db5e84ef334824f00-5b5b2ba2d9e27c576ff0dd0c34b3f61e": {
+  "industry": "roofing",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "3c18ltn71c-79fe4d0aa2e6403094e9116736008e0e-7662a6ea493e65c4dd30742e137637f2": {
+  "industry": "roofing",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "nhvhu9fklk-0cee3e88c1864d14936731604c81202b-b0b12520f1aa4b0d9b7faebc348221d4": {
+  "industry": "cleaning",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "2euo861lew-b44f08702d7749ac880b9149a012c5cb-8d8b05d171cdf518a611070b5d7a4c97": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "xofo2753uw-0966248dbe4346c29a2e811ea5e4f803-3e72418f8fbb864ba169da24053201a7": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "fcl0t8399q-d8a1eb5e1f694989bec03d4fca1dbeb0-298b88ac4b3cbf28f499845a59c771e8": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "65lar8zlui-365776cee01041ffa3d78ec8ee60e0a1-fca5ec28b15d67260f9057f23f2e840e": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "3ms6yudq26-eca5dfab6ebe47bca1e00579280498c0-e6d81bdefc5fe76a379229da8d8f13c8": {
+  "industry": "security_alarm",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "d1gx3zx8zn-c4d81cc4e2db44cd868eef16c293399b-b7b8fdb7d19ad727e41a64ed38c9451f": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "zof9q4xcqe-cc125e19e5c14ef6a8bd4014971832b7-678b07a9ad0d32b4696b4ac171fada44": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "k1v6lrhv54-7ae6212c9ed947d18d4d9ca20dd021bb-c71c53a586f102bb6cafd1c15f621e21": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "j9nwz7kw3g-a612cc7856d047029420ba58f0c96878-49dc7bd6132f6f92cc6cc4dd31266b72": {
+  "industry": "snow_removal",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "e0gmotf4i0-1359e0d92abe4a5e8b8827af0c5952a1-05b16dcee8184896747f250d61d1cfa3": {
+  "industry": "snow_removal",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "sjmwjbf9am-b3b5a9852fa046e7858485001d7d1cbb-874df1e64e6768d93af19b1891681243": {
+  "industry": "lawn_care_maintenance",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "s1qlqbxxjf-e8bd3069f4f94fa99a43332646ce7465-3ca39b9e84961eb7f2675cfdc54d2621": {
+  "industry": "renovations",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "1bkh4ie64g-8f1a7a20e0b54172a251119ca84aa4f0-bdcfa6c48c2a8dffc575b0417ac1879e": {
+  "industry": "lawn_care_maintenance",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "31jukotbmz-4ca6b063c25d4a8b9fdf5e879392d270-4a0aef54f1fbf5253b4e8ab23b90ebe0": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "j8dzqcmi8k-4c8dd0253f3e42eb97de1d606364a46d-4d725278ade08bbd9cf13f22d59a4cc5": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "pyrffai4m2-b06c6ae6929b4e8c83d1c3fb99b59580-c7bbba073a02c7b8769c07b72a028fef": {
+  "industry": "snow_removal",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "ym56fdlmph-ae281841040a480db495b82558ab538c-9937ccc6ed392c14e2cfe9a218de4105": {
+  "industry": "cleaning",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "n2c7wd5m2f-a5ee3adbd9bc4e9b80f61efb78981961-3ec0300ac4b43838ac9af0ea2a390306": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "2o4jy48db0-539b9cb88b2e4a69bb9f5020dfd499d9-3d355beb370e9a472e2df9e8fb9b472f": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "ijtezkbu8q-7a2e7c9b90334c7eaf9f60b12858f846-4ddbae34a33210403ea0f229824c3146": {
+  "industry": "cleaning",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "nibivdphog-f974c0d55c2543418c323018dae1dff9-b42edc8107f4ad5c3d5638f159853454": {
+  "industry": "cleaning",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "jk9414kq46-8a8e97a678974043b9be2cbab6c77bda-dc1c67fbc461bb15cf9658477ef289b4": {
+  "industry": "cleaning",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "5eppkqmos8-2a388ce5f1e3470cb140f9dbc8b41ef9-8a157863452ae45c4e1f142861060c0f": {
+  "industry": "cleaning",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "uxg09sx9p5-4f705c5f77634c018f9942b36d9fdf32-a98c27754a5f02506cd9fe2d66085f4b": {
+  "industry": "cleaning",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "q4tg7gcwnh-3695a20e80cb4ce487228be1195a9a07-2d53f5f16111a8f57bac8a26745d2719": {
+  "industry": "landscaping",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "d20dx7t4zq-916e6c84976d4575a57162139d406925-28bd1850f1e3c2b89c6db5660c80e3c9": {
+  "industry": "arborist_tree_care",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "rxytvjv9eo-d7a46b6003604deb9cff9ef24a92ae25-acc87d3d6f5b82a806ffe8d6512675d8": {
+  "industry": "landscaping",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "up1oqqot73-b931d6883c0346e98a10d42491861e97-cd42cafe43eefe509740a1a798fd15f8": {
+  "industry": "landscaping",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "zv19a5onpn-963856bae67743569cf1d012bbe0bbab-bf8b1bb9491538fb0a14340591814736": {
+  "industry": "landscaping",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "jsom88yut1-024ebaa6fe304956a95920fb5ebf6647-c705b90d668152e89421e4b0684f479e": {
+  "industry": "landscaping",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "hgw3npva2d-ed80c77938e7471980295bf12a4ec475-a7246eef2b25f497b3b2379a7882200e": {
+  "industry": "landscaping",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "qw7d3xo3gp-25c07bc5d2cb46e89707e0683a977efe-81bb026e25b56b61d6a31e5516cc2238": {
+  "industry": "landscaping",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "5qn8ltzhkn-0ebfab2394dc4603b70d370a1e50e589-da74b34eea08017943e50ce6271e80a0": {
+  "industry": "lawn_care_maintenance",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "kr2gct5bb0-a7fc72601b3a48e59f188db6767c7a25-271cc451a8bf4c37f8def4fbbfc08038": {
+  "industry": "lawn_care_maintenance",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "bfwmcmrvy4-c2b50824d1e84356be58d32fb2a2ab0f-a646503da25b3af361563b4817603384": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "wtleeqdsf3-46e7e6b680764b2b8a66140584cda19e-ffb8d47ede2ebd6be88f2763c550fcba": {
+  "industry": "lawn_care_maintenance",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "2honi12wnx-e8c100c3d0974c02b003ef54c4c59b5d-cc2e884935ce7b3f6d6840812624cd1c": {
+  "industry": "lawn_care_maintenance",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "uvxubeds1e-379d83f85cac41f8b90825847fd8fb61-2fb2abb494ae4de6d97aaa9a8267d97c": {
+  "industry": "lawn_care_maintenance",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "b8da7b848a-a32dd0dd45d841ebb6ee3db9ba7be62f-b3018ee57c277719120aa722983462fc": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "8gnkljvu4w-903d12f94a6f47c89f82e768530e4bda-350607f6a5dfb127eb714560c0a8584c": {
+  "industry": "landscaping",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "alyuzid0ki-3e5835c27fe64cdc969bd1c74a92fbde-a04e7912f4a52869eba69b6e75aba74d": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "kgwnky32zv-9c6abcbd61c84b47ade1a7216e6b540f-b5347e7b052f4aac853c97b386da1fa9": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "j0cxp0mbcr-221ad7a3c4904fd0b5a52d22f892eb63-c3cf27f5e8750b133856c35ef38bab7d": {
+  "industry": "pool_spa_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "av61xrt63o-2636b8aa38ba41328c83c72192100f1a-a39b3faba71b4db2105d6de3191901e7": {
+  "industry": "pool_spa_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "75b4dwjo2p-601d2635c5d34c629c56d6e272b2f371-72ebd33bc9f01cc78398121e697ae42f": {
+  "industry": "electrical",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "oiucsaav5z-ff7f6f25a0834833ae3ef3ee1e69c9e5-8aec3e462aafedf8e49a962ef9a796ce": {
+  "industry": "pool_spa_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "xhy5w2sb1p-6fa5f527fc4442ab94d6660a360a388a-e4adf2469fadd076c1867698815c82aa": {
+  "industry": "pool_spa_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "jemmd46442-9ee0b75963c64199968f127c0fb8490a-018274418ced7164d52d29ddfe3326af": {
+  "industry": "pool_spa_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "ilsmvpp3fu-2e68ac9ceb43403e9a1b600f7eab6b30-9c533a10d139c36ea698e21eac29146f": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "wg1jiuk7zj-cdbcece5440848d68ba92482bea0cf4a-029324a42ce5b915f68280ded4d0389d": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "ubgbwj9rq3-63369331b054456ab5dc8e703bd0ac98-793b09674a79cce94838af54df484fa0": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "m2tsvaosxw-db13876a06de4bde8b6cb3e6a4627e31-49ddac2bea58d6275c6df77814276391": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "cdsimt5bo5-ce4a4e88713b4f2cb41db1823f394fef-1b2e7a4b6f2e4891acce934b88af382c": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "jwnbujzjk3-821e3087144c4b08a49214736d867e27-74ba756a8efe8b0c986171663227ebf5": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "cbbq3t68ex-a02daa215dd24982a92466470a6c12a0-a9df2372f421c3d8b30c8eed68336980": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "knlgd2w84y-f447aa5289474b6ea924108b4134afd7-86a1ce0e1271c6f4ed01480bfec90a9f": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ }
+}

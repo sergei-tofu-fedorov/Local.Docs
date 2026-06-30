@@ -15,3 +15,6 @@ features/MAIN-1361/prototype/
 
 # WEB-1523-segmentation prototype — same exclusion pattern as MAIN-1361
 features/WEB-1523-segmentation/prototype/
+
+# FSM-fit Argilla rebuild kit — the PII worksheet is regenerated from BigQuery, never committed
+features/fsm-fit-flashlite-switch/argilla/judge_worksheet.json

@@ -1,0 +1,519 @@
+{
+ "ind-plumbing": {
+  "industry": "plumbing",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ind-electrical": {
+  "industry": "electrical",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ind-hvac": {
+  "industry": "hvac",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ind-locksmith": {
+  "industry": "locksmith",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "ind-mechanical-service": {
+  "industry": "mechanical_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": true
+  }
+ },
+ "ind-automotive-repair-shop": {
+  "industry": "mechanical_service",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": true,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ind-handyman": {
+  "industry": "handyman",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "ind-appliance-repair": {
+  "industry": "appliance_repair",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ind-flooring": {
+  "industry": "flooring",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ind-junk-removal": {
+  "industry": "junk_removal",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "ind-painting": {
+  "industry": "painting",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ind-pest-control": {
+  "industry": "pest_control",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "ind-pool-spa": {
+  "industry": "pool_spa_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "ind-renovations": {
+  "industry": "renovations",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": true
+  }
+ },
+ "ind-roofing": {
+  "industry": "roofing",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": true
+  }
+ },
+ "ind-cleaning": {
+  "industry": "cleaning",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "ind-arborist": {
+  "industry": "arborist_tree_care",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ind-landscaping": {
+  "industry": "landscaping",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ind-lawn-care": {
+  "industry": "lawn_care_maintenance",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "ind-snow-removal": {
+  "industry": "snow_removal",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": true
+  }
+ },
+ "ind-computers-it": {
+  "industry": "computers_it",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ind-home-theater": {
+  "industry": "home_theater",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ind-security-alarm": {
+  "industry": "security_alarm",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ind-general-contracting": {
+  "industry": "general_contracting",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "ind-other-consulting": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "flag-scheduling-false-continuous-build": {
+  "industry": "general_contracting",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": true
+  }
+ },
+ "flag-recurring-false-reactive-trade": {
+  "industry": "plumbing",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "flag-recurring-true-explicit-language": {
+  "industry": "pool_spa_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "flag-labour-true": {
+  "industry": "handyman",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "flag-labour-false-parts-only": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "flag-complex-true": {
+  "industry": "mechanical_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "flag-complex-false-single-line": {
+  "industry": "lawn_care_maintenance",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "flag-contract-true": {
+  "industry": "renovations",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": true
+  }
+ },
+ "flag-contract-false-itemised": {
+  "industry": "renovations",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "flag-onsite-false-retail": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "trap-auto-detailing-other": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "trap-vehicle-wash-not-cleaning": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "trap-exterior-property-washing-is-cleaning": {
+  "industry": "cleaning",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "trap-laundry-other": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "trap-pet-care-other": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "trap-wholesale-supplies-other": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "trap-grass-crop-other": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "trap-service-like-no-enum-other": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": true,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "trap-name-only-trade-name": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "trap-name-only-empty": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ },
+ "trap-automotive-vs-mechanical": {
+  "industry": "mechanical_service",
+  "flags": {
+   "on_site_work": true,
+   "labour_billing": true,
+   "scheduling": true,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": true,
+   "contract_based_billing": false
+  }
+ },
+ "trap-reasoning-contradiction-retail": {
+  "industry": "other",
+  "flags": {
+   "on_site_work": false,
+   "labour_billing": false,
+   "scheduling": false,
+   "recurring_billing": false,
+   "complex_multi_line_jobs": false,
+   "contract_based_billing": false
+  }
+ }
+}
