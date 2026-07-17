@@ -29,7 +29,8 @@ Source of truth for the workspace's Claude Code skills. The runtime copies live 
 
 | Skill | Role |
 |---|---|
-| `gcp/`, `sentry/`, `mongo/` | Standalone one-off toolkits (ops + safety gates), usable from anywhere. Each owns its domain knowledge in its own `references/` (`gcp/references/gcp-logs.md`, `sentry/references/sentry.md`) — single source; `investigate` collectors read the same files. |
+| `gcp/`, `sentry/`, `mongo/` | Standalone one-off toolkits (ops + safety gates), usable from anywhere. `gcp`/`sentry` own their domain knowledge in their own `references/` (`gcp/references/gcp-logs.md`, `sentry/references/sentry.md`) — single source; `investigate` collectors read the same files. |
+| `bq/` | BigQuery toolkit (analytics warehouse `inv-project`): cost gate (metadata + `--dry_run` before every scan), reads-default-to-prod env rules, SA-key write gate (`tofu-ai-backend` for DDL/DTS). Query-composition knowledge is NOT duplicated here — it points at `Backend/Storage/bigquery-agent-guide.md` (that guide is a Storage-catalog artifact, so it stays in the catalog where humans browse it). |
 
 ## Conventions
 
