@@ -16,7 +16,7 @@ Task input (ask + identifiers + time window + gate summary):
 $ARGUMENTS
 ```
 
-1. Read `.claude/skills/investigate/references/gcp-logs.md` FIRST — field paths, selectors, and gotchas come from there, not from memory.
+1. Read `.claude/skills/gcp/references/gcp-logs.md` FIRST — field paths, selectors, and gotchas come from there, not from memory.
 2. **Scope before depth**: cheap aggregations first (counts, distinct affected accounts/endpoints/versions, first-seen), then individual entries only where needed.
 3. Rails: `--project=<id>` explicit on every command (prod = `inv-project`, test = `invoicesapp-project-test`); bound EVERY query with `--limit` + `--freshness`; note when a cap was hit (counts are partial). Remember: the BFF returns 200-with-error-body (search `ResponseBodyText`, not only StatusCode) and auth-gated fields are missing on early failures.
 

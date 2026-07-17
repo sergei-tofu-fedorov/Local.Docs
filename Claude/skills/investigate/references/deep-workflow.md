@@ -30,10 +30,12 @@ const VERDICT = { type: 'object', required: ['refuted', 'reason'],
 // Collectors: prompt = role + ONE reference file + pinned identifiers/window + output schema.
 // args = { ask, identifiers, window, gateSummary } — passed by the orchestrator.
 const REF = '.claude/skills/investigate/references'
+const SENTRY_REF = '.claude/skills/sentry/references/sentry.md'   // owned by the sentry toolkit skill
+const GCP_REF = '.claude/skills/gcp/references/gcp-logs.md'       // owned by the gcp toolkit skill
 const collectors = [
   { key: 'history', prompt: `Read ${REF}/history.md, then grep BOTH stores for each of: ${JSON.stringify(args.identifiers)}. Return prior-case conclusions with slugs/run-ids as citations. Read-only.` },
-  { key: 'sentry',  prompt: `Read ${REF}/sentry.md, then pull issues/events for: ${JSON.stringify(args.identifiers)} in window ${args.window}. Counts, first/last-seen, tags, stack symbol + release. GET only, keep to a handful of calls.` },
-  { key: 'gcp',     prompt: `Read ${REF}/gcp-logs.md, then establish scope for: ${args.ask}. Counts, affected accounts, first-seen, per-endpoint/per-version aggregation. gcloud logging read ONLY; --project explicit; bound every query.` },
+  { key: 'sentry',  prompt: `Read ${SENTRY_REF}, then pull issues/events for: ${JSON.stringify(args.identifiers)} in window ${args.window}. Counts, first/last-seen, tags, stack symbol + release. GET only, keep to a handful of calls.` },
+  { key: 'gcp',     prompt: `Read ${GCP_REF}, then establish scope for: ${args.ask}. Counts, affected accounts, first-seen, per-endpoint/per-version aggregation. gcloud logging read ONLY; --project explicit; bound every query.` },
   { key: 'code',    prompt: `In the workspace repo checkouts, resolve the throw site / mapping / recent commit for: ${args.ask}. Deployed state is origin/<default-branch> — never checkout. Return file:line citations.` },
 ]
 

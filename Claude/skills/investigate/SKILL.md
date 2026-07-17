@@ -14,8 +14,8 @@ Load only what the current phase needs; collector subagents are pointed at exact
 | File | Owns |
 |---|---|
 | `references/history.md` | prior-work recall: Investigations repo (canonical) + `.tofu-ai/` tree (read-only), gate greps, continuous matching |
-| `references/gcp-logs.md` | LQL field paths (BFF + tofu-ai), projects, quotas, query/aggregation recipes |
-| `references/sentry.md` | Sentry REST recipes (sandbox-safe curl form), alert decoding, client source-repo map |
+| `.claude/skills/gcp/references/gcp-logs.md` *(owned by the `gcp` toolkit)* | LQL field paths (BFF + tofu-ai), projects, quotas, query/aggregation recipes |
+| `.claude/skills/sentry/references/sentry.md` *(owned by the `sentry` toolkit)* | Sentry REST recipes (sandbox-safe curl form), alert decoding, client source-repo map |
 | `references/case-format.md` | case folder lifecycle, frontmatter schema, reindex, ops (`new`/`note`/`finding`/`commit`/…) |
 | `references/deep-workflow.md` | Workflow template for the deep tier |
 
@@ -44,8 +44,8 @@ Invoke the applicable collectors via the **Skill tool** — each is a `context: 
 | Collector skill | Owns | Reads |
 |---|---|---|
 | `inv-history` | prior-work recall: matching cases/runs + their conclusions | `references/history.md` |
-| `inv-sentry` | issues/events/alerts: counts, first/last-seen, tags, stack symbol + release | `references/sentry.md` |
-| `inv-gcp` | scope before depth: counts, affected accounts, first-seen (cheap aggregations first) | `references/gcp-logs.md` |
+| `inv-sentry` | issues/events/alerts: counts, first/last-seen, tags, stack symbol + release | `.claude/skills/sentry/references/sentry.md` |
+| `inv-gcp` | scope before depth: counts, affected accounts, first-seen (cheap aggregations first) | `.claude/skills/gcp/references/gcp-logs.md` |
 | `inv-code` | throw site / mapping / commit; deployed state = `origin/<default-branch>`, never checkout | repo checkouts |
 
 Skip collectors whose source can't bear on the ask; don't fan out what the gate already answered. Fallback: if fork skills are unavailable, launch Explore agents with the same reference file + output contract (see `orchestration`).

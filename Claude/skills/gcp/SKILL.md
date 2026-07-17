@@ -15,7 +15,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 `/gcp` is the gcloud **operations** toolkit: project/env handling, the common query presets, and the safety rules (default env, prod switching, write refusal).
 
-**Field paths, log schemas, and query recipes live in ONE place:** `.claude/skills/investigate/references/gcp-logs.md`. **Read it before composing any non-trivial `gcloud logging read` filter** — it holds the LQL field reference (BFF request log, identity/client-context/request fields, LB log, tofu-ai selectors) and the per-field gotchas (auth-gated properties, 200-error envelope, hyphen quoting, the nonexistent `RequestId`). Do not re-derive or duplicate that knowledge here.
+**Field paths, log schemas, and query recipes live in ONE place:** `.claude/skills/gcp/references/gcp-logs.md`. **Read it before composing any non-trivial `gcloud logging read` filter** — it holds the LQL field reference (BFF request log, identity/client-context/request fields, LB log, tofu-ai selectors) and the per-field gotchas (auth-gated properties, 200-error envelope, hyphen quoting, the nonexistent `RequestId`). Do not re-derive or duplicate that knowledge here.
 
 For investigations (folder + write-up workflow) use the `investigate` skill; `/gcp` is for one-off queries.
 
@@ -85,4 +85,4 @@ Use `AskUserQuestion`; never run on implicit approval. **On prod, restate the pr
 - **Env in every emitted command** — always print the actual `--project=<id>` flag.
 - **Never re-auth silently.**
 - **Limit + freshness, every time.** Defaults: 50 (reads) / 2000 (aggregate); freshness 1h (reads) / 30d (aggregate).
-- **Field knowledge lives in the reference file** — when a filter, field path, or project rule changes, update `.claude/skills/investigate/references/gcp-logs.md` once, not this file.
+- **Field knowledge lives in the reference file** — when a filter, field path, or project rule changes, update `.claude/skills/gcp/references/gcp-logs.md` once, not this file.

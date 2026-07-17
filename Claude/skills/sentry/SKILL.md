@@ -15,7 +15,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 `/sentry` is the Sentry **operations** toolkit: the op → endpoint mapping and inference rules for one-off lookups.
 
-**Endpoints, curl shapes, auth, project slugs, the alert-decoding flow, the accountId gotcha, and the client source-repo map live in ONE place:** `.claude/skills/investigate/references/sentry.md`. **Read it before composing any Sentry call** and use its exact command form:
+**Endpoints, curl shapes, auth, project slugs, the alert-decoding flow, the accountId gotcha, and the client source-repo map live in ONE place:** `.claude/skills/sentry/references/sentry.md`. **Read it before composing any Sentry call** and use its exact command form:
 
 ```bash
 curl -s "https://sentry.io/api/0/..." -H @.tofu-ai/sentry-header.txt
@@ -47,4 +47,4 @@ Canonical pattern: event → `tags.accountId` prefix / `user.email` + `dateCreat
 - Read-only: no `POST`/`PUT`/`DELETE` (don't resolve issues, don't update tags) without explicit user confirmation.
 - The token (inside `.tofu-ai/sentry-header.txt`) is a personal auth token — never paste it into chat, PRs, or captured output.
 - Client source repos (for stack frames) are read-only context — never edit or commit into them; map in the reference file.
-- When the endpoint, auth, or repo map changes, update `.claude/skills/investigate/references/sentry.md` once, not this file.
+- When the endpoint, auth, or repo map changes, update `.claude/skills/sentry/references/sentry.md` once, not this file.

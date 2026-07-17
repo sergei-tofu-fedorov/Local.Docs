@@ -1,6 +1,6 @@
 # /gcp Skill - Quick Reference
 
-Run gcloud commands against the workspace's test or prod GCP project. Read-only by default; mutating commands require user confirmation. Used directly or from the `investigate` skill. Field paths & query recipes: `.claude/skills/investigate/references/gcp-logs.md` (single source).
+Run gcloud commands against the workspace's test or prod GCP project. Read-only by default; mutating commands require user confirmation. Used directly or from the `investigate` skill. Field paths & query recipes: `.claude/skills/gcp/references/gcp-logs.md` (single source).
 
 ## Environments
 
@@ -59,15 +59,9 @@ Run gcloud commands against the workspace's test or prod GCP project. Read-only 
 /gcp write 'run services update invoices-api --image=…' --prod
 ```
 
-## How `/inv` uses `/gcp`
+## How `investigate` uses `/gcp`
 
-`/inv` owns the investigation folder + write-up flow. Its log-query operations delegate to `/gcp`:
-
-- `/inv logs <filter>` → `/gcp logs <filter>`
-- `/inv errors`, `/inv slow`, `/inv trace`, `/inv request`, `/inv aggregate` → identical `/gcp` ops
-- `/inv` retains: `new`, `list`, `open`, `note`, `finding`, `script`, `commit`, `status`
-
-Use `/gcp` directly for ad-hoc queries that don't need an investigation folder; use `/inv` when you want the findings persisted to `Investigations/investigations/<slug>/`.
+The `investigate` skill owns the investigation folder + write-up flow; its `inv-gcp` collector reads the same `references/gcp-logs.md`. Use `/gcp` directly for ad-hoc queries that don't need an investigation folder; use `investigate` when you want the findings persisted to `Investigations/investigations/<slug>/`.
 
 ## Filter syntax cheat sheet
 
@@ -105,4 +99,4 @@ For aggregation, pipe `value(...)` output through `awk 'NF==0{print "(empty)"; n
 
 ## Where the skill lives
 
-`C:/Git/Work/Backend/.claude/commands/gcp.md` (workspace-scoped, alongside `/feature`, `/plan`, `/web-spike`, `/docs`, `/inv`, `/tests`, `/review-gw`).
+Canon: `Local.Docs/Claude/skills/gcp/` (runtime copy: `C:/Git/Work/Backend/.claude/skills/gcp/`, one-way synced).

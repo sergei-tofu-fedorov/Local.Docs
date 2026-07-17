@@ -16,7 +16,7 @@ Task input (ask + identifiers + time window + gate summary):
 $ARGUMENTS
 ```
 
-1. Read `.claude/skills/investigate/references/sentry.md` FIRST and use its exact command form (Bash tool, `curl -s "https://sentry.io/api/0/..." -H @.tofu-ai/sentry-header.txt`). GET only; keep to a handful of calls; never echo the token.
+1. Read `.claude/skills/sentry/references/sentry.md` FIRST and use its exact command form (Bash tool, `curl -s "https://sentry.io/api/0/..." -H @.tofu-ai/sentry-header.txt`). GET only; keep to a handful of calls; never echo the token.
 2. For alert URLs: resolve the rule definition first, then the incident. For issues/events: pull counts, first-seen/last-seen, tags (`accountId`, `environment`, `release`), user, and the top stack frame (symbol + file).
 3. Note `tags.environment` explicitly — it is NOT the GCP project.
 

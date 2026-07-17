@@ -4,7 +4,7 @@ Query Sentry (org `getpaid-inc`) for iOS / web / backend client errors. Read-onl
 
 ## Relationship to `investigate` and `/gcp`
 
-- Endpoint shapes, auth (header file `.tofu-ai/sentry-header.txt`), project slugs, the client source-repo map: `.claude/skills/investigate/references/sentry.md` (single source).
+- Endpoint shapes, auth (header file `.tofu-ai/sentry-header.txt`), project slugs, the client source-repo map: `.claude/skills/sentry/references/sentry.md` (single source).
 - The `investigate` skill owns the **investigation folder + write-up**; its collectors read the same reference.
 - `/gcp` owns **backend logs**; `/sentry` hands off (timestamp + `accountId` prefix + `trace_id`) for cross-referencing.
 
@@ -59,4 +59,4 @@ Never edit or commit into these repos from this skill.
 
 ## Where the skill lives
 
-`C:/Git/Work/Backend/.claude/commands/sentry.md` (workspace-scoped, alongside `/inv`, `/gcp`, `/mongo`).
+Canon: `Local.Docs/Claude/skills/sentry/` (runtime copy: `C:/Git/Work/Backend/.claude/skills/sentry/`, one-way synced).

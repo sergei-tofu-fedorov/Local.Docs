@@ -8,7 +8,7 @@ Source of truth for the workspace's Claude Code skills. The runtime copies live 
 
 | Skill | Role |
 |---|---|
-| `investigate/` | Single entry point for investigations: tiered orchestration (inline / fork-collectors / deep Workflow), gate, synthesis, case persistence. Knowledge in `references/` (history, gcp-logs, sentry, case-format, deep-workflow) — each file self-sufficient for one collector. |
+| `investigate/` | Single entry point for investigations: tiered orchestration (inline / fork-collectors / deep Workflow), gate, synthesis, case persistence. Own knowledge in `references/` (history, case-format, deep-workflow); GCP/Sentry knowledge is read from the toolkit skills' `references/`. |
 | `inv-history/`, `inv-sentry/`, `inv-gcp/`, `inv-code/` | Fork collectors (`context: fork`, `agent: Explore`, not user-invocable) — one evidence source each, structured-JSON output. Invoked by `investigate`, not directly. |
 | `orchestration/` | Reusable multi-agent pattern (tier ladder, phase model, collector contract) — adopt it in any future fan-out skill (e.g. a feature planner). |
 
@@ -29,7 +29,7 @@ Source of truth for the workspace's Claude Code skills. The runtime copies live 
 
 | Skill | Role |
 |---|---|
-| `gcp/`, `sentry/`, `mongo/` | Standalone one-off toolkits (ops + safety gates). Their source knowledge lives in `investigate/references/` — update it there, once. |
+| `gcp/`, `sentry/`, `mongo/` | Standalone one-off toolkits (ops + safety gates), usable from anywhere. Each owns its domain knowledge in its own `references/` (`gcp/references/gcp-logs.md`, `sentry/references/sentry.md`) — single source; `investigate` collectors read the same files. |
 
 ## Conventions
 
