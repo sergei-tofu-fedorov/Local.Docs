@@ -37,4 +37,4 @@ Source of truth for the workspace's Claude Code skills. The runtime copies live 
 - `README.md` next to `SKILL.md` is the human quick-reference companion (not loaded by the agent runtime).
 - Reference files go one level deep only; files >100 lines start with a `**Contents:**` line.
 - No secrets in any file — auth via external files (e.g. `.tofu-ai/sentry-header.txt`). The `amplitude` skill lives only in `.claude/skills/` (its auth files must not enter git).
-- Deprecated entry points (`investigating` skill) are stubs in `.claude/` only, muted via `skillOverrides` in `.claude/settings.json`; they are not stored here.
+- No deprecated stubs remain: the old entry points (`/inv`, `investigating`, `be-*` commands and their backups) were deleted from `.claude/` on 2026-07-18. `.claude/skills/` is exactly this canon plus `amplitude`.
