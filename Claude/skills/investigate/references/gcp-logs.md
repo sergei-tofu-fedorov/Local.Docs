@@ -1,6 +1,8 @@
 # GCP Cloud Logging reference (Invoices platform) — single source of truth
 
-Field paths, projects, and query recipes for `gcloud logging read`. Used by investigation collectors AND by the `/gcp` command (which owns env switching and the write gate — this file is read-only knowledge). Only `gcloud logging read` here — never any mutating gcloud command.
+Field paths, projects, and query recipes for `gcloud logging read`. Used by investigation collectors AND by the `gcp` skill (which owns env switching and the write gate — this file is read-only knowledge). Only `gcloud logging read` here — never any mutating gcloud command.
+
+**Contents:** Projects · Command shape · A. Resource selectors (A.1 Tofu.AI) · B. Identity & correlation · C. Client/app context (`XA-*`) · D. Request/response · E. Load-balancer log · Recipes
 
 ## Projects
 

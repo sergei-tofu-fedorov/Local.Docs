@@ -1,6 +1,6 @@
 ---
 name: investigate
-description: SINGLE entry point for any investigation on the Tofu/Invoices platform — alert links, error spikes, "why did X fail", trace/account/Sentry lookups, incident write-ups. Owns triage, evidence fan-out (history, Sentry, GCP logs, code), synthesis, and case persistence in the Investigations repo. Supersedes /inv and the investigation-* skills.
+description: Backend investigation expert (Tofu/Invoices). ALWAYS invoke first for any alert, error spike, trace/account/Sentry lookup, or "why did X fail". Never query logs/Sentry directly — start here.
 ---
 
 # Investigate (root orchestrator)
@@ -19,12 +19,12 @@ Load only what the current phase needs; collector subagents are pointed at exact
 | `references/case-format.md` | case folder lifecycle, frontmatter schema, reindex, ops (`new`/`note`/`finding`/`commit`/…) |
 | `references/deep-workflow.md` | Workflow template for the deep tier |
 
-Mongo evidence: use the `/mongo` skill as-is (no reference file here yet).
+Mongo evidence: use the `mongo` skill as-is (no reference file here yet).
 
 ## Tier selection
 
 - **inline** — one identifier to look up, a known-issue check, "глянь/quick": run the gate, answer, done.
-- **standard** (default for a real symptom) — gate, then 2–4 collectors via Agent tool.
+- **standard** (default for a real symptom) — gate, then 2–4 fork-collectors (`inv-*` skills).
 - **deep** — "thorough/audit/post-mortem" wording, contradictory evidence from standard, or a prod incident with unclear blast radius → `references/deep-workflow.md`.
 
 ## Phase 0 — Gate (ALWAYS inline, before ANY source query)
@@ -37,18 +37,18 @@ In one parallel batch (exact recipes in `references/history.md`):
 
 **Continuous matching (standing rule):** the moment any collector or query surfaces a *new* concrete identifier, add its gate-grep to your next parallel batch — a hit means the thread was already walked; reuse and cite it.
 
-## Phase 1 — Collect (standard tier: Agent fan-out)
+## Phase 1 — Collect (standard tier: fork-skill fan-out)
 
-Launch the applicable collectors in ONE message (Explore agents; prompt contract + output schema from the `orchestration` skill):
+Invoke the applicable collectors via the **Skill tool** — each is a `context: fork` skill that runs as an isolated Explore agent; launch independent ones in the same message. Pass as args: the ask, ALL known identifiers, the time window, and a one-line gate summary.
 
-| Collector | Reads first | Question shape |
+| Collector skill | Owns | Reads |
 |---|---|---|
-| `history` | `references/history.md` | grep both stores for ALL identifiers; return matching case ids + their conclusions |
-| `sentry` | `references/sentry.md` | issue/event/alert pulls; counts, first/last-seen, tags, stacktrace symbol + release |
-| `gcp-scope` | `references/gcp-logs.md` | scope before depth: counts, affected accounts, window, first-seen (cheap aggregations first) |
-| `code` | *(no reference — repo checkouts)* | resolve the throw site / mapping / commit; deployed state = `origin/<default-branch>`, never checkout |
+| `inv-history` | prior-work recall: matching cases/runs + their conclusions | `references/history.md` |
+| `inv-sentry` | issues/events/alerts: counts, first/last-seen, tags, stack symbol + release | `references/sentry.md` |
+| `inv-gcp` | scope before depth: counts, affected accounts, first-seen (cheap aggregations first) | `references/gcp-logs.md` |
+| `inv-code` | throw site / mapping / commit; deployed state = `origin/<default-branch>`, never checkout | repo checkouts |
 
-Skip collectors whose source can't bear on the ask; don't fan out what the gate already answered.
+Skip collectors whose source can't bear on the ask; don't fan out what the gate already answered. Fallback: if fork skills are unavailable, launch Explore agents with the same reference file + output contract (see `orchestration`).
 
 ## Phases 2–3 — Cross-match, then synthesize (inline)
 

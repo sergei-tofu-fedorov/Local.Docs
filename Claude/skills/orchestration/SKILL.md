@@ -1,6 +1,6 @@
 ---
 name: orchestration
-description: Reusable multi-agent orchestration pattern for workspace skills (investigate today; feature-planner and others later) — tier ladder (inline / standard / deep), phase model (gate → collect → cross-match → synthesize → verify → persist), subagent prompt contract, structured-output schemas. Load when running or authoring a skill that fans out to subagents.
+description: Multi-agent orchestration pattern — tier ladder, phase model, collector contracts, output schemas. ALWAYS load before any skill fans out to subagents. Do not design ad-hoc fan-outs.
 ---
 
 # Multi-agent orchestration pattern (workspace-wide)
@@ -12,7 +12,7 @@ One pattern, many skills. A consuming skill (e.g. `investigate`) defines *what* 
 | Tier | Mechanism | When |
 |---|---|---|
 | **inline** | no subagents, main context only | single-identifier lookups, "glance at X", anything one grep/query answers |
-| **standard** | Agent-tool fan-out (2–5 agents, one parallel batch) | default for a real task: multiple independent sources to consult |
+| **standard** | fork-skill collectors (`context: fork`, one per source; Agent-tool fan-out as fallback), 2–5 in one parallel batch | default for a real task: multiple independent sources to consult |
 | **deep** | Workflow script (deterministic phases, resume, adversarial verify) | "thorough / audit / comprehensive / incident post-mortem" wording, or standard tier surfaced contradictory evidence |
 
 Selection: infer from the user's wording; when torn between two tiers, pick the cheaper one and say so — the user can escalate. A skill invoking Workflow per its own instructions is a legitimate opt-in (no extra confirmation needed), but never jump to deep for a question inline answers.
@@ -53,6 +53,8 @@ Every collector prompt has exactly four parts:
 ```
 
 A claim without a citation is not a finding. Agents report "nothing found" as an empty `findings` array with the search described in `limitations` — silence is not a result.
+
+**Preferred packaging: fork skills.** Ship each collector as its own skill with `context: fork`, `agent: Explore`, `user-invocable: false` — the SKILL.md body IS the four-part prompt, `$ARGUMENTS` carries the question + identifiers, and the orchestrator invokes it via the Skill tool (the `inv-*` collectors are the reference implementation). Ad-hoc Agent-tool prompts with the same structure are the fallback.
 
 ## Deep tier (Workflow)
 

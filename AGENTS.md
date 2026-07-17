@@ -10,7 +10,8 @@ Cross-product and platform documentation for Tofu. **Start here** — this is th
 | `IOS/` | iOS ↔ backend integration notes | [`IOS/AGENTS.md`](IOS/AGENTS.md) |
 | `Web/` | Web ↔ backend integration notes | [`Web/AGENTS.md`](Web/AGENTS.md) |
 | `features/` | Cross-product / cross-repo feature docs & plans (one folder per feature) | [`features/AGENTS.md`](features/AGENTS.md) |
-| `scripts/` | Doc tooling (`commit-docs.ps1`) | — |
+| `Claude/` | Canonical store of Claude Code skills (synced to workspace `.claude/skills/` via `scripts/sync-claude-skills.ps1`) | [`Claude/AGENTS.md`](Claude/AGENTS.md) |
+| `scripts/` | Doc tooling (`commit-docs.ps1`, `sync-claude-skills.ps1`) | — |
 
 ## Fast paths
 

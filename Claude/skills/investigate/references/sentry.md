@@ -1,6 +1,8 @@
 # Sentry reference (org: getpaid-inc) — single source of truth
 
-REST recipes for investigation collectors AND for the `/sentry` command. **GET only — never POST/PUT/DELETE** (don't resolve issues, don't update tags). Keep calls to a handful per investigation (rate limits unpublished).
+REST recipes for investigation collectors AND for the `sentry` skill. **GET only — never POST/PUT/DELETE** (don't resolve issues, don't update tags). Keep calls to a handful per investigation (rate limits unpublished).
+
+**Contents:** Auth + command shape · Projects · Decoding an alert URL · Issues and events · Searching · accountId cross-referencing with backend logs · Client source repos · Conventions for findings
 
 ## Auth + command shape (sandbox-safe — the ONLY approved form)
 
