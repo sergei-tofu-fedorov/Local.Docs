@@ -1,7 +1,7 @@
 # sku_mapping — event-derived SKU catalog → playfair (WEB-1620)
 
 **Status:** deployed. Daily Scheduled Query live in `inv-project` (every day 09:00 UTC); table populated (91 rows).
-**Last worked:** 2026-06-11.
+**Last worked:** 2026-07-06 — fix plan for the tofu_web reg-price guard ([`sku-mapping-guard-fix.md`](sku-mapping-guard-fix.md)); prior work 2026-06-11.
 
 ## Goal
 
@@ -29,6 +29,7 @@ is being retired and is no longer a run-time dependency.
 | `account_current_plan.sql` | Build of the final per-account primary-plan mart (PK `account_id`). v0 — tier ordering pending GAP 3 (§5). |
 | `reload_account_identifiers.sh` | Periodic load of `account_identifiers` (fallback bridge) from the Atlas snapshot (tofu-ai SA; load job). |
 | `sku-mapping-logic.md` | Human-readable build logic — web/iOS/Android differences, the `is_in_intro_offer_period` (no-intro) condition, upsert semantics. |
+| `sku-mapping-guard-fix.md` | **Fix plan (2026-07-06):** tofu_web `reg_price IS NULL` guard drops coupon-only / trial-only composite-id SKUs (6 live ids, 137 payments invisible); insert-with-NULL-price fix + `1m=30d` vs `31d` alignment vs playfair seed. |
 | `fields.md` | Per-column derivation logic for `sku_mapping` (terse reference). |
 | `schedule-setup.md` | How to (re)create the daily Scheduled Query + the live MERGE query. |
 | `sku_mapping_merge.sql` | **Production** MERGE → `playfair-project.dbt_external.sku_mapping`. |

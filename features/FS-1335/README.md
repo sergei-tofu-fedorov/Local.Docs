@@ -1,87 +1,105 @@
-# FS-1335 — Подсказка средней цены по региону при создании инвойса/эстимейта для новых пользователей
+# FS-1335 — Подсказка цены позиции по названию + гео (on-device ML)
 
-**Status:** planning
-**Started:** 2026-07-01
-**ClickUp:** https://app.clickup.com/t/FS-1335
-**Affected repos:** `Tofu.AI.Backend` (ML: dataset job + training/retraining + serving), `Tofu.Invoices.Backend` and/or `Invoices.Backend` (consumer — вызов предсказания при создании инвойса/эстимейта; уточнить на /plan write)
+**Status:** implementation (Python-пайплайн готов; .NET-часть — дизайн одобряется)
+**Started:** 2026-07-01 · **ClickUp:** https://app.clickup.com/t/FS-1335
+**Repos:** `Tofu.AI.Backend` (данные + обучение + дистрибуция, ветка `feature/FS-1335`), `Invoices.Backend` (BFF manifest-endpoint), iOS (инференс — отдельный тикет)
 
-## Goal
+Малая ML-модель: свободнотекстовое название позиции + штат клиента (US-only) → примерная цена за единицу (p25/p50/p75). Учится на наших инвойсах, конвертируется в Core ML, инференс on-device в iOS; дистрибуция — версионированные артефакты в GCS + manifest. Первая из трёх ценовых моделей — пайплайн переиспользуемый.
 
-Глобальная задача: маленькая ML-модель, предсказывающая примерную цену по названию айтема + гео клиента. Данные собираем из своих инвойсов (названия айтемов + цены) и адресов клиентов. Использование — подсказка средней цены по региону при создании инвойса/эстимейта для новых пользователей. ML-модель (линейная регрессия, TensorFlow предпочтительно). Первая из трёх планируемых ML-моделей для подсказки цены. Нужно: подготовить датасет для обучения, инфраструктуру для запуска обучения/переобучения, подходы к валидации результатов. Проверить BQ на то, что уже есть.
+**Документы:** [`explainer-for-newbies.md`](explainer-for-newbies.md) — модель для читателя без ML-бэкграунда; [`explainer-pipeline.md`](explainer-pipeline.md) — система вокруг неё: каждая таблица и каждый шаг пайплайна, тоже для новичка; [`research/`](research/) — исследовательский след (аудит данных, итерации модели, внешняя валидация, Core ML, Vertex-автоматизация, детальный дизайн .NET-части). Реорганизация 2026-07-06: бывшие `overview.md` и полный план свёрнуты в этот README; упоминания `overview.md` в research-доках читать как «этот README».
 
-## Revised decisions (2026-07-03)
+## Ключевые решения (актуальное состояние)
 
-- **Таргет — цена позиции (unit price), не тотал инвойса.** Вход: название айтема + geohash клиента → выход: примерная цена за единицу. Формулировка 2026-07-01 «вход: geohash + encoded items×qty + месяц → тотал инвойса» **устарела**.
-- **Датасет — на уровне line item**, не инвойса: (название айтема, цена, адрес клиента→geohash, дата) из наших инвойсов.
-- **Название айтема — свободный текст**, не нормализованный словарь SKU. Пользователи пишут названия как хотят → нужен этап нормализации/энкодинга текста. Схема multi-hot по словарю SKU из web-spike в этой части устарела и требует пересмотра (string-входы к тому же ломают конвертацию в Core ML — см. web-spike §1, Issue #1049).
-- **Только US (решение 2026-07-03):** модель и датасет ограничены США — фильтр USD + US-адрес клиента; гео-фича = geohash/state по US-адресам. Остальные рынки — вне скоупа (возможный v2).
-- **Generic-«вёдра» (решение 2026-07-03):** обучаемся на всех данных (generic-имена из обучения не удаляются); словарь `name→int` несёт data-driven `suppress`-флаг по разбросу (порог rel IQR ≈ 2.0 на per-name/name×state статистиках, пересчитывается dataset job'ом при каждом retraining; давит ~9.7% head-трафика); квантильные головы p25/p50/p75 (pinball loss) — как апгрейд v1, если влезет: точка при узком интервале, диапазон при среднем, молчим при широком. Детали и замеры — `research-data-audit.md`.
-- **Обучение на prod-данных (решение 2026-07-03):** модель учится на реальных данных из `inv-project.ai_analysis_us` (test-warehouse с фейковыми данными не используется). Механизм: очищенная копия материализуется в `invoicesapp-project-test:fs1335_us.training_line_items` (см. `research-data-audit.md`, раздел «Рабочий датасет») — compute в test, данные prod; retraining пере-материализует её перед каждым обучением.
-- Инфраструктурные решения 2026-07-01 (Vertex AI, on-device Core ML, дистрибуция через manifest + GCS/CDN, TF-линейная регрессия) остаются в силе.
+- **Модель — каскад** (`research/research-prototype.md`): словарная ветка v1b → OOV-гибрид (kNN по potion-эмбеддингам при sim ≥ 0.7, иначе v3-голова) → suppress-имена молчат. Рецепт v1b (раунд 4, 2026-07-06): точечная модель best-of-5 рестартов + **замороженная база с offset-головами p25/p75** (p50 не может деградировать по построению; лечит сид-шум ±0.03, вскрытый пайплайном). Интервалы калибруются CQR. Замеры на prod-данных: shown p50 MdAPE **0.473** (lookup 0.500), внешняя валидация **93.0%** из 143 имён, гео 4/4, kNN-пробы 91.4%.
+- **Данные**: prod `ai_analysis_us` → рутины материализуют `inv-project:ml_training_us` (`src_price_line_items` / `dim_price_names` с suppress-флагами / `mart_price_rows_*`); фильтры и state-регэксп — `research/research-data-audit.md`. Один датасет на все ML-задачи, задача = префикс таблиц.
+- **Всё в prod** (ревизия 2026-07-06): материализация, parquet-extract и Vertex CustomJob живут в `inv-project` под `tofu-ai-backend@inv-project` — ноль кросс-проектных грантов; ~10 мин CPU за эпизод ≠ benchmark-workload. IAM закрыт полностью (project-level `serviceAccountUser` выдан админом).
+- **Дистрибуция**: `gs://tofu-ml-models/models/price-v1/` — иммутабельные версии + единственный мутируемый `manifest.json`; publish/rollback = ручной флип указателя. iOS качает ~16 MB (v1b.mlpackage 0.6 MB + oov_head 35 KB + potion-таблица 15 MB + контракты `vocab.json`/`feature_spec.json`).
+- **Словари и препроцессинг вне графа**: int-входы (StringLookup ломает Core ML-конверт); нормализация имени, potion-токенизация, kNN и роутинг каскада — в Swift по контрактам из архива. Пин конверта: `tensorflow-cpu==2.21.0` + `coremltools==9.0` (`research/research-coreml.md`).
+- **Retraining v1 — ручной** (триггер из Hangfire-дашборда), golden-гейт (6 проверок) отклоняет регрессию автоматически; публикация всегда отдельным ручным шагом после просмотра метрик.
 
-## Confirmed decisions (2026-07-01)
+## Поток целиком: данные → джобы → обучение → публикация → iOS
 
-- **Training / retraining infra:** Vertex AI (Custom Jobs / Pipelines), managed retraining + model registry. Обучение только против `invoicesapp-project-test`.
-- **Inference path:** **on-device** — backend выдаёт малую модель как артефакт, инференс выполняется в iOS-приложении. Онлайн-endpoint НЕ используется. Препроцессинг фич (geohash, encoding позиций+qty, номер месяца) выполняется на устройстве → нужен контракт фич между backend-training и iOS.
-- **Owner repo:** `Tofu.AI.Backend` владеет dataset job + training + производством/дистрибуцией артефакта модели (serving = раздача модели, не предсказаний).
-- **Dataset source:** `ai_analysis_us.invoices` mirror в BQ; на /plan write — аудит доступных полей (total, geo/адрес→geohash, line items+qty, дата→месяц) и покрытия.
-- **Model format:** **Core ML** (`.mlpackage`), конвертация TF→Core ML через `coremltools` как шаг пайплайна обучения. (Если позже понадобится Android — добавить TFLite из той же TF-модели.)
-- **Distribution:** **runtime-загрузка** iOS'ом через backend/CDN — model version/manifest endpoint (артефакт в GCS/CDN). Обновление модели без релиза приложения (важно для retraining-цикла).
-- **Framework:** линейная регрессия на TensorFlow (предпочтительно), экспорт → Core ML.
-- **Scope note:** это первая из трёх планируемых ценовых моделей — инфра обучения + конвертация + дистрибуция должны быть переиспользуемыми.
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Op as Оператор
+    participant HF as Hangfire (tofu-ai-api, prod)
+    participant Job as PriceModelRetrainJob
+    participant BQ as BigQuery (inv-project)
+    participant GCS as gs://tofu-ml-models
+    participant VX as Vertex AI
+    participant TR as train_all.py (контейнер)
+    participant BFF as Invoices.Backend
+    participant iOS as iOS
 
-**Новые открытые вопросы от on-device решения:**
-- Контракт фич backend↔iOS: geohash-точность, схема encoding позиций+qty, кодирование месяца — iOS должен воспроизвести препроцессинг ровно как при обучении (или его встроить в модель).
-- Дизайн model manifest/version endpoint: версия, url, чек-сумма, min-app-version, размер артефакта.
-- Триггер и частота retraining → как публикуется новая версия и как iOS её подхватывает.
+    Op->>HF: Trigger "price-model-retrain" (v1: вручную из дашборда)
+    HF->>Job: RunAsync()
+    Job->>BQ: CALL rebuild_price_training()
+    Note over BQ: ai_analysis_us → ml_training_us<br/>(4 таблицы, см. секцию ниже)
+    Job->>BQ: 3 × CreateExtractJob (parquet)
+    BQ->>GCS: datasets/price-v1/{runId}/*.parquet
+    Job->>VX: POST customJobs (образ price-model:{sha})
+    VX->>TR: старт контейнера (n1-standard-8, ~10 мин)
+    TR->>GCS: читает parquet
+    Note over TR: train v1b (квантильные головы) + v3-голова →<br/>CQR-калибровка → golden-гейт (6 проверок) →<br/>ct.convert → 2 × .mlpackage.zip
+    alt гейт пройден
+        TR->>GCS: models/price-v1/{version}/ (архив) + manifest.staged
+    else гейт провален
+        TR->>GCS: архив rejected-by-gate (manifest.staged не тронут)
+    end
+    loop каждые PollInterval, до JobTimeout
+        Job->>VX: GET customJobs/{id}
+    end
+    VX-->>Job: SUCCEEDED / FAILED
+    Note over Op,iOS: ─── дальше вручную ───
+    Op->>GCS: смотрит metrics.json staged-версии
+    Op->>HF: CLI-verb publish-price-model {version}
+    HF->>GCS: manifest: activeVersion ← {version}
+    iOS->>BFF: GET /api/ml-models/price-v1/manifest
+    BFF->>GCS: manifest.json (кэш 5 мин)
+    iOS->>GCS: артефакты версии (~16 MB, immutable URL)
+```
 
-## Scope
+Повторный запуск безопасен: версии иммутабельны (новый runId/version), `DisableConcurrentExecution` держит один тик; откат = тот же verb с прошлой версией; rejected-архивы остаются для форензики.
 
-- In scope: только US — датасет фильтруется по USD + US-адресу клиента; гео-фича строится по US-адресам (state/ZIP → geohash).
-- Out of scope: все не-US рынки (UK, CA, PH, PK и длинный хвост валют из аудита) — кандидат на v2; мультивалютная нормализация цен.
+## Таблицы BigQuery (`inv-project:ml_training_us`)
 
-## Affected repos
+Один датасет на все ML-training-задачи; задача = префикс таблиц (`price_*`), слой-префикс — как в warehouse (`src_/dim_/mart_`). Строятся SQL-рутинами `build_price_*` (папка Routines в `Analyses.Infrastructure`, деплой существующим `bigquery-routines`-модулем), оркестратор `rebuild_price_training()` вызывается **только** retraining-джобом — в ежедневный `rebuild_warehouse` эти таблицы не входят. Все — `CREATE OR REPLACE` (снапшот-семантика, история не хранится: provenance активной модели = parquet-выгрузка под её `runId`).
 
-For each repo touched, list the area and (if multi-repo) its role.
+| Таблица | Как строится | Кем используется |
+|---|---|---|
+| `src_price_line_items` (~5.5M) | из `ai_analysis_us.mart_invoice_line_items` ⋈ `src_clients` (нормализованные ключи); фильтры: имя+цена>0, 2018+, USD, у клиента есть адрес; state извлекается регэксп-каскадом из адреса | вход для двух таблиц ниже; напрямую в обучение не идёт |
+| `dim_price_names` (~6k) | агрегат по `src_…`: имена с n≥30 и порогом по аккаунтам; медиана, p25/p75, `suppress = rel_iqr > 2.0` | → `vocab.json` артефакта (словарь + suppress-флаги); словарная ветка v1b; пул kNN |
+| `mart_price_rows_vocab` (~0.9M) | строки `src_…` со словарными именами + извлечённым штатом | обучение словарной ветки v1b + CQR-калибровка |
+| `mart_price_rows_text` (~3.7M) | все строки `src_…` с извлечённым штатом (включая OOV-имена) | обучение v3 OOV-головы |
 
-- `Tofu.Invoices.Backend` (producer) — _e.g., new gRPC method, repository, domain change_
-- `Invoices.Backend` (consumer / BFF) — _e.g., new controller endpoint that calls the new gRPC method_
-- (others as needed)
+Дальше таблицы уезжают parquet-выгрузкой в `gs://tofu-ml-models/datasets/price-v1/{runId}/` — контейнер обучения читает файлы, не BQ (почему так — `research/impl-design.md`, секция про parquet). Test-двойник датасета в `invoicesapp-project-test` — песочница прототипа с v0-снапшотом от 2026-07-03.
 
-**Cross-repo notes:**
-- Producer / consumer order: _producer ships first; consumer references new contract after producer is deployed._
-- Contract changes: _list any .proto or shared DTO changes; mark additive vs breaking._
-- Mapper updates: _which `Mapping/Mapper.cs` arms need new entries._
+## План имплементации
 
-## Plan
+1. [x] **Python-пайплайн** — `Tofu.AI.Backend/ml/price_model/`: `train_all.py` (load parquet → v1b-квантили → v3 → CQR → гейт → ct.convert → архив + staged-manifest), Dockerfile с пинами, golden-сеты как данные пакета. Дважды прогнан end-to-end (2026-07-06), GATE PASS, архив с обоими mlpackage.
+2. [x] **.NET в Tofu.AI.Backend** — **реализовано 2026-07-06** по дизайну [`research/impl-design.md`](research/impl-design.md), `dotnet build` зелёный:
+   - 4 SQL-рутины `build_price_*` + `rebuild_price_training` (порты в Domain, токен `{ml_dataset}` в деплоере; в `rebuild_warehouse` НЕ входят). **Задеплоены на prod и отработали** — `ml_training_us` материализован (5.50M/6,095/914K/3.72M; T3-ярус state-регэкспа отклонён гейтом, оставлен T1→T2).
+   - Порты + адаптеры: `IPriceTrainingDataExporter`, `IVertexCustomJobClient` (raw REST), `IPriceModelManifestStore`; `PriceModelRetrainJob` (в дашборде всегда, при `Enabled=false` — с never-кроном для ручного триггера); CLI-verb `publish-price-model <version>`.
+   - **Prod-смоук без Vertex-ноги пройден**: materialize → extract (`datasets/price-v1/20260706_smoke2/`) → обучение (WSL, тот же код, что поедет в контейнер) → **GATE PASS** → staged-версия `2026-07-06_smoke2b` в бакете. Гейт по пути дважды отработал боевым образом (T3-шум, сид-нестабильность).
+3. [ ] **Vertex-нога смоука**: ждёт образ в registry. Решение — workflow **`publish-price-model.yaml`** (добавлен 2026-07-06): `workflow_dispatch` → WIF-auth (те же секреты, что deploy) → build `ml/price_model` → пуш `gcr.io/<project>/price-model:{latest,sha}` под CI-SA (`createOnPushWriter` — личный AR-грант не нужен). Nuance: dispatch доступен после попадания файла в default-ветку (develop). После пуша: `Analyses:PriceModel:ContainerImage` (+`VertexServiceAccount`) в prod-секрет → сабмит CustomJob.
+4. [ ] **BFF manifest-endpoint** (`Invoices.Backend`): `GET /api/ml-models/{modelName}/manifest` (api-version 3.0, `MlModelsController : BaseController`), `IMlModelManifestService` читает manifest из GCS через существующий `GoogleBlobStorage`, `IMemoryCache` TTL 5 мин + stale-while-error; DTO: modelName/version/urls/sha256/sizeBytes/minAppVersion. Артефакты — публичные immutable URL (signed URLs отвергнуты: TTL ≤ 7 дней ломает кэшируемость; в модели нет PII).
+5. [x] **CI образа**, два workflow (общий composite-экшен не подошёл — зашит на корневой Dockerfile и multi-stage `--target production`):
+   - `publish-price-model.yaml` — основной, `workflow_dispatch` (доступен после мержа в develop), тег `{latest, sha}`;
+   - `publish-price-model-dev.yaml` — **пре-мерж тест**: триггер git-тегом `price-model-dev-*` (паттерн `publish-client.yaml` из Tofu.Invoices — работает с любого коммита, включая feature-ветки: `git tag price-model-dev-1 && git push origin price-model-dev-1`) + `workflow_dispatch` (кнопка появится после мержа). Пушит в prod-registry теги `{dev-N, dev-shortsha}`, без latest.
+6. [ ] **macOS-парити** predictions mlpackage vs Python (iOS-разработчик; критерий < 0.5% на ценах) + Swift-препроцессинг парити по контрактам.
+7. [ ] **iOS-тикет** по контракту `feature_spec.json`/`vocab.json` (загрузка, компиляция MLModel, роутер каскада, bundled baseline).
 
-Numbered, repo-scoped steps that can be ticked off during implementation.
+## Lifecycle (сжатая)
 
-1. [ ] …
-2. [ ] …
-
-## API / DTO changes
-
-<only if applicable — list new endpoints, request/response shapes, breaking changes>
-
-## Breaking changes
-
-<list anything that could break consumers (other repos, mobile clients, third-party API users) — proto field renumbering, removed/renamed REST endpoints, narrowed types, new required fields, dropped DB columns, changed event payloads, etc. If purely additive, write `None — additive only` so the explicit check is recorded. The `/feature review` op will re-audit this against the actual diff.>
-
-## Data / migration
-
-<only if applicable — new collections, indexes, migrations>
+| Событие | Поведение |
+|---|---|
+| Retrain (ручной триггер) | materialize → extract → Vertex-джоб: train+CQR+гейт+convert → staged-версия в GCS; `activeVersion` не тронут |
+| Гейт провален | архив уезжает как `rejected-by-gate` (форензика), manifest.staged не меняется, джоб failed |
+| Publish / rollback | CLI-verb флипает `activeVersion` (прошлая — в `history[]`); iOS подхватывает через BFF (кэш ≤ 5 мин) |
+| Смена контракта входов | новый version + bump `minAppVersion`; старые клиенты остаются на bundled/последней совместимой |
 
 ## Open questions
 
-- [ ] Энкодинг свободнотекстового названия айтема для крошечной линейной on-device модели: нормализация (lower/trim/языки?) + словарь по частотным названиям с int-индексами? hashing trick? что делать с названиями вне словаря (fallback на средний по geohash?). Схему multi-hot по SKU из web-spike пересмотреть.
-- [ ] Определение unit price в данных: `amount/qty` vs явное поле цены за единицу; фильтрация выбросов, нулевых/отрицательных цен, скидок.
-- [ ] Валюта: цены в инвойсах в разных валютах — нормализовать к одной? фильтровать по валюте/стране? (связано с geohash-регионом).
-- [ ] Остаются ли qty и номер месяца фичами при таргете «цена позиции» (сезонность цены услуги — возможно; qty — скорее нет, но проверить скидку за объём).
-- [ ] Актуально ли предсказывать по нескольким позициям сразу или строго одна позиция за вызов (влияет на форму входа модели).
-
-## Test plan
-
-- Unit tests:
-- Integration tests:
-- Manual verification:
+- [ ] State-регэксп из ad-hoc SQL аудита переезжает в `build_price_line_items.sql` как единственный источник правды; та же спека нужна Swift (уедет в `feature_spec.json`).
+- [ ] iOS/QA-сабтиски в ClickUp — уточнить у команды.

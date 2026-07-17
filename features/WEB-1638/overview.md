@@ -1,9 +1,9 @@
-# WEB-1525 — Историзация связей master↔platId и признака подписки в `ai_analysis_us`
+# WEB-1638 — Историзация связей master↔platId и признака подписки в `ai_analysis_us`
 
-Две SCD-2 **change-only** period-таблицы в `inv-project.ai_analysis_us`, которые делают наблюдаемой во времени (а) графа связей `masterUser` ↔ платформенных пользователей (`platformId`) и (б) состояние подписки на грани `(master_user_id, platform_user_id, subscription)`. Сегодня все марты пересобираются `CREATE OR REPLACE` (snapshot) → прошлое состояние затирается каждым ребилдом, поэтому «когда пользователь сменил подписку / сменил платформу» из них восстановить нельзя. Цель WEB-1525 — закрыть это: хранить **только изменения** (строка появляется лишь когда что-то реально поменялось), денормализованно, чтобы аналитик-консьюмер (Playfair `external_stellans`) читал каждую таблицу почти без джойнов.
+Две SCD-2 **change-only** period-таблицы в `inv-project.ai_analysis_us`, которые делают наблюдаемой во времени (а) графа связей `masterUser` ↔ платформенных пользователей (`platformId`) и (б) состояние подписки на грани `(master_user_id, platform_user_id, subscription)`. Сегодня все марты пересобираются `CREATE OR REPLACE` (snapshot) → прошлое состояние затирается каждым ребилдом, поэтому «когда пользователь сменил подписку / сменил платформу» из них восстановить нельзя. Цель WEB-1638 — закрыть это: хранить **только изменения** (строка появляется лишь когда что-то реально поменялось), денормализованно, чтобы аналитик-консьюмер (Playfair `external_stellans`) читал каждую таблицу почти без джойнов.
 
 Related ClickUp tasks:
-- https://app.clickup.com/t/WEB-1525 (initiative)
+- https://app.clickup.com/t/WEB-1638 (initiative)
 - Зависит от уже задеплоенных WEB-1620 мартов (`mart_master_platform_links`, `mart_master_owned_accounts`, `mart_account_subscriptions`).
 
 ## Scope
@@ -204,4 +204,4 @@ SCD-2 переходы (дневная гранулярность). Поведе
 
 - `Local.Docs/Backend/Storage/bigquery.md` — добавить `mart_master_platform_link_periods` / `mart_subscription_periods` (+ вьюхи) в инвентарь `ai_analysis_us`, с пометкой SCD-2 / бессрочная ретенция.
 - `Local.Docs/Backend/Storage/bigquery-sources.md` — упомянуть period-таблицы как источник для будущего Stellan-экспорта.
-- `Local.Docs/features/WEB-1525/README.md` — снять чекбоксы Plan по мере реализации; зафиксировать future-step Stellan-экспорта.
+- `Local.Docs/features/WEB-1638/README.md` — снять чекбоксы Plan по мере реализации; зафиксировать future-step Stellan-экспорта.

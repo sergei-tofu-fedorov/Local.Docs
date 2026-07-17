@@ -30,3 +30,12 @@ Google Cloud Storage buckets across the workspace. Index: [`AGENTS.md`](AGENTS.m
 
 ### Links
 - Code: `Tofu.AI.Backend/src/Tofu.AI.Api/DI/StorageConfiguration.cs:16-39`; settings `Settings/StorageSettings.cs`
+
+---
+
+## ML model artifacts — `gs://tofu-ml-models`
+
+**Project:** `inv-project` (created in test 2026-07-06, moved to prod same day — prod-only pipeline revision) · **Location:** `US` · uniform bucket-level access
+**Owner / writer:** FS-1335 retraining pipeline (v0: assembled locally by `assemble_archive.py`; future: Vertex CustomJob in `inv-project`). iOS downloads via BFF-served manifest.
+**Layout:** `models/price-v1/manifest.json` (single mutable pointer; publish = rewrite, rollback = point back) + `models/price-v1/<version>/` immutable archives (`.mlpackage.zip`s, potion table, `vocab.json`/`feature_spec.json` contracts, `metrics.json`, `training/`) + `datasets/price-v1/<run>/` training parquet. Details: [`features/FS-1335/research/research-vertex-automation.md`](../../features/FS-1335/research/research-vertex-automation.md).
+**Access:** prod-SA `tofu-ai-backend@inv-project` covers it via project-level `storage.objectAdmin`; no bucket-level bindings.

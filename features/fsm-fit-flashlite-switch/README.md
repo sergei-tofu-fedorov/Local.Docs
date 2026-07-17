@@ -4,9 +4,9 @@
 **Related repos:** `Tofu.AI.Backend` (prompt + Vertex client), this repo (docs/eval).
 **ClickUp:** WEB-1525 *"Собрать и вручную разметить seed-выборку аккаунтов для валидации правила FSM-fit v3"*.
 
-> ⚠️ Ticket-number note: `features/WEB-1525/` in this repo is a **different** WEB-1525
-> (SCD-2 историзация master↔platId в `ai_analysis_us`). This FSM-fit seed/judging work
-> reuses the same ClickUp id but is unrelated — kept in its own folder to avoid the collision.
+> ℹ️ Ticket-number note: this FSM-fit seed/judging work is the real ClickUp **WEB-1525**.
+> The SCD-2 историзация master↔platId в `ai_analysis_us` was previously mis-filed under the
+> same id and has been re-tagged to its correct ticket — see [`features/WEB-1638/`](../WEB-1638/README.md).
 
 ## What this is
 

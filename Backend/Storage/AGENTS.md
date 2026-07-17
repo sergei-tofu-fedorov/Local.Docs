@@ -10,6 +10,8 @@ Storage — data-store inventory
 
 **How to use (agent).** Scan the index → open `bigquery.md` / `mongo.md` / `postgres.md` / `gcs.md` → jump to the store's section. Each store section: header (type · env/location · owner · config key · write path) → objects table → links.
 
+**Composing BigQuery analytics queries?** Go straight to [`bigquery-agent-guide.md`](bigquery-agent-guide.md) — the query-first guide to `ai_analysis_us` / `amplitude_us` / `payments_us`: identity joins (account ↔ platform user ↔ master), partition/cluster cost rules, ready SQL patterns.
+
 **Confidence.** Verified against repo code on 2026-05-30 with `file:line` citations in each file. `TODO` = genuinely unconfigured/unknown (e.g. prod hosts supplied at deploy time). Re-verify against code before relying on a `TODO` line.
 
 Index
@@ -17,7 +19,10 @@ Index
 
 | Store | Type | Env / location | Owner (writer) | Config key | Detail |
 |---|---|---|---|---|---|
-| `ai_analysis_v2` | BigQuery | test=`invoicesapp-project-test` · prod=deploy-time (not in config) | `Tofu.AI.Backend` | `Analyses:BigQuery` | [`bigquery.md`](bigquery.md) |
+| `ai_analysis_us` | BigQuery | prod=`inv-project` · stage=`invoicesapp-project-test` | `Tofu.AI.Backend` | `Analyses:BigQuery` | [`bigquery.md`](bigquery.md) · [query guide](bigquery-agent-guide.md) |
+| `amplitude_us` (Amplitude events bridge, iOS 213333, rolling 90d) | BigQuery | prod=`inv-project` · stage=`invoicesapp-project-test` | `Tofu.AI.Backend` (amplitude-export tick) | `Analyses:Amplitude` + `BigQuery:AmplitudeDatasetId` | [query guide](bigquery-agent-guide.md) |
+| `payments_us` (Tofu Payments orders mirror) | BigQuery | prod=`inv-project` | `Tofu.AI.Backend` (payment-orders tick) | `Analyses:PaymentOrders` | [query guide](bigquery-agent-guide.md) |
+| `ml_training_us` (ML training data, task-prefixed tables) | BigQuery | prod=`inv-project` (pipeline) · test=prototype sandbox | FS-1335 pipeline (future: `Tofu.AI.Backend`) | — | [`bigquery.md`](bigquery.md) |
 | BQ live survey (all datasets in `inv-project` / test, incl. analytics, GA4, pubsub_audit) | BigQuery | prod=`inv-project` · test=`invoicesapp-project-test` | mixed (analytics pipelines, Firebase, Pub/Sub, Tofu.AI) | — | [`bigquery-sources.md`](bigquery-sources.md) |
 | `invoicesDB` (BFF) | MongoDB | dev=`localhost:27017` · prod=TODO | `Invoices.Backend` | `ConnectionStrings:MongoDb` | [`mongo.md`](mongo.md) |
 | `invoicesDB` (Tofu.Invoices) | MongoDB | dev=`localhost:27017` · prod via Data Federation | `Tofu.Invoices.Backend` | `ConnectionStrings:MongoDb` | [`mongo.md`](mongo.md) |
@@ -41,7 +46,7 @@ GCP projects
 ------------
 
 - **prod** = `inv-project` · **test** = `invoicesapp-project-test`.
-- `ai_analysis_v2` is wired to `invoicesapp-project-test` (`appsettings.json`); **no prod project is configured** in code — prod is supplied at deploy time (ADC / env).
+- `ai_analysis_us` config defaults to `invoicesapp-project-test` (`appsettings.json:29`); prod `ProjectId` is supplied at deploy time (secret/env). Stage-only `ai_analysis`/`ai_analysis_v2` are obsolete predecessors pending deletion (see `bigquery.md`).
 
 Maintenance
 -----------

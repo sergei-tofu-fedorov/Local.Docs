@@ -1,0 +1,148 @@
+{
+  "displayName": "Invoices.Backend RED",
+  "mosaicLayout": {
+    "columns": 12,
+    "tiles": [
+      {
+        "xPos": 0,
+        "yPos": 0,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Rate — req/s by env (excl. health)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "prometheusQuery": "sum by (job) (rate(http_server_request_duration_seconds_count{job=~\".*-api\", http_route!~\"/health|/|\"}[5m]))"
+                },
+                "plotType": "LINE"
+              }
+            ],
+            "yAxis": { "label": "req/s", "scale": "LINEAR" }
+          }
+        }
+      },
+      {
+        "xPos": 6,
+        "yPos": 0,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Errors — 5xx ratio by env",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "prometheusQuery": "sum by (job) (rate(http_server_request_duration_seconds_count{job=~\".*-api\", http_response_status_code=~\"5..\"}[5m])) / sum by (job) (rate(http_server_request_duration_seconds_count{job=~\".*-api\"}[5m]))"
+                },
+                "plotType": "LINE"
+              }
+            ],
+            "yAxis": { "label": "5xx / total", "scale": "LINEAR" }
+          }
+        }
+      },
+      {
+        "xPos": 0,
+        "yPos": 4,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Duration p50 / p95 / p99 — invoices-api (staging)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "prometheusQuery": "histogram_quantile(0.50, sum by (le) (rate(http_server_request_duration_seconds_bucket{job=\"invoices-api\", http_route!~\"/health|/|\"}[5m])))",
+                  "unitOverride": "s"
+                },
+                "plotType": "LINE",
+                "legendTemplate": "p50"
+              },
+              {
+                "timeSeriesQuery": {
+                  "prometheusQuery": "histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket{job=\"invoices-api\", http_route!~\"/health|/|\"}[5m])))",
+                  "unitOverride": "s"
+                },
+                "plotType": "LINE",
+                "legendTemplate": "p95"
+              },
+              {
+                "timeSeriesQuery": {
+                  "prometheusQuery": "histogram_quantile(0.99, sum by (le) (rate(http_server_request_duration_seconds_bucket{job=\"invoices-api\", http_route!~\"/health|/|\"}[5m])))",
+                  "unitOverride": "s"
+                },
+                "plotType": "LINE",
+                "legendTemplate": "p99"
+              }
+            ],
+            "yAxis": { "label": "s", "scale": "LINEAR" }
+          }
+        }
+      },
+      {
+        "xPos": 6,
+        "yPos": 4,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Duration p95 by route — invoices-api (staging)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "prometheusQuery": "histogram_quantile(0.95, sum by (http_route, le) (rate(http_server_request_duration_seconds_bucket{job=\"invoices-api\", http_route!~\"/health|/|\"}[5m])))",
+                  "unitOverride": "s"
+                },
+                "plotType": "LINE"
+              }
+            ],
+            "yAxis": { "label": "s", "scale": "LINEAR" }
+          }
+        }
+      },
+      {
+        "xPos": 0,
+        "yPos": 8,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Top routes by rate — invoices-api (staging)",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "prometheusQuery": "topk(10, sum by (http_route) (rate(http_server_request_duration_seconds_count{job=\"invoices-api\", http_route!~\"/health|/|\"}[5m])))"
+                },
+                "plotType": "LINE"
+              }
+            ],
+            "yAxis": { "label": "req/s", "scale": "LINEAR" }
+          }
+        }
+      },
+      {
+        "xPos": 6,
+        "yPos": 8,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Chrome memory (Puppeteer) by env",
+          "xyChart": {
+            "dataSets": [
+              {
+                "timeSeriesQuery": {
+                  "prometheusQuery": "puppeteer_memory_chrome_total_working_set_bytes",
+                  "unitOverride": "By"
+                },
+                "plotType": "LINE"
+              }
+            ],
+            "yAxis": { "label": "bytes", "scale": "LINEAR" }
+          }
+        }
+      }
+    ]
+  }
+}
