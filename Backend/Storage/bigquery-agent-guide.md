@@ -1,5 +1,5 @@
-BigQuery agent guide — `ai_analysis_us` / `amplitude_us` / `payments_us`
-=========================================================================
+BigQuery agent guide — `ai_analysis_us` / `amplitude_us` / `payments_us` / `stripe_us`
+=====================================================================================
 
 **Purpose:** the fast path for an AI agent composing SQL against our analytics storage in prod `inv-project`. Structure: common rules first (apply to every query), then the routing table, then per-dataset reference tables, then the cookbook. Verified live on prod 2026-07-13; refined via six agent evaluation runs.
 
@@ -104,6 +104,25 @@ JOIN `inv-project.ai_analysis_us.src_invoices` i
  AND REPLACE(LOWER(p.entity_id), '-', '') = REPLACE(LOWER(i.id), '-', '')
 ```
 
+### 1.7 Stripe linkage (two distinct flows — don't conflate)
+
+Tofu touches Stripe on two separate axes. Keep them apart:
+
+- **Web subscriptions** — money **Tofu bills its own users** (the `stripe_us` dataset, §3.4). A Stripe **customer** (`cus_…`) ↔ Tofu account.
+- **Built-in PSP / Connect** — money an **account collects from its clients** (`payments_us` + `src_authenticated_payment_types`). A Tofu account ↔ its Stripe **connected account** (`acct_…`).
+
+```
+-- web-subscription customer / transaction -> Tofu account (the ONLY reliable bridge, ~80%)
+stripe_us.src_stripe_transactions.customer (cus_)
+  = stripe_us.src_stripe_customers.id (cus_)
+  = mart_account_subscriptions.subz_account_id   -- WHERE subz_account_id LIKE 'cus_%'  (Stripe-provider subs)
+    -> mart_account_subscriptions.account_id      -- full Tofu id -> USING(account_id) everywhere
+-- NOT stripe_us.*.account_id — that column is dead (ingest reads a metadata key no customer carries).
+
+-- account -> its collecting Stripe connected account (PSP side)
+ai_analysis_us.src_authenticated_payment_types   -- account_id ↔ provider_account_id (acct_), one row per (account × provider)
+```
+
 2. Routing: question shape → source
 -----------------------------------
 
@@ -112,6 +131,8 @@ JOIN `inv-project.ai_analysis_us.src_invoices` i
 | Current state or multi-year history of documents (counts, statuses, amounts, sent/paid state) | `ai_analysis_us.src_*` |
 | User actions and behaviour (how often users do X, funnels, UI context, channels) | `amplitude_us.v_events_resolved` |
 | Money through the built-in PSP: online payments, fees, fee passthrough | `payments_us` |
+| Tofu's own **web-subscription** Stripe billing (its customers, charges, refunds) | `stripe_us` (§3.4) — link to account via `mart_account_subscriptions.subz_account_id`, §1.7 |
+| Which accounts connected a Stripe/PayPal payout account, connection status | `ai_analysis_us.src_authenticated_payment_types` (account ↔ `acct_`, §1.7) |
 | Paying users, plans, trials, subscription history | `mart_account_subscriptions` / `mart_account_current_plan` / `mart_subscription_periods` |
 | Per-account behavioural aggregates (invoice cadence, repeat customers) | `mart_account_metrics` |
 | Segments: industry / trade / size | `dim_account` (+ `mart_account_fsm_fit`) |
@@ -135,6 +156,7 @@ Rebuilt daily when the Atlas snapshot changes (~16:1x UTC); deploying SQL does n
 | `src_account_identifiers` (8.3M) | `account_id` | account ↔ `user_id` (platform) ↔ `firebase_id` / `idfa` / `appsflyer_id` / `vendor_id` |
 | `src_items` (12.8M) | `account_id` | saved catalog: `name`, `price`, `item_type`, `unit_type`, `taxable`, `created_at` |
 | `src_business_profiles` (10.9K) | `account_id` | onboarding poll: `onboarding_industry`, `team_size`, `job_mix` |
+| `src_authenticated_payment_types` (631K) | `account_id` | PSP (Connect) connections, one row per (account × provider): `provider` (Stripe/PayPal), `provider_account_id` (Stripe `acct_…` / PayPal merchant), `status`, `enabled`, `payouts_enabled`, `currency_code`, `country`, `product_key`, `payment_by_card_enabled` — see §1.7 |
 | `mart_invoice_line_items` (25M) | `account_id` | per-line, keyed to `invoice_id` (→ `src_invoices.id`, see §1.6): `item_name`, `quantity`, `unit_price`, `item_gross`, `item_discount_*` |
 | `mart_master_owned_accounts` (476K) | `account_id` | master ↔ account: `role` (owned/member), `tenant_role`, `user_deleted` |
 | `mart_master_platform_links` (438K) | `platform_user_id` | master ↔ platform user: `platform`, `public_id`, `is_first_link`, `created_at` |
@@ -160,6 +182,7 @@ Rebuilt daily when the Atlas snapshot changes (~16:1x UTC); deploying SQL does n
 | `mart_master_platform_links.platform` | 0 Unknown · 1 IOS · 2 Android · 3 Web |
 | `*_subscriptions / current_plan .status` | active · trial · expired · refunded |
 | `product_type` | Invoicing (95%+) · FsmSolo · FsmTeam · FsmBusiness · Unknown |
+| `src_authenticated_payment_types.status` | Unknown · InProgress · Verification · **Connected** · InformationIsRequired · Rejected |
 
 **Dataset caveats:**
 
@@ -167,6 +190,7 @@ Rebuilt daily when the Atlas snapshot changes (~16:1x UTC); deploying SQL does n
 - `src_clients.id` = `<account_id>|<client_guid>` composite while `src_invoices.client_id` is a bare guid with inconsistent dashes — join via `REPLACE(LOWER(x),'-','')` + account scope. Same normalization for `payments_us.entity_id` → `src_invoices.id`.
 - Deleted accounts are absent from `src_accounts` but present in `dim_account_identity` (`in_accounts_snapshot = FALSE`).
 - `src_business_profiles` covers ~0.2% of accounts — never a general dimension. `dim_account.state` is empty for ALL rows; `trade`/`sub_trade` exist only for fsm-scored accounts. `user_links` is a tiny verified subset, not a universal spine.
+- `src_authenticated_payment_types` is the **collecting** (Connect) side — an account's payout account, not Tofu's billing of that account (that's `stripe_us`, §3.4). ~77% of its accounts match `src_accounts`; `Connected` status ≈ 23K live Stripe payout accounts. All Stripe rows carry `acct_…`; PayPal rows carry a merchant id.
 - Subscriptions: "paying users" = `COUNT(DISTINCT platform_user_id) WHERE is_active` on `mart_account_subscriptions` (≈59K); `mart_account_current_plan WHERE is_active` (~136K) = covered accounts (see §1.4 grain discipline). ~16% of expired subs have `expired_at` NULL — close periods via `COALESCE(expired_at, refunded_at, expires_at)`. `product_type='Unknown'` = regex-unparsed web-Stripe product ids. `mart_subscription_periods` was initialized 2026-07-01 — history accumulates forward only; earlier trends reconstruct from `mart_account_subscriptions` dates (cookbook #8). `mart_account_current_plan` on stage is a static stub.
 
 ### 3.2 `amplitude_us` — product events bridge (iOS prod 213333 only)
@@ -228,6 +252,23 @@ Ingested daily 01:00 UTC from Tofu Payments Postgres (watermark MERGE). History 
 - Filter `status = 3` for real payments — `NotStarted` = abandoned payment link, ~40% of rows.
 - PSP-only: ~3% of all "payments received"; the manual ~97% is visible only as `src_invoices.status = 'Paid'` (see §1.4). Stripe-internal method detail lives only in Amplitude `Payment received`.
 - The live table's BQ description mentions a `mart_payment_orders` — dropped before release; ignore.
+
+### 3.4 `stripe_us` — Tofu's own Stripe billing (web subscriptions)
+
+Ingested by the `stripe-ingest` Hangfire tick (daily 03:00 UTC) from the Stripe REST API of the **direct-charge** account `acct_1Orm4F…` ("TOFU web") — money **Tofu bills its own users** for web subscriptions. NOT the built-in PSP (that's `payments_us` + `src_authenticated_payment_types`, the Connect side — §1.7). REST-sourced, so amounts are Stripe-clean (not user-entered junk).
+
+| Table (rows) | Cluster | Contents |
+|---|---|---|
+| `src_stripe_customers` (~16K) | `email` | `id` (`cus_…`), `email`, `name`, `currency`, `delinquent`, `created`, `metadata`/`raw` (JSON), `source_account` |
+| `src_stripe_transactions` (~91K, 2025→) | `customer` | charge+refund unified: `id` (`ch_`/`re_`), `type`, `customer` (`cus_`), `amount` (**minor units**, integer), `currency`, `status`, `charge_id`, `payment_intent_id`, `invoice_id` (Stripe `in_`), `refunded`, `amount_refunded`, `reason`, `created` |
+| `src_stripe_connected_accounts` (0) | `account_id` | Connect-platform importer — disabled, empty |
+| `sys_stripe_event_state` | — | per-resource ingest watermark |
+
+**Caveats / joins:**
+- **`account_id` column is dead** (both tables) — the ingest reads `metadata.AccountId`, a key no customer carries (the real link is `subs_public_id` / `public_id` in metadata, a master-user GUID). Do NOT join on it.
+- **To a Tofu account:** go through subscriptions — `customer/id (cus_)` = `mart_account_subscriptions.subz_account_id` (`WHERE subz_account_id LIKE 'cus_%'`) → `account_id`. Covers ~80% of transactions (§1.7). The remaining ~20% are `cus_` with no subscription row (churned / refund-only).
+- `amount` is **minor units** (cents) → `amount/100`. `status`: charge `succeeded`/`failed`/`pending`, refund `succeeded`/`pending`/`canceled`.
+- `src_stripe_transactions` is backfilled from **2025-01-01** (floor); charges dense, refunds sparse. Windowed backfill (30-day windows) — first fill takes a few Hangfire retries.
 
 4. Query cookbook
 -----------------
@@ -318,6 +359,26 @@ FROM `inv-project.amplitude_us.v_events_resolved`
 WHERE event_type = 'Create estimate'             -- swap for any of the 113 event types
   AND DATE(event_time) >= '2026-05-01'
 GROUP BY 1 ORDER BY 1;
+
+-- 12) Web-subscription Stripe transactions -> Tofu account (charges, net of refunds, USD-minor->units)
+WITH sub AS (
+  SELECT DISTINCT subz_account_id AS cus, account_id
+  FROM `inv-project.ai_analysis_us.mart_account_subscriptions`
+  WHERE subz_account_id LIKE 'cus_%'
+)
+SELECT s.account_id,
+       SUM(IF(t.type='charge', t.amount, -t.amount)) / 100 AS net_amount,   -- minor units -> units
+       COUNTIF(t.type='charge') charges, COUNTIF(t.type='refund') refunds
+FROM `inv-project.stripe_us.src_stripe_transactions` t
+JOIN sub s ON s.cus = t.customer                  -- ~80% link; unmatched cus_ have no subscription row
+WHERE t.status = 'succeeded'
+GROUP BY 1 ORDER BY net_amount DESC LIMIT 50;
+
+-- 13) Accounts with a connected Stripe payout account (PSP/Connect side — NOT #12's billing side)
+SELECT country, COUNT(*) connected
+FROM `inv-project.ai_analysis_us.src_authenticated_payment_types`
+WHERE provider = 'Stripe' AND status = 'Connected'
+GROUP BY 1 ORDER BY connected DESC LIMIT 20;
 ```
 
 5. Freshness
@@ -328,4 +389,5 @@ GROUP BY 1 ORDER BY 1;
 | `ai_analysis_us` | daily ~16:1x UTC (snapshot-driven) | state as of yesterday's Mongo snapshot |
 | `amplitude_us` | daily 04:00 UTC | query full days ≤ yesterday; rolling 90 days only |
 | `payments_us` | daily 01:00 UTC | yesterday complete; history since 2024-04 |
+| `stripe_us` | daily 03:00 UTC (`stripe-ingest`) | customers full-snapshot; transactions incremental, history from 2025-01 |
 

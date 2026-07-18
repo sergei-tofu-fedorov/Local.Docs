@@ -1,6 +1,6 @@
 ---
 name: bq
-description: BigQuery toolkit for the Tofu/Invoices analytics warehouse (`inv-project`). ALWAYS invoke before composing or running ANY `bq` command or BigQuery SQL — reads, cost checks, DDL, or DTS. It carries the cost gate (metadata + `--dry_run` before every scan), the prod/test env rules, and the SA-key write gate. Use it whenever the task is "query BigQuery", "how much revenue / how many invoices / active subscriptions", "check a table's size", "run this SQL against `ai_analysis_us` / `amplitude_us` / `payments_us`", add/replace a warehouse table, or edit a scheduled query — even when the user just pastes SQL without naming BigQuery.
+description: BigQuery toolkit for the Tofu/Invoices analytics warehouse (`inv-project`). ALWAYS invoke before composing or running ANY `bq` command or BigQuery SQL — reads, cost checks, DDL, or DTS. It carries the cost gate (metadata + `--dry_run` before every scan), the prod/test env rules, and the SA-key write gate. Use it whenever the task is "query BigQuery", "how much revenue / how many invoices / active subscriptions", "how much do we bill via Stripe / web-subscription revenue", "which accounts connected a Stripe/PayPal payout account", "check a table's size", "run this SQL against `ai_analysis_us` / `amplitude_us` / `payments_us` / `stripe_us`", add/replace a warehouse table, or edit a scheduled query — even when the user just pastes SQL without naming BigQuery.
 ---
 
 ## User Input
@@ -15,7 +15,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 `/bq` is the BigQuery **operations** toolkit: environment handling, the cost gate that guards every scan, the SA-key write gate for mutations, and the routing to the query-composition knowledge. It exists because BigQuery bills per **byte scanned** and prod mutations need a service account the interactive user doesn't have — both are easy to get wrong and expensive or destructive when you do.
 
-**Query-composition knowledge — table structure, relations, everything — lives in ONE place:** `Local.Docs/Backend/Storage/bigquery-agent-guide.md` (workspace-relative path — read it with the Read tool from the workspace root; it resolves identically for the canon and the synced runtime copy) — the query-first guide to the three analytics datasets. It holds:
+**Query-composition knowledge — table structure, relations, everything — lives in ONE place:** `Local.Docs/Backend/Storage/bigquery-agent-guide.md` (workspace-relative path — read it with the Read tool from the workspace root; it resolves identically for the canon and the synced runtime copy) — the query-first guide to the four analytics datasets (`ai_analysis_us` / `amplitude_us` / `payments_us` / `stripe_us`). It holds:
 
 - **Table structure** — per-dataset schemas with row counts, cluster keys, column contents, and enum **decode tables** (guide §3.1–3.3).
 - **Relations & join keys** — the `account ↔ platform user ↔ master` **identity model** with canonical join snippets (§1.5) *and* the document-to-document joins (`invoice ↔ client ↔ estimate ↔ line-items ↔ PSP payment`, §1.6).
@@ -29,7 +29,7 @@ For one-off ad-hoc queries use `/bq` directly; for a persisted investigation (fo
 
 | Env | Project ID | Use for | Default? |
 |-----|-----------|---------|----------|
-| **prod** | `inv-project` | **All real analytics reads** — `ai_analysis_us`, `amplitude_us`, `payments_us` live only here. Interactive identity is **read-only** on the dataset. | ✅ Yes for reads — the data is only here. |
+| **prod** | `inv-project` | **All real analytics reads** — `ai_analysis_us`, `amplitude_us`, `payments_us`, `stripe_us` live only here. Interactive identity is **read-only** on the dataset. | ✅ Yes for reads — the data is only here. |
 | **test** | `invoicesapp-project-test` | Benchmarking, repeated experiments, repro of build/DDL logic, anything you'd want to break safely. Has **stubs and gaps** (e.g. `mart_account_current_plan` is a static stub) — real numbers do not live here. | For writes/experiments only. |
 
 ### Env-selection rules
@@ -126,5 +126,6 @@ Notes:
 ## Notes
 
 - The guide was verified live on prod 2026-07-13 and refined over six agent eval runs; its snapshot distributions (channel shares etc.) are ~90-day windows from 2026-07 — recompute for the report window.
-- Freshness (guide §5): `ai_analysis_us` daily ~16:xx UTC snapshot-driven; `amplitude_us` daily 04:00 UTC, rolling 90 days only, query full days ≤ yesterday; `payments_us` daily 01:00 UTC, history since 2024-04.
+- Freshness (guide §5): `ai_analysis_us` daily ~16:xx UTC snapshot-driven; `amplitude_us` daily 04:00 UTC, rolling 90 days only, query full days ≤ yesterday; `payments_us` daily 01:00 UTC, history since 2024-04; `stripe_us` daily 03:00 UTC, transactions history from 2025-01.
+- `stripe_us` = Tofu's own web-subscription Stripe billing (its `cus_` customers + charges/refunds); link a `cus_` to a Tofu account via `mart_account_subscriptions.subz_account_id` (guide §1.7 / §3.4). Distinct from the PSP/Connect side: `ai_analysis_us.src_authenticated_payment_types` maps an account to its collecting Stripe `acct_`.
 - Extended-JSON enum gotcha: Mongo-sourced int enums in raw JSON arrive as `{"$numberInt":"N"}` — read via `COALESCE(JSON_VALUE(x,'$.F."$numberInt"'), JSON_VALUE(x,'$.F'))`, never bare `JSON_VALUE` (guide §1.3).
