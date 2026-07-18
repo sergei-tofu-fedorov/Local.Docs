@@ -1,0 +1,68 @@
+flash-lite industry fails: 29/200 = 14.5%
+
+#  Category       Business                 Gold (human)       Flash            Claude         Items
+---------------------------------------------------------------------------------------------------
+1  A flash->other Gates & Doors Automation locksmith          other            general_contracting Service Address | Service Call Fee | Service Add
+2  A flash->other SCLASS Garage Doors And  handyman           other            handyman       2 springs installation | Garage Door Repair | He
+3  A flash->other Solar Group of Florida   electrical         other            electrical     Service | Installation | Installation of solar p
+4  B flash->trade                          other              security_alarm   other          Security services
+5  B flash->trade Darek Keller             other              general_contracting other          Bull Bash | Fencing | Fence | Bull Rent | Darek 
+6  B flash->trade Delaune's Hauling LLC    other              junk_removal     landscaping    Riversilt | Dirt Haul off | Limestone | 57 limes
+7  B flash->trade ESSENTIAL$#HOME#         other              appliance_repair other          Livraison offerte | MACHINE A LAVER 9KG INVERTER
+8  B flash->trade Elec-remz Limited        other              locksmith        other          Accommodation | Lock change
+9  B flash->trade Elissa Vasconez - 3984 M other              electrical       other          Rent and Deposit | 200 AMP panal Upgrade | May R
+10 B flash->trade Irepair                  other              computers_it     other          iPhone 12 64gb | 13 pro max case | APPLE IPAD PR
+11 B flash->trade Jason Waldroup           other              handyman         handyman       Service Call and Repair
+12 B flash->trade Kevin Russell            other              lawn_care_maintenance landscaping    Home, pool and Lawn maintenance while working in
+13 B flash->trade LOCKKING                 other              locksmith        other          Double Hook lock | Roller engine | Dogler small 
+14 B flash->trade Leiver Arias carpentry   other              general_contracting other          
+15 B flash->trade Lewis Legacy Consulting  other              security_alarm   other          Security | Armed security | Filling of Business 
+16 B flash->trade Next Gen Performance     other              mechanical_service other          Delivery Fee | AC Compressor | AC Flush Solution
+17 B flash->trade SJ property maintenance  other              handyman         other          SJPM
+18 B flash->trade TUJENGE KARIAKOO LTD     other              plumbing         other          Shower mixer | Towel rack | Single shower | Shel
+19 B flash->trade Terry Brian              other              general_contracting general_contracting Tiny house
+20 B flash->trade Thomas Commercial LLC    other              general_contracting general_contracting Scope of work
+21 B flash->trade WINCARE HOTEL SUPPLY     other              pool_spa_service other          CLHORINE | Platina starter | pillow alvino | poo
+22 C trade<->trade                          snow_removal       general_contracting general_contracting 53 miller rd Snow Shoveling | 561 Bunker Rd Snow
+23 C trade<->trade Brian Foley              landscaping        snow_removal     landscaping    Salt and sand driveway | 3 yards of topsoil deli
+24 C trade<->trade Chicago Glassmen Llc     general_contracting locksmith        general_contracting C/K 190 W madison | C/k 2 N Wabash | 101 E. Ever
+25 C trade<->trade Juan Mendez              handyman           plumbing         handyman       Remove/replace water heater | Garbage disposal |
+26 C trade<->trade Master Repairs & Home Se appliance_repair   cleaning         handyman       Cleaning at Beach house | Diagnostico y programa
+27 C trade<->trade Nick And Sons Home Maint handyman           plumbing         handyman       Job total | Job total | Rebuild toilet | Sewer l
+28 C trade<->trade SMIVE DIGITAL            computers_it       security_alarm   home_theater   Labour and Miscellaneous | Cat 5 cable installat
+29 C trade<->trade Triple E Concepts And So computers_it       security_alarm   security_alarm Travel | ALPR install | Street sentry camera | L
+
+
+--- Tab-separated (paste into ClickUp/Sheets) ---
+#	Category	Business	Gold	Flash	Claude	Items
+1	A flash->other	Gates & Doors Automation	locksmith	other	general_contracting	Service Address | Service Call Fee | Service Add
+2	A flash->other	SCLASS Garage Doors And 	handyman	other	handyman	2 springs installation | Garage Door Repair | He
+3	A flash->other	Solar Group of Florida	electrical	other	electrical	Service | Installation | Installation of solar p
+4	B flash->trade		other	security_alarm	other	Security services
+5	B flash->trade	Darek Keller	other	general_contracting	other	Bull Bash | Fencing | Fence | Bull Rent | Darek 
+6	B flash->trade	Delaune's Hauling LLC	other	junk_removal	landscaping	Riversilt | Dirt Haul off | Limestone | 57 limes
+7	B flash->trade	ESSENTIAL$#HOME#	other	appliance_repair	other	Livraison offerte | MACHINE A LAVER 9KG INVERTER
+8	B flash->trade	Elec-remz Limited	other	locksmith	other	Accommodation | Lock change
+9	B flash->trade	Elissa Vasconez - 3984 M	other	electrical	other	Rent and Deposit | 200 AMP panal Upgrade | May R
+10	B flash->trade	Irepair	other	computers_it	other	iPhone 12 64gb | 13 pro max case | APPLE IPAD PR
+11	B flash->trade	Jason Waldroup	other	handyman	handyman	Service Call and Repair
+12	B flash->trade	Kevin Russell	other	lawn_care_maintenance	landscaping	Home, pool and Lawn maintenance while working in
+13	B flash->trade	LOCKKING	other	locksmith	other	Double Hook lock | Roller engine | Dogler small 
+14	B flash->trade	Leiver Arias carpentry	other	general_contracting	other	
+15	B flash->trade	Lewis Legacy Consulting 	other	security_alarm	other	Security | Armed security | Filling of Business 
+16	B flash->trade	Next Gen Performance	other	mechanical_service	other	Delivery Fee | AC Compressor | AC Flush Solution
+17	B flash->trade	SJ property maintenance	other	handyman	other	SJPM
+18	B flash->trade	TUJENGE KARIAKOO LTD	other	plumbing	other	Shower mixer | Towel rack | Single shower | Shel
+19	B flash->trade	Terry Brian	other	general_contracting	general_contracting	Tiny house
+20	B flash->trade	Thomas Commercial LLC	other	general_contracting	general_contracting	Scope of work
+21	B flash->trade	WINCARE HOTEL SUPPLY	other	pool_spa_service	other	CLHORINE | Platina starter | pillow alvino | poo
+22	C trade<->trade		snow_removal	general_contracting	general_contracting	53 miller rd Snow Shoveling | 561 Bunker Rd Snow
+23	C trade<->trade	Brian Foley	landscaping	snow_removal	landscaping	Salt and sand driveway | 3 yards of topsoil deli
+24	C trade<->trade	Chicago Glassmen Llc	general_contracting	locksmith	general_contracting	C/K 190 W madison | C/k 2 N Wabash | 101 E. Ever
+25	C trade<->trade	Juan Mendez	handyman	plumbing	handyman	Remove/replace water heater | Garbage disposal |
+26	C trade<->trade	Master Repairs & Home Se	appliance_repair	cleaning	handyman	Cleaning at Beach house | Diagnostico y programa
+27	C trade<->trade	Nick And Sons Home Maint	handyman	plumbing	handyman	Job total | Job total | Rebuild toilet | Sewer l
+28	C trade<->trade	SMIVE DIGITAL	computers_it	security_alarm	home_theater	Labour and Miscellaneous | Cat 5 cable installat
+29	C trade<->trade	Triple E Concepts And So	computers_it	security_alarm	security_alarm	Travel | ALPR install | Street sentry camera | L
+
+Categories: A = flash said other, human a trade; B = flash gave a trade, human other; C = trade vs trade.
