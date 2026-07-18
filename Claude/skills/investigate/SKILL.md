@@ -1,6 +1,6 @@
 ---
 name: investigate
-description: Backend investigation expert (Tofu/Invoices). ALWAYS invoke first for any alert, error spike, trace/account/Sentry lookup, or "why did X fail". Never query logs/Sentry directly — start here.
+description: Backend investigation expert for Tofu/Invoices (BFF, core invoices, auth). ALWAYS invoke FIRST — before any log/Sentry/Mongo query — for an alert or alert URL, an error/500 spike, "why did X fail/break/time out", or a lookup by trace id, account id, Sentry short-id, or error text. It runs the known-issue gate and prior-work recall before touching live sources, so you never re-walk a thread someone already solved. Not for greenfield feature work (use feature) or a one-off warehouse read (use bq).
 ---
 
 # Investigate (root orchestrator)
@@ -51,6 +51,8 @@ Invoke the applicable collectors via the **Skill tool** — each is a `context: 
 Skip collectors whose source can't bear on the ask; don't fan out what the gate already answered. Fallback: if fork skills are unavailable, launch Explore agents with the same reference file + output contract (see `orchestration`).
 
 ## Phases 2–3 — Cross-match, then synthesize (inline)
+
+*(Phase 4 — Verify — is deep-tier only; see `references/deep-workflow.md`. Standard tier goes straight from synthesis to persist.)*
 
 - Feed new identifiers back through the gate greps (phase-0 rule) before concluding.
 - Correlate across sources: Sentry event (client view) ↔ backend request logs (`AccountId` prefix gotcha) ↔ source ↔ git history.

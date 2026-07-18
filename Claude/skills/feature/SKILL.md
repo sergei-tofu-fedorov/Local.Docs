@@ -1,6 +1,6 @@
 ---
 name: feature
-description: End-to-end feature workflow (plan | load | list | start | status | lint | review | done): scaffold plan docs in Local.Docs, branch, lint, pre-PR review. NEVER pushes, commits code, or opens PRs.
+description: End-to-end backend feature workflow — scaffold the plan doc in Local.Docs, branch each affected repo, lint, and pre-PR review. Invoke whenever the user wants to start, plan, or resume a feature/ticket (e.g. "plan WEB-1234", "start a feature for this ticket", "branch for INVC-3608", "where did I leave WEB-1600?") or names one of its ops: plan | load | list | start | status | lint | review | done. NEVER pushes, commits code, or opens PRs — those steps always stay with the user.
 ---
 
 ## User Input

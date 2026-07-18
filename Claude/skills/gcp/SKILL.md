@@ -1,6 +1,6 @@
 ---
 name: gcp
-description: gcloud toolkit (test/prod GCP). ALWAYS invoke before composing any gcloud command. Read-only default; prod needs --prod; never benchmark prod.
+description: gcloud + Cloud Logging toolkit for Tofu GCP (test `invoicesapp-project-test` / prod `inv-project`). ALWAYS invoke before composing ANY gcloud command — reads or mutations. Use it whenever the task is "check the logs", "read Cloud Logging", "why is this request slow", a trace-id lookup, `severity>=ERROR` in the last hour, distinct/aggregate counts of a log field, or a deploy/restart/set-iam. Read-only by default; prod needs explicit `--prod`; benchmarking prod is refused. For a persisted incident write-up start with investigate; for BigQuery SQL use bq.
 ---
 
 ## User Input

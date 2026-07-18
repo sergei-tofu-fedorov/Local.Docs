@@ -1,6 +1,6 @@
 ---
 name: docs
-description: Search, read, update, or create documentation in the Local.Docs repo. ALWAYS invoke before creating or editing any file under Local.Docs. Never auto-commits — committing is the explicit `commit` op.
+description: Search, read, update, or create documentation in the Local.Docs repo (Backend/HowTo, Services, features, the timeline TSV). ALWAYS invoke before creating or editing ANY file under Local.Docs, and for "search the docs", "document this", "update the persistence doc", or "what do our docs say about X". Never auto-commits — committing is the explicit `commit` op.
 ---
 
 ## User Input
@@ -140,61 +140,11 @@ Edit the timeline events catalogue at `Local.Docs/features/timeline/Timeline Eve
 **Process**:
 1. Read the current TSV file
 2. Apply the requested changes (add rows, update existing rows, etc.)
-3. **Auto-verify TSV format** after every edit using a heredoc (`python << 'PYEOF' ... PYEOF`):
+3. **Auto-verify TSV format** after every edit by running the bundled checker (column counts, RFC 4180 quoting, strict-CSV parse, per-EntityType tally). It exits non-zero on any failure, so it can gate the follow-up commit:
+   ```bash
+   python .claude/skills/docs/scripts/verify_timeline_tsv.py "Local.Docs/features/timeline/Timeline Events.tsv"
    ```
-   python << 'PYEOF'
-   lines = open('Local.Docs/features/timeline/Timeline Events.tsv', 'r', encoding='utf-8').readlines()
-   hcols = len(lines[0].rstrip('\n').split('\t'))
-   import csv
-   bad = []
-   qerr = []
-   for i, l in enumerate(lines[1:], 2):
-       cols = l.rstrip('\n').split('\t')
-       if len(cols) != hcols:
-           bad.append((i, len(cols)))
-       for ci, cell in enumerate(cols):
-           if cell.startswith('"') and cell.endswith('"') and len(cell) > 1:
-               inner = cell[1:-1]
-               j = 0
-               while j < len(inner):
-                   if inner[j] == '"':
-                       if j+1 < len(inner) and inner[j+1] == '"':
-                           j += 2
-                       else:
-                           qerr.append((i, ci+1, 'unescaped " in quoted field'))
-                           break
-                   else:
-                       j += 1
-           elif '"' in cell:
-               qerr.append((i, ci+1, 'unquoted cell contains "'))
-   from collections import Counter
-   ent = Counter(l.split('\t')[0] for l in lines[1:])
-   print(f'Lines: {len(lines)} (1 header + {len(lines)-1} data) | Columns: {hcols}')
-   for k, v in sorted(ent.items()):
-       print(f'  {k}: {v}')
-   if bad:
-       print(f'ERROR: {len(bad)} rows have wrong column count:')
-       for ln, c in bad[:5]:
-           print(f'  Line {ln}: {c} cols (expected {hcols})')
-   else:
-       print('All row column counts OK.')
-   if qerr:
-       print(f'ERROR: {len(qerr)} quoting issues (RFC 4180):')
-       for ln, col, msg in qerr[:5]:
-           print(f'  Line {ln}, col {col}: {msg}')
-   else:
-       print('All quoting RFC 4180 compliant.')
-   # Also run strict csv parse
-   try:
-       with open('Local.Docs/features/timeline/Timeline Events.tsv', 'r', encoding='utf-8', newline='') as f:
-           reader = csv.reader(f, delimiter='\t', strict=True)
-           for ri, row in enumerate(reader, 1):
-               pass
-       print(f'Strict CSV parse: all {ri} lines OK.')
-   except csv.Error as e:
-       print(f'Strict CSV ERROR at line {ri}: {e}')
-   PYEOF
-   ```
+   (The path argument is optional — it defaults to that same canonical location when run from the workspace root.)
 4. If verification fails, fix the broken rows before proceeding
 5. Show summary of changes, inform user to commit with `/docs commit`
 

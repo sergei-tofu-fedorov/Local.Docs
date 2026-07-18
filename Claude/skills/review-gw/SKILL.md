@@ -1,6 +1,6 @@
 ---
 name: review-gw
-description: Review a PR (or local branch diff) against Local.Docs how-to guides and architecture patterns. Invoke on /review-gw <PR#> and from /feature review (--branch mode). Runs gh inside the target repo.
+description: Review a PR — or a local feature-branch diff — against Local.Docs how-to guides and architecture/timeline conventions. Invoke on "review PR 123", "/review-gw <PR#>", "check this PR against our patterns", or from feature review (--branch mode) before PRs are opened. Runs gh inside the target repo. Not the working-tree diff reviewer — for that use code-review.
 ---
 
 ## User Input

@@ -1,6 +1,6 @@
 ---
 name: tests
-description: Refactor or write unit/integration tests following project conventions (xUnit, Moq, AutoFixture, FluentAssertions). Invoke for any "write/refactor tests" ask; ops: refactor | unit | integration | sync.
+description: Write or refactor unit/integration tests for the backend repos, following project conventions (xUnit, Moq, AutoFixture, FluentAssertions). Invoke for "write tests for X", "refactor this test file", "add coverage for my changes", or "test this endpoint"; ops: refactor | unit | integration | sync (detect changed code and fill the test gaps).
 ---
 
 ## User Input

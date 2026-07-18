@@ -1,6 +1,6 @@
 ---
 name: impl
-description: Implement a plan in .NET in two gated phases: impl-design.md (abstractions only) for sign-off, then code after explicit approval. Never writes tests (defer to /tests), never commits or opens PRs.
+description: Turn an agreed plan into working .NET code in two gated phases — first `impl-design.md` (abstractions/signatures only) for sign-off, then the code after explicit approval. Invoke whenever the user wants to implement a feature or ticket in code ("implement WEB-1234", "build this out", "turn the plan into code", "start coding this feature"), especially when an `overview.md` exists. Never writes tests (defer to tests), never commits, branches, or opens PRs.
 ---
 
 ## User Input

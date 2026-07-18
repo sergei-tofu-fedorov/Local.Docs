@@ -1,6 +1,6 @@
 ---
 name: sentry
-description: Sentry toolkit (getpaid-inc) — issues, events, alerts, user/account search. ALWAYS invoke before any Sentry API call. GET-only via the header-file curl form.
+description: Sentry toolkit (org getpaid-inc) for iOS / web / backend client errors. ALWAYS invoke before ANY Sentry API call. Use it whenever the task names a Sentry issue short-id (e.g. `INVOICE-MAKER-IOS-2Z6`), a `sentry.io/.../alerts/rules/` URL, "what's this crash/exception", errors for a given user email or account id, or "search Sentry for X". GET-only via the header-file curl form; never resolves issues, never echoes the token. For a full multi-source investigation start with investigate instead.
 ---
 
 ## User Input
