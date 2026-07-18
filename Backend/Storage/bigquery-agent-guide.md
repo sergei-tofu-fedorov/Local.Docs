@@ -70,6 +70,40 @@ JOIN `inv-project.ai_analysis_us.dim_account_identity` d USING (account_id)
 ON COALESCE(e.account_id, e.user_id) = d.account_short
 ```
 
+### 1.6 Document relations & join keys
+
+Business-entity joins (invoice ↔ client ↔ estimate ↔ line-items ↔ PSP payment). All are **account-scoped** — these foreign keys are not globally clustered, so always add `account_id` to the join. `src_invoices.id` is a bare GUID; the keys pointing at it (`client_id`, estimate `invoice_id`, payment `entity_id`) carry inconsistent dashes, so normalize **both sides** with `REPLACE(LOWER(x),'-','')`.
+
+```
+account ─┬─< src_invoices ──< mart_invoice_line_items      (line_items.invoice_id → invoices.id)
+         │        │  └───────< src_estimates               (estimates.invoice_id → invoices.id, convert link)
+         │        └─> src_clients                          (invoices.client_id → clients client-guid)
+         └─< payments_us.src_payment_orders                (orders.entity_id → invoices.id WHEN entity_type=1)
+```
+
+| From → To | Key | Notes |
+|---|---|---|
+| `src_invoices` → `src_clients` | `invoices.client_id` (bare guid) → client-guid portion of `clients.id` (= `<account_id>\|<client_guid>` composite) | strip dashes + account scope; `client_id` NULL for clientless invoices |
+| `src_estimates` → `src_invoices` | `estimates.invoice_id` → `invoices.id` | the convert-to-invoice link; NULL until the estimate is converted |
+| `mart_invoice_line_items` → `src_invoices` | `line_items.invoice_id` → `invoices.id` | line grain; row also carries `account_id` + `date` (TIMESTAMP partition — filter it) |
+| `payments_us.src_payment_orders` → `src_invoices` | `orders.entity_id` → `invoices.id` **when `entity_type = 1`** | `entity_type = 2` = PaymentRequest (no invoice); strip dashes + account scope |
+| any `src_*` / payments fact → identity | `USING (account_id)` → `dim_account_identity` | person / master grain — see §1.5 |
+
+```sql
+-- invoice ↔ client, account-scoped + dash-normalized (clients.id is <account_id>|<client_guid>)
+FROM `inv-project.ai_analysis_us.src_invoices` i
+JOIN `inv-project.ai_analysis_us.src_clients` c
+  ON c.account_id = i.account_id
+ AND REPLACE(LOWER(SPLIT(c.id, '|')[OFFSET(1)]), '-', '') = REPLACE(LOWER(i.client_id), '-', '')
+
+-- PSP payment ↔ invoice (only entity_type = 1)
+FROM `inv-project.payments_us.src_payment_orders` p
+JOIN `inv-project.ai_analysis_us.src_invoices` i
+  ON i.account_id = p.account_id
+ AND p.entity_type = 1
+ AND REPLACE(LOWER(p.entity_id), '-', '') = REPLACE(LOWER(i.id), '-', '')
+```
+
 2. Routing: question shape → source
 -----------------------------------
 
@@ -101,7 +135,7 @@ Rebuilt daily when the Atlas snapshot changes (~16:1x UTC); deploying SQL does n
 | `src_account_identifiers` (8.3M) | `account_id` | account ↔ `user_id` (platform) ↔ `firebase_id` / `idfa` / `appsflyer_id` / `vendor_id` |
 | `src_items` (12.8M) | `account_id` | saved catalog: `name`, `price`, `item_type`, `unit_type`, `taxable`, `created_at` |
 | `src_business_profiles` (10.9K) | `account_id` | onboarding poll: `onboarding_industry`, `team_size`, `job_mix` |
-| `mart_invoice_line_items` (25M) | `account_id` | per-line: `item_name`, `quantity`, `unit_price`, `item_gross`, `item_discount_*` |
+| `mart_invoice_line_items` (25M) | `account_id` | per-line, keyed to `invoice_id` (→ `src_invoices.id`, see §1.6): `item_name`, `quantity`, `unit_price`, `item_gross`, `item_discount_*` |
 | `mart_master_owned_accounts` (476K) | `account_id` | master ↔ account: `role` (owned/member), `tenant_role`, `user_deleted` |
 | `mart_master_platform_links` (438K) | `platform_user_id` | master ↔ platform user: `platform`, `public_id`, `is_first_link`, `created_at` |
 | `mart_account_metrics` (3.6M) | `account_id` | `invoice_count_30d`, `avg_invoice_amount`, `repeat_customer_ratio`, `estimate_to_invoice_rate`, `b2b_clients_present`, `distinct_addresses`, `top_item_names` |

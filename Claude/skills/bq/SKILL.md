@@ -15,7 +15,13 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 `/bq` is the BigQuery **operations** toolkit: environment handling, the cost gate that guards every scan, the SA-key write gate for mutations, and the routing to the query-composition knowledge. It exists because BigQuery bills per **byte scanned** and prod mutations need a service account the interactive user doesn't have — both are easy to get wrong and expensive or destructive when you do.
 
-**Query-composition knowledge lives in ONE place:** `Local.Docs/Backend/Storage/bigquery-agent-guide.md` (workspace-relative path — read it with the Read tool from the workspace root; it resolves identically for the canon and the synced runtime copy) — the query-first guide to the three analytics datasets. It holds the identity model (account ↔ platform user ↔ master), the partition/cluster cost rules, the per-dataset table + decode reference, the interpretation principles (grain discipline, lower bounds, source cross-checks), and a ready SQL cookbook. **Read it before composing any non-trivial analytics query** — do not re-derive schema, joins, or enum decodes from memory. That file is part of the Storage catalog (humans browse it there); `/bq` points at it rather than duplicating it.
+**Query-composition knowledge — table structure, relations, everything — lives in ONE place:** `Local.Docs/Backend/Storage/bigquery-agent-guide.md` (workspace-relative path — read it with the Read tool from the workspace root; it resolves identically for the canon and the synced runtime copy) — the query-first guide to the three analytics datasets. It holds:
+
+- **Table structure** — per-dataset schemas with row counts, cluster keys, column contents, and enum **decode tables** (guide §3.1–3.3).
+- **Relations & join keys** — the `account ↔ platform user ↔ master` **identity model** with canonical join snippets (§1.5) *and* the document-to-document joins (`invoice ↔ client ↔ estimate ↔ line-items ↔ PSP payment`, §1.6).
+- The **partition / cluster cost rules** (§1.2), the **interpretation principles** (grain discipline, lower bounds, source cross-checks — §1.4), and a ready **SQL cookbook** (§4).
+
+**Read it before composing any non-trivial analytics query** — do not re-derive schema, joins, or enum decodes from memory; if a table or join isn't in the guide, `bq show` it (free metadata) and then **add it to the guide**, not to this file. That guide is part of the Storage catalog (humans browse it there); `/bq` points at it rather than duplicating it.
 
 For one-off ad-hoc queries use `/bq` directly; for a persisted investigation (folder + write-up) use the `investigate` skill, which reads the same guide.
 
