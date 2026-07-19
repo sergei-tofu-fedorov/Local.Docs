@@ -121,6 +121,10 @@ stripe_us.src_stripe_transactions.customer (cus_)
     -> mart_account_subscriptions.account_id      -- full Tofu id -> USING(account_id) everywhere
 -- NOT stripe_us.*.account_id — that column is dead (ingest reads a metadata key no customer carries).
 
+-- EMAIL -> account: src_stripe_customers.email (clustered by email → cheap) -> id (cus_) -> subz_account_id.
+--   This is the ONLY email→identity path in BQ, and it exists ONLY for web-Stripe subscribers —
+--   App Store / Play subscribers have no email anywhere in the warehouse. (For "active sub by id/email" see cookbook #17.)
+
 -- account -> its collecting Stripe connected account (PSP side)
 ai_analysis_us.src_authenticated_payment_types   -- account_id ↔ provider_account_id (acct_), one row per (account × provider)
 ```
@@ -322,6 +326,25 @@ LEFT JOIN amp a USING (platform_user_id)
 WHERE a.sub_paid >= 1 AND a.other_events = 0;
 -- (a.other_events IS NULL catches subscribers with ZERO amplitude rows — that's the untracked web/Android
 --  upper bound, NOT dormant iOS; report it separately, never as the headline.)
+
+-- 17) Active subscription by a SINGLE known-type identifier (fast point lookup). The caller says which type
+--     it is — no disambiguation. account_id / platform_user_id / master_user_id are all RESOLVED COLUMNS on
+--     mart_account_subscriptions, so filter directly — NO dim_* join. Truth flag is is_active, NOT expired_at
+--     (which is dirty — ~16% of expired rows carry a stale expired_at while is_active=true; §1.4 / §3.1).
+SELECT account_id, platform_user_id, master_user_id, subz_account_id,
+       product_id, product_type, status, is_trial, started_at, expires_at, paid_count, store_country
+FROM `inv-project.ai_analysis_us.mart_account_subscriptions`
+WHERE is_active
+  AND account_id = '<id>';          -- OR platform_user_id = '<id>'  OR master_user_id = '<id>'
+--   account_id is the cluster key → cheapest; the other two full-scan the ~927K-row table (still small).
+
+-- By EMAIL — email is in BQ ONLY for web-Stripe subscribers (App Store / Play subs have no email here).
+-- Bridge email -> cus_ -> subscription (§1.7):
+SELECT s.account_id, s.product_id, s.product_type, s.status, s.started_at, s.expires_at, s.paid_count
+FROM `inv-project.stripe_us.src_stripe_customers` c                 -- clustered by email → cheap
+JOIN `inv-project.ai_analysis_us.mart_account_subscriptions` s
+  ON s.subz_account_id = c.id                                       -- c.id is the cus_
+WHERE c.email = '<email>' AND s.is_active;
 ```
 
 5. Freshness
