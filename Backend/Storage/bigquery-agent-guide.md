@@ -121,9 +121,10 @@ stripe_us.src_stripe_transactions.customer (cus_)
     -> mart_account_subscriptions.account_id      -- full Tofu id -> USING(account_id) everywhere
 -- NOT stripe_us.*.account_id — that column is dead (ingest reads a metadata key no customer carries).
 
--- EMAIL -> account: src_stripe_customers.email (clustered by email → cheap) -> id (cus_) -> subz_account_id.
---   This is the ONLY email→identity path in BQ, and it exists ONLY for web-Stripe subscribers —
---   App Store / Play subscribers have no email anywhere in the warehouse. (For "active sub by id/email" see cookbook #17.)
+-- EMAIL -> account/user: two paths. (1) LOGIN email (ALL platforms, since 2026-07) —
+--   dim_platform_user_identity.email -> platform_user_id -> account (masterUser export). (2) Stripe BILLING
+--   email (web-Stripe only, may differ) — src_stripe_customers.email (clustered by email) -> id (cus_) ->
+--   subz_account_id. Prefer (1) for coverage; use (2) as a web-billing cross-check. (Active sub by id/email: cookbook #17.)
 
 -- account -> its collecting Stripe connected account (PSP side)
 ai_analysis_us.src_authenticated_payment_types   -- account_id ↔ provider_account_id (acct_), one row per (account × provider)
@@ -338,13 +339,18 @@ WHERE is_active
   AND account_id = '<id>';          -- OR platform_user_id = '<id>'  OR master_user_id = '<id>'
 --   account_id is the cluster key → cheapest; the other two full-scan the ~927K-row table (still small).
 
--- By EMAIL — email is in BQ ONLY for web-Stripe subscribers (App Store / Play subs have no email here).
--- Bridge email -> cus_ -> subscription (§1.7):
-SELECT s.account_id, s.product_id, s.product_type, s.status, s.started_at, s.expires_at, s.paid_count
-FROM `inv-project.stripe_us.src_stripe_customers` c                 -- clustered by email → cheap
-JOIN `inv-project.ai_analysis_us.mart_account_subscriptions` s
-  ON s.subz_account_id = c.id                                       -- c.id is the cus_
-WHERE c.email = '<email>' AND s.is_active;
+-- By EMAIL — now covered for ALL platforms (masterUser LOGIN email, exported to the warehouse 2026-07).
+--   dim_platform_user_identity.email is clustered by platform_user_id (not email), so an email filter
+--   full-scans the ~4M dim — still cheap. dim.email = most-recent non-null login email; can differ from
+--   the Stripe billing email.
+SELECT d.platform_user_id, d.email, d.sole_account_id,
+       s.product_type, s.status, s.started_at, s.expires_at, s.paid_count
+FROM `inv-project.ai_analysis_us.dim_platform_user_identity` d
+LEFT JOIN `inv-project.ai_analysis_us.mart_account_subscriptions` s
+  ON s.platform_user_id = d.platform_user_id AND s.is_active
+WHERE d.email = '<email>';
+-- Fallback / web-billing cross-check by the STRIPE customer email (may differ from the login email; web-Stripe only):
+--   stripe_us.src_stripe_customers.email (clustered by email) -> id (cus_) -> mart_account_subscriptions.subz_account_id (§1.7).
 ```
 
 5. Freshness

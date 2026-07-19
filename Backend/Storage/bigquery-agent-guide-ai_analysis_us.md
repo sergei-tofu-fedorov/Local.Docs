@@ -20,7 +20,7 @@ Rebuilt daily when the Atlas snapshot changes (~16:1x UTC); deploying SQL does n
 | `src_authenticated_payment_types` (631K) | `account_id` | PSP (Connect) connections, one row per (account × provider): `provider` (Stripe/PayPal), `provider_account_id` (Stripe `acct_…` / PayPal merchant), `status`, `enabled`, `payouts_enabled`, `currency_code`, `country`, `product_key`, `payment_by_card_enabled` — see core guide §1.7 |
 | `mart_invoice_line_items` (25M) | `account_id` | per-line, keyed to `invoice_id` (→ `src_invoices.id`, see core guide §1.6): `item_name`, `quantity`, `unit_price`, `item_gross`, `item_discount_*` |
 | `mart_master_owned_accounts` (476K) | `account_id` | master ↔ account: `role` (owned/member), `tenant_role`, `user_deleted` |
-| `mart_master_platform_links` (438K) | `platform_user_id` | master ↔ platform user: `platform`, `public_id`, `is_first_link`, `created_at` |
+| `mart_master_platform_links` (438K) | `platform_user_id` | master ↔ platform user: `platform`, `public_id`, `is_first_link`, `created_at`, `original_email` (login email at link time — all platforms; may be NULL; can differ from the Stripe billing email) |
 | `mart_account_metrics` (3.6M) | `account_id` | `invoice_count_30d`, `avg_invoice_amount`, `repeat_customer_ratio`, `estimate_to_invoice_rate`, `b2b_clients_present`, `distinct_addresses`, `top_item_names` |
 | `mart_account_fsm_fit` (98K) | `account_id` | `industry`/`specialization`, six boolean signals, `score`/`tier`, `reasoning` |
 | `mart_account_subscriptions` (927K) | `account_id` | subscription grain: `product_id`/`product_type`, `status`, `is_active`, `is_trial`, `started_at`/`expired_at`/`expires_at`, `sub_length_days`, `paid_count`, `store_country`, resolved `platform_user_id`/`master_user_id` |
@@ -30,7 +30,7 @@ Rebuilt daily when the Atlas snapshot changes (~16:1x UTC); deploying SQL does n
 | `dim_account` (3.6M) | `account_id` | `industry`, `specialization`, `trade`/`sub_trade`, `business_size`, `team_size`, `is_recurring`, `job_mix`, `state` |
 | `user_links` (7.5K) | `user_id` | append-only unified ↔ platform id map (WEB-1525) |
 | `dim_account_identity` (8.3M) | `account_id` | identity hub: `account_short`, `platform_user_id`, `in_accounts_snapshot`, `master_via_owner`, `master_via_platform_link` |
-| `dim_platform_user_identity` (4M) | `platform_user_id` | `user_short`, `master_user_id` (+count), `account_count`, `sole_account_id`, `account_ids` |
+| `dim_platform_user_identity` (4.1M) | `platform_user_id` | `user_short`, `master_user_id` (+count), `email` (login email, all platforms — the go-to email→user/account key), `account_count`, `sole_account_id`, `account_ids`. Includes web/link-only users (present in `mart_master_platform_links` but not in `src_account_identifiers`); for those, accounts come from the master's OwnedAccounts. |
 
 **Decode tables** (labels are pre-decoded strings in the tables above):
 
