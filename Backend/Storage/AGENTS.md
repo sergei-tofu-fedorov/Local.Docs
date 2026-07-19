@@ -10,7 +10,7 @@ Storage — data-store inventory
 
 **How to use (agent).** Scan the index → open `bigquery.md` / `mongo.md` / `postgres.md` / `gcs.md` → jump to the store's section. Each store section: header (type · env/location · owner · config key · write path) → objects table → links.
 
-**Composing BigQuery analytics queries?** Go straight to [`bigquery-agent-guide.md`](bigquery-agent-guide.md) — the query-first guide to `ai_analysis_us` / `amplitude_us` / `payments_us`: identity joins (account ↔ platform user ↔ master), partition/cluster cost rules, ready SQL patterns.
+**Composing BigQuery analytics queries?** Go straight to [`bigquery-agent-guide.md`](bigquery-agent-guide.md) — the query-first **core guide** to `ai_analysis_us` / `amplitude_us` / `payments_us` / `stripe_us`: identity joins (account ↔ platform user ↔ master), document & Stripe join keys, partition/cluster cost rules, routing table, ready SQL cookbook. The heavy per-dataset column catalogs + enum decodes + caveats are split into one file each — [`-ai_analysis_us`](bigquery-agent-guide-ai_analysis_us.md) · [`-amplitude_us`](bigquery-agent-guide-amplitude_us.md) · [`-payments_us`](bigquery-agent-guide-payments_us.md) · [`-stripe_us`](bigquery-agent-guide-stripe_us.md) — read only the one the core routing table points you to.
 
 **Confidence.** Verified against repo code on 2026-05-30 with `file:line` citations in each file. `TODO` = genuinely unconfigured/unknown (e.g. prod hosts supplied at deploy time). Re-verify against code before relying on a `TODO` line.
 

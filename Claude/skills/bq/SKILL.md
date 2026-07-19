@@ -15,13 +15,14 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 `/bq` is the BigQuery **operations** toolkit: environment handling, the cost gate that guards every scan, the SA-key write gate for mutations, and the routing to the query-composition knowledge. It exists because BigQuery bills per **byte scanned** and prod mutations need a service account the interactive user doesn't have — both are easy to get wrong and expensive or destructive when you do.
 
-**Query-composition knowledge — table structure, relations, everything — lives in ONE place:** `Local.Docs/Backend/Storage/bigquery-agent-guide.md` (workspace-relative path — read it with the Read tool from the workspace root; it resolves identically for the canon and the synced runtime copy) — the query-first guide to the four analytics datasets (`ai_analysis_us` / `amplitude_us` / `payments_us` / `stripe_us`). It holds:
+**Query-composition knowledge lives in a two-level guide.** The **core guide** is `Local.Docs/Backend/Storage/bigquery-agent-guide.md` — relative to the workspace root `C:\Git\Work\Backend`, i.e. the exact path is `C:\Git\Work\Backend\Local.Docs\Backend\Storage\bigquery-agent-guide.md` (`Local.Docs` is a child of the workspace root, **not** a sibling of `Backend`). Read it directly with the Read tool — do **not** `ls` to locate it. It holds the always-needed part:
 
-- **Table structure** — per-dataset schemas with row counts, cluster keys, column contents, and enum **decode tables** (guide §3.1–3.3).
-- **Relations & join keys** — the `account ↔ platform user ↔ master` **identity model** with canonical join snippets (§1.5) *and* the document-to-document joins (`invoice ↔ client ↔ estimate ↔ line-items ↔ PSP payment`, §1.6).
-- The **partition / cluster cost rules** (§1.2), the **interpretation principles** (grain discipline, lower bounds, source cross-checks — §1.4), and a ready **SQL cookbook** (§4).
+- **Relations & join keys** — the `account ↔ platform user ↔ master` **identity model** with canonical join snippets (§1.5), the document-to-document joins (`invoice ↔ client ↔ estimate ↔ line-items ↔ PSP payment`, §1.6), and the two-flow Stripe linkage (§1.7).
+- The **partition / cluster cost rules** (§1.2), **data conventions** (Extended-JSON enums, NULL≠0, dirty amounts — §1.3), **interpretation principles** (grain discipline, lower bounds, source cross-checks — §1.4), the **routing table** (§2), and a ready **SQL cookbook** (§4).
 
-**Read it before composing any non-trivial analytics query** — do not re-derive schema, joins, or enum decodes from memory; if a table or join isn't in the guide, `bq show` it (free metadata) and then **add it to the guide**, not to this file. That guide is part of the Storage catalog (humans browse it there); `/bq` points at it rather than duplicating it.
+The **heavy per-dataset detail** — full column catalogs, enum **decode tables**, and per-dataset caveats — is split into one file per dataset next to the core guide (`bigquery-agent-guide-<dataset>.md`, for `ai_analysis_us` / `amplitude_us` / `payments_us` / `stripe_us`). **Read only the dataset file your question routes to** (core guide §2 maps question shape → dataset → file) — this keeps context small when a question touches one dataset. A query built straight from a cookbook recipe may not need any dataset file; anything touching specific columns, enum values, or a dataset's caveats does.
+
+**Read the core guide before composing any non-trivial analytics query**, then pull the routed dataset file — do not re-derive schema, joins, or enum decodes from memory. If a table or join isn't documented, `bq show` it (free metadata) and then **add it to the right file** (core for a join/rule, the dataset file for a column/decode), not to this SKILL. The guide is part of the Storage catalog (humans browse it there); `/bq` points at it rather than duplicating it.
 
 For one-off ad-hoc queries use `/bq` directly; for a persisted investigation (folder + write-up) use the `investigate` skill, which reads the same guide.
 
@@ -44,10 +45,14 @@ For one-off ad-hoc queries use `/bq` directly; for a persisted investigation (fo
 PowerShell mangles quotes in inline SQL. Compose the query in a heredoc via the **Bash** tool:
 
 ```bash
-bq query --project_id=inv-project --use_legacy_sql=false --format=prettyjson <<'SQL'
+bq query --project_id=inv-project --use_legacy_sql=false --format=csv <<'SQL'
 SELECT ... FROM `inv-project.ai_analysis_us.src_invoices` WHERE ...
 SQL
 ```
+
+### Output format — default to compact (`--format=csv`)
+
+The `bq` result is read back into the agent's context and re-sent on every subsequent tool turn — a fat result is paid for repeatedly. **Default to `--format=csv`** for row retrieval and point lookups: it is a fraction of the tokens of `prettyjson` (no repeated keys, no indentation, one row per line). Use `--format=prettyjson` only when you must eyeball nested JSON (e.g. Extended-JSON enum blobs) or a single wide row; use `--format=sparse` for a quick shape check. Combine with a tight `LIMIT` and a thin column list (§the cost gate) — the three together are what keep a lookup cheap, both in scan bytes and in context/output tokens.
 
 ## The cost gate (ALWAYS, before ANY scan)
 

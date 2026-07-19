@@ -1,7 +1,7 @@
 BigQuery agent guide — `ai_analysis_us` / `amplitude_us` / `payments_us` / `stripe_us`
 =====================================================================================
 
-**Purpose:** the fast path for an AI agent composing SQL against our analytics storage in prod `inv-project`. Structure: common rules first (apply to every query), then the routing table, then per-dataset reference tables, then the cookbook. Verified live on prod 2026-07-13; refined via six agent evaluation runs.
+**Purpose:** the fast path for an AI agent composing SQL against our analytics storage in prod `inv-project`. Structure: common rules first (apply to every query), then the routing table, then the cookbook. The heavy per-dataset schema/decode/caveat tables live in **separate files** (`bigquery-agent-guide-<dataset>.md`) — load only the one your question routes to (§2/§3), to keep context small. Verified live on prod 2026-07-13; refined via agent evaluation runs.
 
 1. Common rules
 ---------------
@@ -11,6 +11,7 @@ BigQuery agent guide — `ai_analysis_us` / `amplitude_us` / `payments_us` / `st
 - Metadata is free (`bq ls` / `bq show`); scans bill per **column**-bytes. Select only needed columns; `SELECT *` on JSON-column tables reads gigabytes. Always `bq query --dry_run` before a real scan.
 - Always filter the partition column on partitioned tables (types in §1.2 — a wrong type errors or scans everything). Unpartitioned tables don't prune — their cost is purely the columns touched.
 - Clustering prunes only equality/`IN` **filters** on the clustered column (cheap point lookups). It does NOT reduce bytes for JOINs or GROUP BYs.
+- **`--dry_run` does NOT reflect cluster pruning — it reports the PRE-prune upper bound.** For an equality filter on a cluster key (e.g. one `user_id`/`account_id` on a clustered table), the estimate looks large (a point lookup on `src_amplitude_events` over 90 days can dry-run at ~3–4 GB) but the actual billed scan is a small fraction of it. Do NOT narrow the date window or abandon the query in a panic over a big dry-run number on a cluster-key point lookup — the partition filter is a correctness requirement here, not the cost lever. (For non-clustered filters, GROUP BYs, and JOINs the dry-run estimate is accurate — trust it there.)
 - Prod = `inv-project`; the stage copy (`invoicesapp-project-test`) has stubs and gaps. Benchmarks and repeated experiments → test project only.
 - On Windows run `bq query` from **bash** (heredoc/stdin), not PowerShell — PowerShell mangles quotes in inline SQL.
 - JSON prop columns (`event_properties`) are the fattest by far (~10+ GB per 90-day full scan) — restrict date ranges tightly and batch prop extractions into one pass.
@@ -29,7 +30,7 @@ All time columns across the datasets are TIMESTAMP unless the table map says oth
 
 ### 1.3 Data conventions
 
-- **Int enums.** Mongo-sourced enums are stored as int ordinals or pre-decoded labels; inside raw JSON they arrive as Extended-JSON `{"$numberInt":"N"}` — read via `COALESCE(JSON_VALUE(x,'$.F."$numberInt"'), JSON_VALUE(x,'$.F'))`, never bare `JSON_VALUE`. Complete decode tables live next to each dataset below.
+- **Int enums.** Mongo-sourced enums are stored as int ordinals or pre-decoded labels; inside raw JSON they arrive as Extended-JSON `{"$numberInt":"N"}` — read via `COALESCE(JSON_VALUE(x,'$.F."$numberInt"'), JSON_VALUE(x,'$.F'))`, never bare `JSON_VALUE`. Complete decode tables live in each dataset's schema file (§3).
 - **NULL ≠ 0.** Money/flag columns are NULL when absent (`client_fee_amount`, `fee_amount`, `expired_at`) — wrap in `COALESCE` for AVG/ratios and period closing.
 - **Amounts are dirty.** `src_invoices.total_amount` (and similar user-entered amounts) contain extreme junk — report medians/percentiles (`APPROX_QUANTILES`) or apply a sanity cap; never plain SUM/AVG for "typical" values.
 
@@ -68,6 +69,7 @@ JOIN `inv-project.ai_analysis_us.dim_account_identity` d USING (account_id)
 
 -- raw Amplitude short id -> account (only when bypassing the view)
 ON COALESCE(e.account_id, e.user_id) = d.account_short
+-- retrieving ONE account's own events? bypass the view — raw table + thin cols is cheaper (cookbook #14)
 ```
 
 ### 1.6 Document relations & join keys
@@ -108,7 +110,7 @@ JOIN `inv-project.ai_analysis_us.src_invoices` i
 
 Tofu touches Stripe on two separate axes. Keep them apart:
 
-- **Web subscriptions** — money **Tofu bills its own users** (the `stripe_us` dataset, §3.4). A Stripe **customer** (`cus_…`) ↔ Tofu account.
+- **Web subscriptions** — money **Tofu bills its own users** (the `stripe_us` dataset — [`bigquery-agent-guide-stripe_us.md`](bigquery-agent-guide-stripe_us.md)). A Stripe **customer** (`cus_…`) ↔ Tofu account.
 - **Built-in PSP / Connect** — money an **account collects from its clients** (`payments_us` + `src_authenticated_payment_types`). A Tofu account ↔ its Stripe **connected account** (`acct_…`).
 
 ```
@@ -126,149 +128,33 @@ ai_analysis_us.src_authenticated_payment_types   -- account_id ↔ provider_acco
 2. Routing: question shape → source
 -----------------------------------
 
-| Question shape | Source |
+| Question shape | Source | Schema file to read |
+|---|---|---|
+| Current state or multi-year history of documents (counts, statuses, amounts, sent/paid state) | `ai_analysis_us.src_*` | `-ai_analysis_us.md` |
+| User actions and behaviour (how often users do X, funnels, UI context, channels) | `amplitude_us.v_events_resolved` | `-amplitude_us.md` |
+| Money through the built-in PSP: online payments, fees, fee passthrough | `payments_us` | `-payments_us.md` |
+| Tofu's own **web-subscription** Stripe billing (its customers, charges, refunds) | `stripe_us` — link to account via `mart_account_subscriptions.subz_account_id`, §1.7 | `-stripe_us.md` |
+| Which accounts connected a Stripe/PayPal payout account, connection status | `ai_analysis_us.src_authenticated_payment_types` (account ↔ `acct_`, §1.7) | `-ai_analysis_us.md` |
+| Paying users, plans, trials, subscription history | `mart_account_subscriptions` / `mart_account_current_plan` / `mart_subscription_periods` | `-ai_analysis_us.md` |
+| Per-account behavioural aggregates (invoice cadence, repeat customers) | `mart_account_metrics` | `-ai_analysis_us.md` |
+| Segments: industry / trade / size | `dim_account` (+ `mart_account_fsm_fit`) | `-ai_analysis_us.md` |
+| "Who is this id" / account ↔ user ↔ master | `dim_account_identity`, `dim_platform_user_identity` | `-ai_analysis_us.md` |
+
+Workflow: route → **check the cookbook (§4) first**; if a recipe already covers your question end-to-end, draft from it and **skip the dataset file** → otherwise **read that dataset's schema file** (`bigquery-agent-guide-<dataset>.md`, §3) for columns/decodes → draft → `--dry_run` → run → sanity-check against §1.4. Read a dataset file only when you actually need a column, enum value, or caveat the core doesn't give you — don't open it "to confirm" a recipe that's already complete.
+
+3. Dataset reference (per-dataset schema files)
+-----------------------------------------------
+
+The full column catalog, cluster keys, enum **decode tables**, and per-dataset **caveats** live in one file per dataset, next to this guide in `Backend/Storage/`. Load only the one your routing (§2) landed on:
+
+| Dataset | Schema file |
 |---|---|
-| Current state or multi-year history of documents (counts, statuses, amounts, sent/paid state) | `ai_analysis_us.src_*` |
-| User actions and behaviour (how often users do X, funnels, UI context, channels) | `amplitude_us.v_events_resolved` |
-| Money through the built-in PSP: online payments, fees, fee passthrough | `payments_us` |
-| Tofu's own **web-subscription** Stripe billing (its customers, charges, refunds) | `stripe_us` (§3.4) — link to account via `mart_account_subscriptions.subz_account_id`, §1.7 |
-| Which accounts connected a Stripe/PayPal payout account, connection status | `ai_analysis_us.src_authenticated_payment_types` (account ↔ `acct_`, §1.7) |
-| Paying users, plans, trials, subscription history | `mart_account_subscriptions` / `mart_account_current_plan` / `mart_subscription_periods` |
-| Per-account behavioural aggregates (invoice cadence, repeat customers) | `mart_account_metrics` |
-| Segments: industry / trade / size | `dim_account` (+ `mart_account_fsm_fit`) |
-| "Who is this id" / account ↔ user ↔ master | `dim_account_identity`, `dim_platform_user_identity` |
+| `ai_analysis_us` — warehouse (docs, marts, dims, identity) | [`bigquery-agent-guide-ai_analysis_us.md`](bigquery-agent-guide-ai_analysis_us.md) |
+| `amplitude_us` — iOS product events | [`bigquery-agent-guide-amplitude_us.md`](bigquery-agent-guide-amplitude_us.md) |
+| `payments_us` — built-in PSP orders | [`bigquery-agent-guide-payments_us.md`](bigquery-agent-guide-payments_us.md) |
+| `stripe_us` — Tofu's web-subscription billing | [`bigquery-agent-guide-stripe_us.md`](bigquery-agent-guide-stripe_us.md) |
 
-Workflow: route → open the dataset section → draft from cookbook → `--dry_run` → run → sanity-check against §1.4.
-
-3. Dataset reference
---------------------
-
-### 3.1 `ai_analysis_us` — warehouse (Mongo snapshot mirror + marts)
-
-Rebuilt daily when the Atlas snapshot changes (~16:1x UTC); deploying SQL does not rebuild by itself. Layers: `src_` (typed Mongo mirror) / `mart_` / `dim_` / `sys_` / `v_`.
-
-| Table (rows) | Cluster | Contents |
-|---|---|---|
-| `src_invoices` (10.7M) | `account_id` | `id` (bare GUID), `doc_number`, `date`, `total_amount`, `status`, `source`, `client_id`, `currency_code`, `mail_status`, `sent_method`, `sent_at`, `sent_method_derived` |
-| `src_estimates` (668K) | `account_id` | `id`, `date`, `invoice_id` (convert link), `status`, `mail_status`, `sent_method`, `sent_method_derived` |
-| `src_accounts` (5.2M) | `account_id` | `business_name`, `is_deleted`, `is_technical`, `created_time` — alive accounts only |
-| `src_clients` (5.2M) | `account_id` | `info` = ARRAY<STRUCT<name, address>> |
-| `src_account_identifiers` (8.3M) | `account_id` | account ↔ `user_id` (platform) ↔ `firebase_id` / `idfa` / `appsflyer_id` / `vendor_id` |
-| `src_items` (12.8M) | `account_id` | saved catalog: `name`, `price`, `item_type`, `unit_type`, `taxable`, `created_at` |
-| `src_business_profiles` (10.9K) | `account_id` | onboarding poll: `onboarding_industry`, `team_size`, `job_mix` |
-| `src_authenticated_payment_types` (631K) | `account_id` | PSP (Connect) connections, one row per (account × provider): `provider` (Stripe/PayPal), `provider_account_id` (Stripe `acct_…` / PayPal merchant), `status`, `enabled`, `payouts_enabled`, `currency_code`, `country`, `product_key`, `payment_by_card_enabled` — see §1.7 |
-| `mart_invoice_line_items` (25M) | `account_id` | per-line, keyed to `invoice_id` (→ `src_invoices.id`, see §1.6): `item_name`, `quantity`, `unit_price`, `item_gross`, `item_discount_*` |
-| `mart_master_owned_accounts` (476K) | `account_id` | master ↔ account: `role` (owned/member), `tenant_role`, `user_deleted` |
-| `mart_master_platform_links` (438K) | `platform_user_id` | master ↔ platform user: `platform`, `public_id`, `is_first_link`, `created_at` |
-| `mart_account_metrics` (3.6M) | `account_id` | `invoice_count_30d`, `avg_invoice_amount`, `repeat_customer_ratio`, `estimate_to_invoice_rate`, `b2b_clients_present`, `distinct_addresses`, `top_item_names` |
-| `mart_account_fsm_fit` (98K) | `account_id` | `industry`/`specialization`, six boolean signals, `score`/`tier`, `reasoning` |
-| `mart_account_subscriptions` (927K) | `account_id` | subscription grain: `product_id`/`product_type`, `status`, `is_active`, `is_trial`, `started_at`/`expired_at`/`expires_at`, `sub_length_days`, `paid_count`, `store_country`, resolved `platform_user_id`/`master_user_id` |
-| `mart_subscription_periods` (904K) | `platform_user_id` | SCD-2 daily periods: `valid_from`/`valid_to`, `is_current`, `is_active`, `product_type` |
-| `mart_account_current_plan` (1.1M) | `account_id` | account grain: `product_type`, `status`, `is_active`, `is_trial`, `expires_at`, `master_user_id` |
-| `dim_skus` (73) | — | `product_id` → `sub_length`, `trial_period`, prices |
-| `dim_account` (3.6M) | `account_id` | `industry`, `specialization`, `trade`/`sub_trade`, `business_size`, `team_size`, `is_recurring`, `job_mix`, `state` |
-| `user_links` (7.5K) | `user_id` | append-only unified ↔ platform id map (WEB-1525) |
-| `dim_account_identity` (8.3M) | `account_id` | identity hub: `account_short`, `platform_user_id`, `in_accounts_snapshot`, `master_via_owner`, `master_via_platform_link` |
-| `dim_platform_user_identity` (4M) | `platform_user_id` | `user_short`, `master_user_id` (+count), `account_count`, `sole_account_id`, `account_ids` |
-
-**Decode tables** (labels are pre-decoded strings in the tables above):
-
-| Column | Values |
-|---|---|
-| `src_invoices.status` | NotPaid · **Paid** (= marked paid manually) · **PaidByCard** (= paid via PSP) · Refunded · PartialRefunded · Dispute |
-| `src_estimates.status` | Unknown · Draft · Sent · Approved · Canceled · Done |
-| `mail_status` (both) | Sent · InProgress · Opened · MarkedAsSent · Error |
-| `sent_method` (both) | Email · Manual |
-| `mart_master_platform_links.platform` | 0 Unknown · 1 IOS · 2 Android · 3 Web |
-| `*_subscriptions / current_plan .status` | active · trial · expired · refunded |
-| `product_type` | Invoicing (95%+) · FsmSolo · FsmTeam · FsmBusiness · Unknown |
-| `src_authenticated_payment_types.status` | Unknown · InProgress · Verification · **Connected** · InformationIsRequired · Rejected |
-
-**Dataset caveats:**
-
-- `sent_method_derived` = raw `SentMethod`, else `MailStatus ∈ (Sent, Opened)` → Email, `MarkedAsSent` → Manual. Field ages (no backfill): invoice `sent_method`/`sent_at` since 2026-06, estimate `sent_method` since 2025-11, `mail_status` — years. Email is trustworthy across history; Manual is essentially a 2026-06+ web signal.
-- `src_clients.id` = `<account_id>|<client_guid>` composite while `src_invoices.client_id` is a bare guid with inconsistent dashes — join via `REPLACE(LOWER(x),'-','')` + account scope. Same normalization for `payments_us.entity_id` → `src_invoices.id`.
-- Deleted accounts are absent from `src_accounts` but present in `dim_account_identity` (`in_accounts_snapshot = FALSE`).
-- `src_business_profiles` covers ~0.2% of accounts — never a general dimension. `dim_account.state` is empty for ALL rows; `trade`/`sub_trade` exist only for fsm-scored accounts. `user_links` is a tiny verified subset, not a universal spine.
-- `src_authenticated_payment_types` is the **collecting** (Connect) side — an account's payout account, not Tofu's billing of that account (that's `stripe_us`, §3.4). ~77% of its accounts match `src_accounts`; `Connected` status ≈ 23K live Stripe payout accounts. All Stripe rows carry `acct_…`; PayPal rows carry a merchant id.
-- Subscriptions: "paying users" = `COUNT(DISTINCT platform_user_id) WHERE is_active` on `mart_account_subscriptions` (≈59K); `mart_account_current_plan WHERE is_active` (~136K) = covered accounts (see §1.4 grain discipline). ~16% of expired subs have `expired_at` NULL — close periods via `COALESCE(expired_at, refunded_at, expires_at)`. `product_type='Unknown'` = regex-unparsed web-Stripe product ids. `mart_subscription_periods` was initialized 2026-07-01 — history accumulates forward only; earlier trends reconstruct from `mart_account_subscriptions` dates (cookbook #8). `mart_account_current_plan` on stage is a static stub.
-
-### 3.2 `amplitude_us` — product events bridge (iOS prod 213333 only)
-
-Loaded daily 04:00 UTC (hours of lag — query full days ≤ yesterday). Rolling **90-day** partition expiration. Web project (586241) is NOT in BQ — reachable only via the Amplitude REST API.
-
-| Table | Cluster | Contents |
-|---|---|---|
-| `src_amplitude_events` (~25M) | `event_type, user_id` | one row per event: `event_time`, `event_type`, `user_id`/`account_id` (25-char short ids), `device_id`, `session_id`, `country`, `app_version`, `event_properties`/`user_properties` (JSON), `source_project` |
-| `v_events_resolved` | (same pruning) | base table + `platform_user_id`, `account_id_full`, `master_user_id` — **the preferred entry point** (resolution: user 99.6%, account 96.8%) |
-| `sys_amplitude_export_state` | — | ingest watermark |
-
-**Key events** (113 types total; props via `JSON_VALUE(event_properties,'$.…')`):
-
-| Event | Key props | Notes |
-|---|---|---|
-| `Send invoice` / `Send estimate` | `application` (channel), `context`, `attachments_count`, `template`, `is_first_time` | completed channel pick; no `invoice_id`; `is_first_time` = first-ever send (activation), not a resend flag |
-| `Tap send invoice` | `context`, `type` | intent tap BEFORE the share sheet — don't count as sends |
-| `Payment received` | `payment_method` (Tap to Pay / Payment Link), `payment_provider`, `payment_provider_method_type` (card/link/us_bank_account/…), `payment_fee_paid_by`, `amount`, `currency` | per-payment fee passthrough |
-| `Payment fee changed` | `is_fee_enabled` | user toggled fee onto the client |
-| `Invoice Paid` | `invoice_id`, `payment_provider` | one of the few events WITH invoice_id |
-| `Mark invoice` | `to_status`, `context` | paid-status changes only; there is NO mark-as-sent event on iOS |
-| `Server error` | `traceId`, `error_code`, `url` | bridge to GCP request logs |
-| `Sign in` | `master_id`, `is_new_master`, `auth_method` | master identity linkage |
-
-**Send channel inventory** (`Send invoice.application`, iOS 90d snapshot 2026-07):
-
-| Channel | Share | Meaning |
-|---|---|---|
-| `mail_server` | ~34% | our backend email — the only backend-visible channel |
-| `com.apple.UIKit.activity.Message` | ~20% | iMessage / SMS |
-| WhatsApp (+SMB extension) | ~13% | |
-| `com.apple.UIKit.activity.Print` | ~11% | paper / print-to-PDF |
-| third-party mail apps (Mail.app, Gmail, Outlook, Yahoo) | ~10% | still email, but outside our service |
-| `…SaveToFiles` / `…CopyToPasteboard` | ~9% | export / link copy |
-| rest (AirDrop, Telegram, Messenger, Drive…) | ~3% | long tail |
-
-**Denominator recipe:** MAU = `COUNT(DISTINCT platform_user_id)` over any events in the month via `v_events_resolved` (~185–190K iOS); senders ≈ 18–19% of MAU; sender activity has a heavy tail (median 3–4 sends/month, p90 ≈ 17–19) — report medians.
-
-### 3.3 `payments_us` — Tofu Payments orders mirror (PSP only)
-
-Ingested daily 01:00 UTC from Tofu Payments Postgres (watermark MERGE). History since **2024-04**; fee passthrough as a feature exists since **2024-08**.
-
-| Table | Cluster | Contents |
-|---|---|---|
-| `src_payment_orders` (222K) | `account_id` | `account_id` (FULL id), `amount`, `fee_amount` (platform take), `client_fee_amount` (surcharge on the client — the fee-passthrough axis), `status`, `payment_provider`, `entity_type`/`entity_id`, `psp_account_id`, `currency_code`, `created_at`/`updated_at` |
-| `dim_currency` (156) | — | `ordinal` ↔ ISO `code`; join `ON dim_currency.ordinal = src_payment_orders.currency_code` |
-
-**Decode tables:**
-
-| Column | Values |
-|---|---|
-| `status` | 0 Unknown · 1 NotStarted · 2 IsProcessing · **3 Succeeded (= paid)** · 4 Failed |
-| `payment_provider` | 0 Unknown · 1 Stripe (effectively 100% Stripe) |
-| `entity_type` | 0 Unknown · 1 Invoice · 2 PaymentRequest |
-
-**Dataset caveats:**
-
-- Filter `status = 3` for real payments — `NotStarted` = abandoned payment link, ~40% of rows.
-- PSP-only: ~3% of all "payments received"; the manual ~97% is visible only as `src_invoices.status = 'Paid'` (see §1.4). Stripe-internal method detail lives only in Amplitude `Payment received`.
-- The live table's BQ description mentions a `mart_payment_orders` — dropped before release; ignore.
-
-### 3.4 `stripe_us` — Tofu's own Stripe billing (web subscriptions)
-
-Ingested by the `stripe-ingest` Hangfire tick (daily 03:00 UTC) from the Stripe REST API of the **direct-charge** account `acct_1Orm4F…` ("TOFU web") — money **Tofu bills its own users** for web subscriptions. NOT the built-in PSP (that's `payments_us` + `src_authenticated_payment_types`, the Connect side — §1.7). REST-sourced, so amounts are Stripe-clean (not user-entered junk).
-
-| Table (rows) | Cluster | Contents |
-|---|---|---|
-| `src_stripe_customers` (~16K) | `email` | `id` (`cus_…`), `email`, `name`, `currency`, `delinquent`, `created`, `metadata`/`raw` (JSON), `source_account` |
-| `src_stripe_transactions` (~91K, 2025→) | `customer` | charge+refund unified: `id` (`ch_`/`re_`), `type`, `customer` (`cus_`), `amount` (**minor units**, integer), `currency`, `status`, `charge_id`, `payment_intent_id`, `invoice_id` (Stripe `in_`), `refunded`, `amount_refunded`, `reason`, `created` |
-| `src_stripe_connected_accounts` (0) | `account_id` | Connect-platform importer — disabled, empty |
-| `sys_stripe_event_state` | — | per-resource ingest watermark |
-
-**Caveats / joins:**
-- **`account_id` column is dead** (both tables) — the ingest reads `metadata.AccountId`, a key no customer carries (the real link is `subs_public_id` / `public_id` in metadata, a master-user GUID). Do NOT join on it.
-- **To a Tofu account:** go through subscriptions — `customer/id (cus_)` = `mart_account_subscriptions.subz_account_id` (`WHERE subz_account_id LIKE 'cus_%'`) → `account_id`. Covers ~80% of transactions (§1.7). The remaining ~20% are `cus_` with no subscription row (churned / refund-only).
-- `amount` is **minor units** (cents) → `amount/100`. `status`: charge `succeeded`/`failed`/`pending`, refund `succeeded`/`pending`/`canceled`.
-- `src_stripe_transactions` is backfilled from **2025-01-01** (floor); charges dense, refunds sparse. Windowed backfill (30-day windows) — first fill takes a few Hangfire retries.
+**Read the matching file before composing a query that touches specific columns, enum values, or that dataset's caveats** — e.g. the payments `status=3` filter, the stripe dead-`account_id` trap, the invoice `sent_method_derived` semantics all live in those files. The critical **join keys** and the most dangerous gotchas are already in §1 above, so a query built straight from a cookbook recipe below may not need the file; anything beyond it does.
 
 4. Query cookbook
 -----------------
@@ -379,6 +265,63 @@ SELECT country, COUNT(*) connected
 FROM `inv-project.ai_analysis_us.src_authenticated_payment_types`
 WHERE provider = 'Stripe' AND status = 'Connected'
 GROUP BY 1 ORDER BY connected DESC LIMIT 20;
+
+-- 14) Latest events for ONE account — cheap point retrieval. SELF-CONTAINED: you do NOT need the
+--     amplitude dataset file for this. Do NOT use v_events_resolved here — for a single account the raw
+--     table + thin columns is cheaper. Filter both id columns; the cluster is (event_type,user_id) so the
+--     user_id branch prunes but account_id does not — a date bound is still mandatory (partitioned table).
+--     Use the FULL 90-day horizon so "latest" can't miss recent activity (the id filter keeps cost low).
+SELECT event_time, event_type, app_version, country, device_id
+FROM `inv-project.amplitude_us.src_amplitude_events`
+WHERE COALESCE(account_id, user_id) = SUBSTR('<full-account_id>', 1, 25)  -- Amplitude keeps only the 25-char prefix (§1.5)
+  AND DATE(event_time) >= DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY)       -- full retained horizon (table is 90-day rolling)
+ORDER BY event_time DESC LIMIT 50;
+
+-- 15) Latest events for ONE person by master_user_id — two steps (master has no Amplitude column of its own).
+--     SELF-CONTAINED: you do NOT need the amplitude dataset file for this.
+--     Step 1: master -> user_short via dim_platform_user_identity. A master_user_id filter does NOT prune
+--     (dim is clustered by platform_user_id) — select ONLY user_short here; never account_ids (fat repeated col).
+--     If step 1 returns a single user_short, substitute it as a literal into step 2 (skip the JOIN — cheaper).
+--     Step 2: feed user_short into the raw events table exactly like #14 — do NOT use v_events_resolved.
+WITH pu AS (
+  SELECT user_short
+  FROM `inv-project.ai_analysis_us.dim_platform_user_identity`
+  WHERE master_user_id = '<master-guid>'                                 -- 36-char GUID
+)
+SELECT e.event_time, e.event_type, e.app_version, e.country, e.device_id, e.account_id  -- account_id = which of the master's accounts
+FROM `inv-project.amplitude_us.src_amplitude_events` e
+JOIN pu ON e.user_id = pu.user_short                                     -- modern builds put user_short in Amplitude user_id (§1.5)
+WHERE DATE(e.event_time) >= DATE_SUB(CURRENT_DATE(), INTERVAL 90 DAY)    -- full retained horizon (table is 90-day rolling); user_id cluster prune keeps it cheap
+ORDER BY e.event_time DESC LIMIT 50;
+
+-- 16) Dormant payers: ACTIVE subscription but no in-app activity last 30d (renewal charge excluded).
+--     CRITICAL grain/blind-spot (§1.4): amplitude is iOS-only + rolling 90d, so a "no activity" result
+--     is polluted by web/Android subscribers who simply are NOT in amplitude. Gate on sub_paid>=1 — a
+--     `Subscription paid` event PROVES the person is iOS-tracked, so "only the renewal fired, nothing else"
+--     is a genuine dormant-iOS-payer, not an untracked user. (Anti-join via LEFT JOIN + COUNTIF, one pass.)
+--     STRICTER variant ("no server/billing event of ANY kind counts as activity"): swap the single
+--     'Subscription paid' test for the full server-emitted event list (Subz billing + BFF) — the exact
+--     iOS event_type strings are in bigquery-agent-guide-amplitude_us.md (§ Subz pipeline). Don't
+--     filter by account_id IS NULL — many pure-client events are null too (that file explains why).
+WITH active_subs AS (
+  SELECT DISTINCT platform_user_id                                       -- person grain = "paying users" (§1.4)
+  FROM `inv-project.ai_analysis_us.mart_account_subscriptions`
+  WHERE is_active
+),
+amp AS (
+  SELECT platform_user_id,
+         COUNTIF(event_type = 'Subscription paid')  AS sub_paid,        -- server-emitted renewal, not activity
+         COUNTIF(event_type != 'Subscription paid') AS other_events
+  FROM `inv-project.amplitude_us.v_events_resolved`
+  WHERE DATE(event_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 30 DAY) AND DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)
+  GROUP BY 1
+)
+SELECT COUNT(*) AS dormant_ios_payers                                    -- provably iOS-tracked, renewal-only
+FROM active_subs s
+LEFT JOIN amp a USING (platform_user_id)
+WHERE a.sub_paid >= 1 AND a.other_events = 0;
+-- (a.other_events IS NULL catches subscribers with ZERO amplitude rows — that's the untracked web/Android
+--  upper bound, NOT dormant iOS; report it separately, never as the headline.)
 ```
 
 5. Freshness
@@ -390,4 +333,3 @@ GROUP BY 1 ORDER BY connected DESC LIMIT 20;
 | `amplitude_us` | daily 04:00 UTC | query full days ≤ yesterday; rolling 90 days only |
 | `payments_us` | daily 01:00 UTC | yesterday complete; history since 2024-04 |
 | `stripe_us` | daily 03:00 UTC (`stripe-ingest`) | customers full-snapshot; transactions incremental, history from 2025-01 |
-
