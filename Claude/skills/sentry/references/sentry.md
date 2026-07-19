@@ -7,7 +7,7 @@ REST recipes for investigation collectors AND for the `sentry` skill. **GET only
 ## Auth + command shape (sandbox-safe — the ONLY approved form)
 
 ```bash
-curl -s "https://sentry.io/api/0/..." -H @.tofu-ai/sentry-header.txt
+curl -s "https://sentry.io/api/0/..." -H @C:/Git/Work/Backend/.tofu-ai/sentry-header.txt
 ```
 
 - Auth comes from the pre-materialized header file `.tofu-ai/sentry-header.txt` (run from the workspace root). The token inside is a personal user auth token — never echo it to chat, never write it into captured output (redact to `<SENTRY_TOKEN>`).
@@ -17,7 +17,9 @@ curl -s "https://sentry.io/api/0/..." -H @.tofu-ai/sentry-header.txt
 
 ## Projects (slugs)
 
-`invoices-backend`, `invoices-web`, `invoice-generator`, `invoice-maker-ios`, `fieldservice-ios`, `fieldservice-worker-ios`, `fieldservice-worker-android`, `tofu-web-frontend`. Some endpoints need the **numeric** project id — discover via `GET /api/0/organizations/getpaid-inc/projects/`.
+8 projects, all **client** (verified live 2026-07): `invoice-maker-ios`, `fieldservice-ios`, `fieldservice-worker-ios` (apple-ios); `fieldservice-worker-android` (android); `checkout-app`, `invoice-generator`, `tofu-web-frontend` (javascript-react); `tofu-com` (javascript). Some endpoints need the **numeric** project id — discover via `GET /api/0/organizations/getpaid-inc/projects/`.
+
+**There is NO backend / .NET project in Sentry.** The old `invoices-backend` / `invoices-web` slugs now return **404** and no server-side errors surface in the org-wide feed. Backend (Invoices.Backend / Tofu.*) errors live in **GCP Cloud Logging**, not Sentry — use the `gcp` skill for those. Sentry here = iOS / Android / web **client** errors only.
 
 ## Decoding an alert URL
 
@@ -25,10 +27,10 @@ curl -s "https://sentry.io/api/0/..." -H @.tofu-ai/sentry-header.txt
 
 ```bash
 # The rule definition — project, aggregate/query, thresholds, window. Do this FIRST: it tells you what is monitored.
-curl -s "https://sentry.io/api/0/organizations/getpaid-inc/alert-rules/<RULE_ID>/" -H @.tofu-ai/sentry-header.txt
+curl -s "https://sentry.io/api/0/organizations/getpaid-inc/alert-rules/<RULE_ID>/" -H @C:/Git/Work/Backend/.tofu-ai/sentry-header.txt
 
 # The incident — when it fired, status, the values that tripped it
-curl -s "https://sentry.io/api/0/organizations/getpaid-inc/incidents/<INCIDENT_ID>/" -H @.tofu-ai/sentry-header.txt
+curl -s "https://sentry.io/api/0/organizations/getpaid-inc/incidents/<INCIDENT_ID>/" -H @C:/Git/Work/Backend/.tofu-ai/sentry-header.txt
 ```
 
 With the rule in hand, attribute the alert by querying that project's issues within the rule's window — don't guess from org-wide spikes.
@@ -37,30 +39,30 @@ With the rule in hand, attribute the alert by querying that project's issues wit
 
 ```bash
 # Issue by short-id (INVOICE-MAKER-IOS-2Z6 style) → numeric id, counts, status
-curl -s "https://sentry.io/api/0/organizations/getpaid-inc/issues/?query=<SHORT_ID>&project=-1" -H @.tofu-ai/sentry-header.txt
+curl -s "https://sentry.io/api/0/organizations/getpaid-inc/issues/?query=<SHORT_ID>&project=-1" -H @C:/Git/Work/Backend/.tofu-ai/sentry-header.txt
 
 # Latest full event for an issue (tags, user, breadcrumbs, exception, contexts)
-curl -s "https://sentry.io/api/0/issues/<NUMERIC_ISSUE_ID>/events/latest/" -H @.tofu-ai/sentry-header.txt
+curl -s "https://sentry.io/api/0/issues/<NUMERIC_ISSUE_ID>/events/latest/" -H @C:/Git/Work/Backend/.tofu-ai/sentry-header.txt
 
 # Specific event by 32-char hex id; resolve its project first if unknown:
-curl -s "https://sentry.io/api/0/organizations/getpaid-inc/eventids/<EVENT_ID>/" -H @.tofu-ai/sentry-header.txt
-curl -s "https://sentry.io/api/0/projects/getpaid-inc/<project>/events/<EVENT_ID>/" -H @.tofu-ai/sentry-header.txt
+curl -s "https://sentry.io/api/0/organizations/getpaid-inc/eventids/<EVENT_ID>/" -H @C:/Git/Work/Backend/.tofu-ai/sentry-header.txt
+curl -s "https://sentry.io/api/0/projects/getpaid-inc/<project>/events/<EVENT_ID>/" -H @C:/Git/Work/Backend/.tofu-ai/sentry-header.txt
 
 # Event counts over time — spike-onset timestamps
-curl -s "https://sentry.io/api/0/organizations/getpaid-inc/issues/<NUMERIC_ISSUE_ID>/stats/?stat=count&statsPeriod=24h" -H @.tofu-ai/sentry-header.txt
+curl -s "https://sentry.io/api/0/organizations/getpaid-inc/issues/<NUMERIC_ISSUE_ID>/stats/?stat=count&statsPeriod=24h" -H @C:/Git/Work/Backend/.tofu-ai/sentry-header.txt
 ```
 
 ## Searching
 
 ```bash
 # Raw issue search (Sentry query syntax: is:unresolved, release:, environment:, title:"...")
-curl -s "https://sentry.io/api/0/organizations/getpaid-inc/issues/?query=<QUERY>&statsPeriod=14d" -H @.tofu-ai/sentry-header.txt
+curl -s "https://sentry.io/api/0/organizations/getpaid-inc/issues/?query=<QUERY>&statsPeriod=14d" -H @C:/Git/Work/Backend/.tofu-ai/sentry-header.txt
 
 # By end-user
 ...issues/?query=user.email:foo@bar.com&statsPeriod=14d
 
 # Per-event hits (not aggregated issues): the events endpoint with explicit fields
-curl -s "https://sentry.io/api/0/organizations/getpaid-inc/events/?query=user.email:foo@bar.com&statsPeriod=14d&field=id&field=timestamp&field=title&field=project" -H @.tofu-ai/sentry-header.txt
+curl -s "https://sentry.io/api/0/organizations/getpaid-inc/events/?query=user.email:foo@bar.com&statsPeriod=14d&field=id&field=timestamp&field=title&field=project" -H @C:/Git/Work/Backend/.tofu-ai/sentry-header.txt
 ```
 
 Sentry query syntax: https://docs.sentry.io/concepts/search/

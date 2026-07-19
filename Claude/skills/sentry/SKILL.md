@@ -1,6 +1,6 @@
 ---
 name: sentry
-description: Sentry toolkit (org getpaid-inc) for iOS / web / backend client errors. ALWAYS invoke before ANY Sentry API call. Use it whenever the task names a Sentry issue short-id (e.g. `INVOICE-MAKER-IOS-2Z6`), a `sentry.io/.../alerts/rules/` URL, "what's this crash/exception", errors for a given user email or account id, or "search Sentry for X". GET-only via the header-file curl form; never resolves issues, never echoes the token. For a full multi-source investigation start with investigate instead.
+description: Sentry toolkit (org getpaid-inc) for iOS / Android / web CLIENT errors (there is no backend/.NET project in Sentry — backend errors live in GCP Cloud Logging, use the gcp skill). ALWAYS invoke before ANY Sentry API call. Use it whenever the task names a Sentry issue short-id (e.g. `INVOICE-MAKER-IOS-2Z6`), a `sentry.io/.../alerts/rules/` URL, "what's this crash/exception", errors for a given user email or account id, or "search Sentry for X". GET-only via the header-file curl form; never resolves issues, never echoes the token. For a full multi-source investigation start with investigate instead.
 ---
 
 ## User Input
@@ -18,10 +18,19 @@ You **MUST** consider the user input before proceeding (if not empty).
 **Endpoints, curl shapes, auth, project slugs, the alert-decoding flow, the accountId gotcha, and the client source-repo map live in ONE place:** `.claude/skills/sentry/references/sentry.md`. **Read it before composing any Sentry call** and use its exact command form:
 
 ```bash
-curl -s "https://sentry.io/api/0/..." -H @.tofu-ai/sentry-header.txt
+curl -s "https://sentry.io/api/0/..." -H @C:/Git/Work/Backend/.tofu-ai/sentry-header.txt
 ```
 
 Non-negotiables from the reference (repeated because they gate execution): Bash tool only; auth ONLY via the header file (never env vars, never an inline token — redact any captured output to `<SENTRY_TOKEN>`); URLs start exactly `https://sentry.io/api/0/` (the `getpaid-inc.sentry.io` form is blocked by the allowlist); **GET only**.
+
+**Project the response — never dump the whole event.** A latest-event payload (`issues/{id}/events/latest/`) is large (breadcrumbs, contexts, full stacktrace — tens of KB) and is re-read into context on every later tool turn. **`jq` is NOT installed in this environment** — pipe the curl through `python` to keep only what you need:
+
+```bash
+curl -s "https://sentry.io/api/0/.../events/latest/" -H @C:/Git/Work/Backend/.tofu-ai/sentry-header.txt \
+ | python -c "import json,sys; e=json.load(sys.stdin); exc=[{'type':v.get('type'),'value':v.get('value')} for x in e.get('entries',[]) if x.get('type')=='exception' for v in x['data']['values']]; print(json.dumps({'title':e.get('title'),'culprit':e.get('culprit'),'user':(e.get('user') or {}).get('email'),'trace':((e.get('contexts') or {}).get('trace') or {}).get('trace_id'),'exception':exc},indent=1))"
+```
+
+For the **events search** endpoint, project **server-side** with `&field=…` (as in the reference examples) — no jq/python needed. Dump the raw JSON into the transcript only when the user explicitly asks for the full event. **Use the header file by absolute path** (`@C:/Git/Work/Backend/.tofu-ai/sentry-header.txt`) so the command works regardless of the Bash tool's current directory — the relative `@.tofu-ai/…` form only resolves from the workspace root.
 
 For investigations (folder + write-up workflow) use the `investigate` skill; `/sentry` is for one-off lookups.
 

@@ -85,4 +85,5 @@ Use `AskUserQuestion`; never run on implicit approval. **On prod, restate the pr
 - **Env in every emitted command** — always print the actual `--project=<id>` flag.
 - **Never re-auth silently.**
 - **Limit + freshness, every time.** Defaults: 50 (reads) / 2000 (aggregate); freshness 1h (reads) / 30d (aggregate).
+- **Project the fields, don't dump full entries.** `--format=json` returns the entire `jsonPayload` per row and it is re-read into context on every later tool turn — prefer a projected `--format='csv(<field>,<field>,…)'` or `value(<field>)` listing only the fields you need (shapes in the reference). Reach for full `--format=json` only when you genuinely need the whole entry (e.g. exploring an unknown log structure).
 - **Field knowledge lives in the reference file** — when a filter, field path, or project rule changes, update `.claude/skills/gcp/references/gcp-logs.md` once, not this file.

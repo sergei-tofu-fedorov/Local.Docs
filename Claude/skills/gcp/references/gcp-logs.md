@@ -87,6 +87,8 @@ The two exclusions strip health probes and SendGrid callbacks — keep them on e
 
 (All of the above under `jsonPayload.properties.*`.)
 
+**Where the error text lives depends on the container.** BFF/worker (.NET Serilog) logs put it in `jsonPayload.message`; **infra/non-BFF containers do NOT** — nginx (`invoices-webroot`), `gke-metrics-agent`, fluentbit, etc. write plain-text logs where the message is in **`textPayload`**. When reading `severity>=ERROR` across containers, project **both** `jsonPayload.message` and `textPayload` (only one is populated per row), or you'll get blank messages for the infra noise.
+
 > ⚠️ `jsonPayload.properties.RequestId` does **not** exist — the middleware stashes it in `context.Items` only. Don't filter on it.
 
 ## E. Load-balancer log (`resource.type="http_load_balancer"`)
