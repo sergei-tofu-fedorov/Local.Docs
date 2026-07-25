@@ -5,7 +5,7 @@ Query Sentry (org `getpaid-inc`) for iOS / web / backend client errors. Read-onl
 ## Relationship to `investigate` and `/gcp`
 
 - Endpoint shapes, auth (header file `.tofu-ai/sentry-header.txt`), project slugs, the client source-repo map: `.claude/skills/sentry/references/sentry.md` (single source).
-- The `investigate` skill owns the **investigation folder + write-up**; its collectors read the same reference.
+- The `investigate` skill owns **source selection and cross-source synthesis**; its collectors read the same reference.
 - `/gcp` owns **backend logs**; `/sentry` hands off (timestamp + `accountId` prefix + `trace_id`) for cross-referencing.
 
 ## Commands
@@ -38,7 +38,7 @@ Default `<freshness>`: `14d` (`user`) / `30d` (`account`/`search`).
 
 ## Cross-reference to backend logs
 
-Pull `tags.accountId` / `user.email` / `dateCreated` (and `contexts.trace.trace_id` if present) → hand to `/gcp` (or `/inv logs` when an investigation is active). Backend logs use the **full** `AccountId`; match the Sentry prefix with `jsonPayload.properties.AccountId=~"^<prefix>"`. ⚠️ `tags.environment` ≠ GCP project — check it before assuming prod.
+Pull `tags.accountId` / `user.email` / `dateCreated` (and `contexts.trace.trace_id` if present) → hand to `/gcp` (or the `inv-gcp` collector when an investigation is running). Backend logs use the **full** `AccountId`; match the Sentry prefix with `jsonPayload.properties.AccountId=~"^<prefix>"`. ⚠️ `tags.environment` ≠ GCP project — check it before assuming prod.
 
 ## Client source repos (for resolving Sentry stack frames)
 

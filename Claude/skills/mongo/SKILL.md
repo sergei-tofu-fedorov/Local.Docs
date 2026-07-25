@@ -1,6 +1,6 @@
 ---
 name: mongo
-description: MongoDB toolkit for the Tofu/Invoices clusters (local dev / prod Atlas `invoicesDB`). ALWAYS invoke before running mongosh. Use it whenever the task is find/count/aggregate on a collection (`invoices`, `accounts`, `subscriptions`, …), an index audit, an `explain` / slow-query check, a current-ops or load-attribution snapshot, or "inspect invoicesDB". Local by default; prod needs `--prod` + `MONGODB_URI`; benchmarking prod is refused. For a persisted investigation use investigate; for warehouse analytics use bq.
+description: MongoDB toolkit for the Tofu/Invoices clusters (local dev / prod Atlas `invoicesDB`). ALWAYS invoke before running mongosh. Use it whenever the task is find/count/aggregate on a collection (`invoices`, `accounts`, `subscriptions`, …), an index audit, an `explain` / slow-query check, a current-ops or load-attribution snapshot, or "inspect invoicesDB". Local by default; prod needs `--prod` + `MONGODB_URI`; benchmarking prod is refused. For a multi-source investigation use investigate; for warehouse analytics use bq.
 ---
 
 ## User Input
@@ -19,7 +19,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 - The common investigation patterns the team uses (collection inventory, index audit, current ops, load attribution, slow-query review).
 - The safety rules: which cluster is the default, when to switch to prod, when to refuse a write.
 
-For investigations (folder + write-up workflow) use the `investigate` skill; `/mongo` is for one-off queries. Counterpart to `/gcp` (which handles GCP / log queries).
+For a multi-source investigation (which store to open first, cross-source synthesis) use the `investigate` skill; `/mongo` is for one-off queries. Counterpart to `/gcp` (which handles GCP / log queries).
 
 ## Environments
 

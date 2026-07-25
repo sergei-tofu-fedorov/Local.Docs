@@ -1,82 +1,112 @@
 ---
 name: investigate
-description: Backend investigation expert for Tofu/Invoices (BFF, core invoices, auth). ALWAYS invoke FIRST — before any log/Sentry/Mongo query — for an alert or alert URL, an error/500 spike, "why did X fail/break/time out", or a lookup by trace id, account id, Sentry short-id, or error text. It runs the known-issue gate and prior-work recall before touching live sources, so you never re-walk a thread someone already solved. Not for greenfield feature work (use feature) or a one-off warehouse read (use bq).
+description: Backend investigation expert for Tofu/Invoices (BFF, core invoices, auth). ALWAYS invoke FIRST — before any Sentry / Cloud Logging / Mongo / BigQuery query — for an alert or alert URL, an error/500 spike, "why did X fail/break/time out", or a lookup by trace id, account id, Sentry short-id, or error text. It picks which evidence sources can actually answer the ask, in which order, and fans them out read-only. Not for greenfield feature work (use feature) or a one-off warehouse read (use bq).
 ---
 
 # Investigate (root orchestrator)
 
-Start your first reply with "Investigating...". Follow the shared multi-agent pattern — load the `orchestration` skill if not already loaded this session.
+Start your first reply with "Investigating...".
 
-## Reference files (progressive disclosure)
+**Every investigation starts from scratch.** There is no case store, no known-issue registry, no prior-work recall — do not grep `Investigations/` or `.tofu-ai/` for past cases. Nothing is persisted unless the user explicitly asks for a write-up.
 
-Load only what the current phase needs; collector subagents are pointed at exactly one file each.
+This skill's job is **source selection**: which store can answer this ask, which cannot, and in what order to touch them. Follow the shared fan-out pattern — load the `orchestration` skill if it is not already loaded this session.
 
-| File | Owns |
-|---|---|
-| `references/history.md` | prior-work recall: Investigations repo (canonical) + `.tofu-ai/` tree (read-only), gate greps, continuous matching |
-| `.claude/skills/gcp/references/gcp-logs.md` *(owned by the `gcp` toolkit)* | LQL field paths (BFF + tofu-ai), projects, quotas, query/aggregation recipes |
-| `.claude/skills/sentry/references/sentry.md` *(owned by the `sentry` toolkit)* | Sentry REST recipes (sandbox-safe curl form), alert decoding, client source-repo map |
-| `references/case-format.md` | case folder lifecycle, frontmatter schema, reindex, ops (`new`/`note`/`finding`/`commit`/…) |
-| `references/deep-workflow.md` | Workflow template for the deep tier |
+## Tier
 
-Mongo evidence: use the `mongo` skill as-is (no reference file here yet).
+- **inline** — one identifier to resolve, or one source obviously owns the answer: query it directly through its toolkit skill, answer, done.
+- **standard** (default for a real symptom) — 2–3 fork collectors in one parallel batch, then synthesize inline.
 
-## Tier selection
+Never fan out what one query answers; never answer from one source when the symptom spans client and backend.
 
-- **inline** — one identifier to look up, a known-issue check, "глянь/quick": run the gate, answer, done.
-- **standard** (default for a real symptom) — gate, then 2–4 fork-collectors (`inv-*` skills).
-- **deep** — "thorough/audit/post-mortem" wording, contradictory evidence from standard, or a prod incident with unclear blast radius → `references/deep-workflow.md`.
+## Phase 0 — Frame (inline, always, cheap)
 
-## Phase 0 — Gate (ALWAYS inline, before ANY source query)
+1. **Extract every identifier** and classify it — the routing table keys off identifier type, not off the prose.
+2. **Decode alert URLs before chasing symptoms.** `sentry.io/.../alerts/rules/<id>` → resolve the rule definition (what is monitored, threshold) via `sentry`. A GCP Monitoring alert → resolve the policy; its violation events live in Cloud Logging (`monitoring.googleapis.com/ViolationOpenEventv1` names the policy).
+3. **Pin environment and window.** Prod = `inv-project`, test = `invoicesapp-project-test`; Sentry `tags.environment` is NOT the GCP project. Both go verbatim into every downstream query.
+4. **Read the container name off the evidence.** A log screenshot, an alert, or a pasted row almost always names the container (`auth-api`, `invoices-api`, `tofu-invoices-api`, …). That single token scopes the log query AND selects the repo `inv-code` should open — the container-to-repo table lives in `.claude/skills/gcp/references/gcp-logs.md`. Hand it to both collectors instead of letting each rediscover it; an unscoped search of the whole cluster is slower and noisier for no gain.
 
-In one parallel batch (exact recipes in `references/history.md`):
+## Tool selection
 
-1. Read both known-issue registries — `Investigations/investigations/KNOWN_ISSUES.md` and `.tofu-ai/known-issues.md`. On a symptom match: verify with 1–2 cheap checks, tell the user it's known, link the case, and **stop unless they insist**.
-2. Grep BOTH stores for **every literal identifier in the ask** (trace id, Sentry short-id, account id, path, error text). A bare id won't *feel* familiar — grep it anyway; the hit IS the familiarity check. On a hit, read the matching case/run file before touching live sources.
-3. Decode the ask: alert URLs carry ids — resolve the *definition* (what is monitored, thresholds) before chasing symptoms. GCP Monitoring alerts: violation events are in Cloud Logging (`monitoring.googleapis.com/ViolationOpenEventv1` names the policy).
+### By what you were handed
 
-**Continuous matching (standing rule):** the moment any collector or query surfaces a *new* concrete identifier, add its gate-grep to your next parallel batch — a hit means the thread was already walked; reuse and cite it.
-
-## Phase 1 — Collect (standard tier: fork-skill fan-out)
-
-Invoke the applicable collectors via the **Skill tool** — each is a `context: fork` skill that runs as an isolated Explore agent; launch independent ones in the same message. Pass as args: the ask, ALL known identifiers, the time window, and a one-line gate summary.
-
-| Collector skill | Owns | Reads |
+| Input | Start with | Then |
 |---|---|---|
-| `inv-history` | prior-work recall: matching cases/runs + their conclusions | `references/history.md` |
-| `inv-sentry` | issues/events/alerts: counts, first/last-seen, tags, stack symbol + release | `.claude/skills/sentry/references/sentry.md` |
-| `inv-gcp` | scope before depth: counts, affected accounts, first-seen (cheap aggregations first) | `.claude/skills/gcp/references/gcp-logs.md` |
-| `inv-code` | throw site / mapping / commit; deployed state = `origin/<default-branch>`, never checkout | repo checkouts |
+| Sentry short-id (`INVOICE-MAKER-IOS-2Z6`) or Sentry alert URL | `inv-sentry` | its tags (`accountId`, `release`, `environment`) become the identifiers for `inv-gcp` |
+| trace id | `inv-gcp` | the only store keyed on it — and the cheapest deep evidence there is: one `trace=` filter returns the whole request chain across services. Whenever an error entry carries a `TraceId`, pull the trace before anything else |
+| HTTP 500 / 4xx spike / timeout on an endpoint | `inv-gcp` — counts and distinct accounts first | walk the log ladder below; `inv-code` only once you can name the exception and the container |
+| exception type or literal error text | `inv-gcp` alone | walk the log ladder below before opening any repo |
+| account id / user email / "this one customer sees X" | `inv-gcp` + `mongo` | logs = what the request did; Mongo = what the state actually is |
+| "the data is wrong" (missing invoice, wrong status, stale subscription) | `mongo` | logs show the write attempt, the document is the truth |
+| "what subscription does this user have / is it active" | two different answers — pick deliberately | **user-side** (what the app told them): `ResponseBodyText` of `/api/plans/current` in logs, keyed by `AccountId`. **Server-side** (plan, price, dates, status): `bq` → `ai_analysis_us.mart_account_subscriptions`, truth flag `is_active`. Disagreement between the two IS the finding |
+| app crash, ANR, blank screen, client-side error | `inv-sentry` | confirm it is client-side before opening backend logs |
+| "how many / how often / since when" over weeks or months | `bq` | Logging retention and per-query caps make trend questions expensive there |
+| "did this ship / when did it change / which release" | `inv-code` | deployed state is `origin/<default-branch>` |
+| an Amplitude event looks wrong or missing | `amplitude-events` skill | property provenance is already catalogued; only then `bq` / logs |
+| Stripe behaviour — coupon, trial, price, Connect onboarding, webhook | `stripe` skill | it owns the config semantics; logs only show the call |
 
-Skip collectors whose source can't bear on the ask; don't fan out what the gate already answered. Fallback: if fork skills are unavailable, launch Explore agents with the same reference file + output contract (see `orchestration`).
+### The log ladder — exhaust it before opening a repo
 
-## Phases 2–3 — Cross-match, then synthesize (inline)
+A log-borne symptom has a fixed cheap path, and each rung is a single bounded query. Source code is the **last** rung, not the first, because the logs carry the runtime values that decide which code path even ran — open a repo and you get everything that *could* happen, which is a much larger space to search.
 
-*(Phase 4 — Verify — is deep-tier only; see `references/deep-workflow.md`. Standard tier goes straight from synthesis to persist.)*
+1. **Find the error row.** Scope by container, match the message text. Project `trace` alongside the message — the row carries it, so this step also hands you the next rung for free.
+2. **Pull the whole trace.** `trace="projects/<proj>/traces/<id>"` with no `logName` pin returns the request across every service it touched, in order. This is where causality lives: the 401 in one container and the "Unable to authenticate" in the next are the same request.
+3. **Read the rows around the error inside that trace**, not just the error row. The line that names the cause is frequently an INFO one tick earlier — a claims dump, a resolved config value, a chosen branch. An error message states the failure; its neighbours state why.
+4. **Widen to the actor's neighbourhood** if the trace is not enough: the same account or device in a window of tens of minutes around the event.
+5. **Only now open the repo.** You should arrive with a container, an exception type, a message, and the runtime values. That turns `inv-code` from an exploration into a lookup.
 
-- Feed new identifiers back through the gate greps (phase-0 rule) before concluding.
-- Correlate across sources: Sentry event (client view) ↔ backend request logs (`AccountId` prefix gotcha) ↔ source ↔ git history.
+Skip ahead to source only when the logs cannot answer by construction — the question is "when did this change / which release", or the log source is unavailable. Fanning out `inv-code` speculatively alongside the first log query is not free parallelism: in a measured run it cost roughly four times the tokens and time of the log collector, and the deciding evidence still came from a log line.
+
+### What each source can and cannot answer
+
+| Source | Owns | Blind to |
+|---|---|---|
+| Sentry (`inv-sentry`) | client errors on iOS / Android / web: counts, first- and last-seen, release, device, tags | **anything backend — org `getpaid-inc` has no .NET project.** A .NET stack trace never comes from Sentry |
+| Cloud Logging (`inv-gcp`) | every backend request and exception, per container, recent window | client-only failures; long-range trends (retention + caps); document state |
+| Mongo (`mongo`) | current document state of accounts / invoices / subscriptions | how the state got there — there is no per-field audit trail |
+| BigQuery (`bq`) | volumes, trends, revenue, analytics events, long range | today's fresh data (daily snapshots) and request-level detail |
+| Repo checkouts (`inv-code`) | the mechanism: throw site, mapping, config gate, commit | runtime values — code says what *can* happen, not what did |
+
+### Ordering rules
+
+1. **Cheapest source that can falsify the leading hypothesis goes first.** One aggregation often ends the investigation.
+2. **Scope before depth** — for a log-borne symptom the first query is always the distinct-`AccountId` aggregation (counts, affected accounts, first-seen); individual entries only where that aggregate points. It separates a retry loop from real breadth before you spend anything.
+3. **One known event beats a date range.** As soon as you hold a concrete entry — an error, a trace, a support report — you have a timestamp and an actor. Search their neighbourhood (a window of tens of minutes around the event, filtered to that account or device) before widening. Reaching for "the last 30 days" while a specific failing request is already in hand is the most common way to spend minutes and learn less: the answer is usually in the two minutes surrounding the error, not in the month around it.
+4. **Parallel only for independent sources.** If collector B needs an identifier that collector A produces, that is two rounds, not one batch. A second round is normal and still cheaper than a wrong wide fan-out. For a log-borne symptom the sources are *not* independent — code needs the exception and container that logs produce, so it belongs in the second round.
+5. **Two or three collectors in the first round**, not five. Skip any source that cannot bear on the ask and record the skip as a limitation.
+6. **Mongo, BigQuery, Stripe stay inline** (see below) — their prod and cost gates need the main context.
+
+## Phase 1 — Collect
+
+Fork collectors — invoke via the **Skill tool**, independent ones in the same message. Pass as args: the ask, ALL known identifiers, the time window, and the environment.
+
+| Collector skill | Round | Owns | Reads |
+|---|---|---|---|
+| `inv-sentry` | first | client issues / events / alert rules: counts, first- and last-seen, tags, stack symbol, release | `.claude/skills/sentry/references/sentry.md` |
+| `inv-gcp` | first | backend log scope and the log ladder: aggregations, the error row, the trace, the actor's neighbourhood | `.claude/skills/gcp/references/gcp-logs.md` |
+| `inv-code` | **second, by default** | throw site / mapping / commit; deployed state = `origin/<default-branch>`, never checkout | repo checkouts |
+
+`inv-code` earns its cost once you can hand it a container, an exception type and the runtime values the logs revealed — then it answers a question instead of exploring. Send it in the first round only when the ask is inherently about code ("when did this change", "which release") or the log source is down.
+
+Run **inline in the main context**, not as collectors: `mongo` (prod needs an explicit flag and URI), `bq` (every query bills on bytes scanned — the cost gate is interactive), `stripe`, `amplitude-events`. Fallback if fork skills are unavailable: Explore agents with the same reference file and output contract (see `orchestration`).
+
+## Phase 2 — Synthesize (inline)
+
+- **New identifiers loop back through the routing table**, not through a history search — an exception type or account id that a collector surfaced may open a source you skipped.
+- Correlate across sources: Sentry event (client view) ↔ backend request logs (`AccountId` prefix gotcha) ↔ Mongo document ↔ source and git history.
 - **Name the mechanism, not the symptom** — a finding reaches file:line (the throw site, the mapping, the commit). "Errors went up" is scope, not a finding.
-- **Time-box**: two dead-ended approaches to a sub-question → record a limitation, move on. An honest gap beats a guessed answer.
-
-## Phase 5 — Persist (inline)
-
-Canonical store for NEW cases: the **`Investigations/` repo** (`.tofu-ai/` stays read-only recall). Full lifecycle, frontmatter schema, and ops in `references/case-format.md`. Short form:
-
-- Real symptom investigated → `new` a case folder (triage already ran in the gate), capture raw query outputs into `queries/`, findings into the case README.
-- Case resolved → fill `root_cause`/`resolution`/`closed`, run `reindex` so `triage` catches it next time.
-- **Never auto-commit** — suggest `commit` when ready.
-- Quick inline lookups don't need a folder; report and offer to persist.
+- **Time-box**: two dead-ended approaches to a sub-question → record a limitation and move on. An honest gap beats a guessed answer.
 
 ## Triage heuristics (platform)
 
-- The BFF often returns HTTP **200 with an error JSON body** — error envelopes hide from StatusCode filters.
+- The BFF often returns HTTP **200 with an error JSON body** — error envelopes hide from StatusCode filters (search `ResponseBodyText`).
 - Auth-gated log fields (`AccountId`, `UserEmail`) are missing on early-pipeline failures — fall back to container-wide `severity>=ERROR`.
 - 403 `forbidden` spikes from iOS ⇒ usually the client calling JWT-only endpoints without a session (`AuthenticationInfoMissedException`) before suspecting the backend.
 - Identical Sentry counts across two issues ⇒ likely one client screen calling both endpoints.
 - High occurrences / few users ⇒ a retry loop, not breadth — check per-account aggregation.
-- "Production-only" + same code healthy in test ⇒ per-account/state issue, not a code break.
+- "Production-only" + the same code healthy in test ⇒ a per-account or state issue, not a code break.
 
-## Report discipline
+## Report
 
-Citations on every finding (Sentry short-id is the cross-investigation dedupe key). Cite prior case/run ids you built on. Limitations for anything unchecked. Tags from the controlled vocabulary (`references/case-format.md`).
+Answer in chat: symptom → scope (numbers) → mechanism (file:line) → what to do about it. Every finding carries a citation (Sentry short-id, the exact log query, `repo/path:line`, commit sha). List what was not checked as limitations — including the sources you deliberately skipped.
+
+No files are written by default. If the user asks for a write-up, use the `docs` skill and put it where they name.

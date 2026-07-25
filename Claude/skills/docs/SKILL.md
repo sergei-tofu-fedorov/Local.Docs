@@ -22,7 +22,7 @@ This skill lives at the workspace root `C:\Git\Work\Backend\`. The workspace con
 | `Tofu.Auth.Backend/` | Auth backend service |
 | `Tofu.Common.Backend/` | Shared backend library |
 | `Local.Docs/` | Documentation (sibling repo, **not** a submodule) |
-| `Investigations/` | Spikes / proof-of-concept / investigations (see the `investigate` skill) |
+| `Investigations/` | Spikes / proof-of-concept / past investigation write-ups (archive — the `investigate` skill no longer reads or writes it) |
 
 All paths in this skill are **relative to the workspace root** (`C:\Git\Work\Backend\`).
 

@@ -20,20 +20,20 @@ Selection: infer from the user's wording; when torn between two tiers, pick the 
 ## Phase model
 
 ```
-0. GATE        (inline, always)  — intake + prior-knowledge check; may EARLY-EXIT everything
+0. GATE        (inline, always)  — intake + framing; whatever cheap check the skill defines may EARLY-EXIT everything
 1. COLLECT     (fan-out)         — one agent per independent source, launched in ONE message
-2. CROSS-MATCH (inline loop)     — new identifiers from any agent → re-run the gate greps
+2. CROSS-MATCH (inline loop)     — new identifiers from any agent → re-route them through phase 0
 3. SYNTHESIZE  (inline)          — merge evidence, name the mechanism/decision
 4. VERIFY      (deep tier only)  — adversarial agents try to REFUTE the synthesis
-5. PERSIST     (inline, always)  — write the artifact; file writes never happen in subagents
+5. PERSIST     (inline)          — only if the skill produces an artifact; file writes never happen in subagents
 ```
 
 Hard rules:
 
-- **Gate and Persist are always inline.** The gate can end the whole task in one grep (don't spawn agents before it); the main context owns all file writes and user-visible conclusions.
+- **Gate and Persist are always inline.** The gate can end the whole task in one query (don't spawn agents before it); the main context owns all file writes and user-visible conclusions.
 - **Collect agents are read-only** and independent — if agent B needs agent A's output, that's two phases, not one batch.
 - **Launch parallel agents in a single message** (multiple Agent calls in one block). Filter out failed/null results; never fabricate a pending agent's result.
-- **Cross-match is a loop, not a step**: any *new* concrete identifier (id, error type, path, account) surfaced by a collector gets fed back through the gate greps before synthesis.
+- **Cross-match is a loop, not a step**: any *new* concrete identifier (id, error type, path, account) surfaced by a collector gets re-routed through phase 0 before synthesis — it may open a source that was skipped.
 
 ## Subagent prompt contract
 
@@ -58,11 +58,11 @@ A claim without a citation is not a finding. Agents report "nothing found" as an
 
 ## Deep tier (Workflow)
 
-Encode phases 1–4 as a Workflow script: `phase('Collect')` fan-out with `schema` (the JSON above as JSON Schema — validation is free), a barrier only where synthesis genuinely needs all results, then `phase('Verify')` — 2–3 refuters per key claim (`Try to refute: <claim>. Default to refuted=true if uncertain.`), majority vote. Gate runs inline *before* invoking Workflow; Persist runs inline *after* it returns. See the consuming skill's `references/deep-workflow.md` for its concrete template.
+Encode phases 1–4 as a Workflow script: `phase('Collect')` fan-out with `schema` (the JSON above as JSON Schema — validation is free), a barrier only where synthesis genuinely needs all results, then `phase('Verify')` — 2–3 refuters per key claim (`Try to refute: <claim>. Default to refuted=true if uncertain.`), majority vote. Gate runs inline *before* invoking Workflow; Persist runs inline *after* it returns. No workspace skill ships a deep tier today — author the script from this pattern when a task genuinely needs it, and only with the user's opt-in.
 
 ## Adopting this pattern in a new skill
 
-1. In `SKILL.md`: a tier-selection line, a **collector table** (agent role → reference file → question shape), and the persist contract. Keep it thin — knowledge goes to `references/`.
+1. In `SKILL.md`: a tier-selection line, a **collector table** (agent role → reference file → question shape), and the persist contract (or an explicit "nothing is persisted"). Keep it thin — knowledge goes to `references/`.
 2. One reference file per source/concern, self-sufficient for a subagent that reads nothing else.
 3. Reuse the output schema above; extend fields, don't replace them.
-4. State the skill's early-exit condition for the gate (for `investigate`: known-issue match; for a feature planner: an existing plan/spike covering the ask).
+4. State the skill's early-exit condition for the gate (for `investigate`: one source obviously owns the answer; for a feature planner: an existing plan/spike covering the ask).

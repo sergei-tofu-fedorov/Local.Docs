@@ -1,6 +1,6 @@
 ---
 name: gcp
-description: gcloud + Cloud Logging toolkit for Tofu GCP (test `invoicesapp-project-test` / prod `inv-project`). ALWAYS invoke before composing ANY gcloud command — reads or mutations. Use it whenever the task is "check the logs", "read Cloud Logging", "why is this request slow", a trace-id lookup, `severity>=ERROR` in the last hour, distinct/aggregate counts of a log field, or a deploy/restart/set-iam. Read-only by default; prod needs explicit `--prod`; benchmarking prod is refused. For a persisted incident write-up start with investigate; for BigQuery SQL use bq.
+description: gcloud + Cloud Logging toolkit for Tofu GCP (test `invoicesapp-project-test` / prod `inv-project`). ALWAYS invoke before composing ANY gcloud command — reads or mutations. Use it whenever the task is "check the logs", "read Cloud Logging", "why is this request slow", a trace-id lookup, `severity>=ERROR` in the last hour, distinct/aggregate counts of a log field, or a deploy/restart/set-iam. Read-only by default; prod needs explicit `--prod`; benchmarking prod is refused. For a multi-source incident start with investigate; for BigQuery SQL use bq.
 ---
 
 ## User Input
@@ -17,7 +17,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 **Field paths, log schemas, and query recipes live in ONE place:** `.claude/skills/gcp/references/gcp-logs.md`. **Read it before composing any non-trivial `gcloud logging read` filter** — it holds the LQL field reference (BFF request log, identity/client-context/request fields, LB log, tofu-ai selectors) and the per-field gotchas (auth-gated properties, 200-error envelope, hyphen quoting, the nonexistent `RequestId`). Do not re-derive or duplicate that knowledge here.
 
-For investigations (folder + write-up workflow) use the `investigate` skill; `/gcp` is for one-off queries.
+For a multi-source investigation (which store to open first, cross-source synthesis) use the `investigate` skill; `/gcp` is for queries that logs alone answer.
 
 ## Environments
 
@@ -50,7 +50,7 @@ gcloud auth is set up for the user's account. On `Reauthentication is needed`, s
 | **logs** | `/gcp logs <filter> [--prod] [--limit=N] [--freshness=Xh] [--format=...]` | Generic `gcloud logging read`. |
 | **errors** | `/gcp errors [<freshness>] [--prod] [--service=<name>]` | Recent `severity>=ERROR` (default freshness `1h`, limit 50). |
 | **slow** | `/gcp slow [<threshold>] [--prod]` | Slow LB requests above threshold (default `2s`). |
-| **trace** | `/gcp trace <trace-id> [--prod]` | LB latency vs in-app `Elapsed` for one trace. |
+| **trace** | `/gcp trace <trace-id> [--prod]` | Full causal chain of one request across every container it touched (BFF → auth → core), plus LB latency vs in-app `Elapsed`. The first move after pulling a `TraceId` out of an error entry. |
 | **request** | `/gcp request <path-or-pattern> [--prod] [--limit=N] [--freshness=Xh]` | Request-middleware logs by path (substring `:` / regex `=~`). |
 | **aggregate** | `/gcp aggregate <filter> <field-path> [--prod] [--limit=N] [--freshness=Xh]` | Distinct-value counts of a field. |
 | **run** | `/gcp run <gcloud-args...>` | Raw passthrough; auto-injects `--project=<currentEnv>` if absent. Refuse args smuggling a different `--project`. |

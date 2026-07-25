@@ -61,7 +61,7 @@ Run gcloud commands against the workspace's test or prod GCP project. Read-only 
 
 ## How `investigate` uses `/gcp`
 
-The `investigate` skill owns the investigation folder + write-up flow; its `inv-gcp` collector reads the same `references/gcp-logs.md`. Use `/gcp` directly for ad-hoc queries that don't need an investigation folder; use `investigate` when you want the findings persisted to `Investigations/investigations/<slug>/`.
+The `investigate` skill owns source selection and cross-source synthesis; its `inv-gcp` collector reads the same `references/gcp-logs.md`. Use `/gcp` directly when logs alone answer the question; use `investigate` when the symptom may span Sentry, Mongo, or the code and someone has to decide which store to open first.
 
 ## Filter syntax cheat sheet
 

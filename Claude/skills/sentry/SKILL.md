@@ -1,6 +1,6 @@
 ---
 name: sentry
-description: Sentry toolkit (org getpaid-inc) for iOS / Android / web CLIENT errors (there is no backend/.NET project in Sentry — backend errors live in GCP Cloud Logging, use the gcp skill). ALWAYS invoke before ANY Sentry API call. Use it whenever the task names a Sentry issue short-id (e.g. `INVOICE-MAKER-IOS-2Z6`), a `sentry.io/.../alerts/rules/` URL, "what's this crash/exception", errors for a given user email or account id, or "search Sentry for X". GET-only via the header-file curl form; never resolves issues, never echoes the token. For a full multi-source investigation start with investigate instead.
+description: Sentry toolkit (org getpaid-inc) for iOS / Android / web CLIENT errors (there is no backend/.NET project in Sentry — backend errors live in GCP Cloud Logging, use the gcp skill). ALWAYS invoke before ANY Sentry API call. Use it whenever the task names a Sentry issue short-id (e.g. `INVOICE-MAKER-IOS-2Z6`), a `sentry.io/.../alerts/rules/` URL, "what's this crash/exception", errors for a given user email or account id, or "search Sentry for X". GET-only via the header-file curl form; never resolves issues, never echoes the token. For a multi-source investigation start with investigate instead.
 ---
 
 ## User Input
@@ -32,7 +32,7 @@ curl -s "https://sentry.io/api/0/.../events/latest/" -H @C:/Git/Work/Backend/.to
 
 For the **events search** endpoint, project **server-side** with `&field=…` (as in the reference examples) — no jq/python needed. Dump the raw JSON into the transcript only when the user explicitly asks for the full event. **Use the header file by absolute path** (`@C:/Git/Work/Backend/.tofu-ai/sentry-header.txt`) so the command works regardless of the Bash tool's current directory — the relative `@.tofu-ai/…` form only resolves from the workspace root.
 
-For investigations (folder + write-up workflow) use the `investigate` skill; `/sentry` is for one-off lookups.
+For a multi-source investigation (which store to open first, cross-source synthesis) use the `investigate` skill; `/sentry` is for one-off lookups.
 
 ## Operations
 

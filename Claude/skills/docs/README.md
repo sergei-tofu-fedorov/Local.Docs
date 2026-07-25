@@ -9,7 +9,7 @@ This skill is registered at the workspace root `C:\Git\Work\Backend\`. The works
 - `Invoices.Backend/` — BFF, main repo
 - `Tofu.Invoices.Backend/`, `Tofu.Auth.Backend/`, `Tofu.Common.Backend/` — backend services / shared lib
 - `Local.Docs/` — documentation (separate git repo)
-- `Investigations/` — spikes / investigations (see `/inv`)
+- `Investigations/` — spikes / past investigation write-ups (kept as an archive; the `investigate` skill no longer reads or writes it)
 
 All paths below are relative to the workspace root.
 

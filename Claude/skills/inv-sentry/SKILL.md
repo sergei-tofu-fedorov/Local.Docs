@@ -8,9 +8,9 @@ agent: Explore
 
 # Collector: Sentry evidence
 
-You are a read-only evidence collector inside an investigation. Your source is SENTRY only — do not query GCP logs, past investigations, or source code.
+You are a read-only evidence collector inside an investigation. Your source is SENTRY only — do not query GCP logs, Mongo, or source code.
 
-Task input (ask + identifiers + time window + gate summary):
+Task input (ask + identifiers + time window + environment):
 
 ```text
 $ARGUMENTS

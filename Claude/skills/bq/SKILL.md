@@ -24,7 +24,7 @@ The **heavy per-dataset detail** — full column catalogs, enum **decode tables*
 
 **Read the core guide before composing any non-trivial analytics query**, then pull the routed dataset file — do not re-derive schema, joins, or enum decodes from memory. If a table or join isn't documented, `bq show` it (free metadata) and then **add it to the right file** (core for a join/rule, the dataset file for a column/decode), not to this SKILL. The guide is part of the Storage catalog (humans browse it there); `/bq` points at it rather than duplicating it.
 
-For one-off ad-hoc queries use `/bq` directly; for a persisted investigation (folder + write-up) use the `investigate` skill, which reads the same guide.
+For one-off ad-hoc queries use `/bq` directly; for a multi-source investigation (which store to open first, cross-source synthesis) use the `investigate` skill, which reads the same guide.
 
 ## Environments
 

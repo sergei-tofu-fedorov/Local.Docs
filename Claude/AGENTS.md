@@ -8,8 +8,8 @@ Source of truth for the workspace's Claude Code skills. The runtime copies live 
 
 | Skill | Role |
 |---|---|
-| `investigate/` | Single entry point for investigations: tiered orchestration (inline / fork-collectors / deep Workflow), gate, synthesis, case persistence. Own knowledge in `references/` (history, case-format, deep-workflow); GCP/Sentry knowledge is read from the toolkit skills' `references/`. |
-| `inv-history/`, `inv-sentry/`, `inv-gcp/`, `inv-code/` | Fork collectors (`context: fork`, `agent: Explore`, not user-invocable) — one evidence source each, structured-JSON output. Invoked by `investigate`, not directly. |
+| `investigate/` | Single entry point for investigations: source selection (which store can answer the ask, in what order), inline/standard tiers, fork-collector fan-out, synthesis. Stateless — no case store, no prior-work recall, nothing persisted by default. GCP/Sentry knowledge is read from the toolkit skills' `references/`. |
+| `inv-sentry/`, `inv-gcp/`, `inv-code/` | Fork collectors (`context: fork`, `agent: Explore`, not user-invocable) — one evidence source each, structured-JSON output. Invoked by `investigate`, not directly. Mongo / BigQuery / Stripe stay inline in the main context because of their prod and cost gates. |
 | `orchestration/` | Reusable multi-agent pattern (tier ladder, phase model, collector contract) — adopt it in any future fan-out skill (e.g. a feature planner). |
 
 ### Feature workflow
