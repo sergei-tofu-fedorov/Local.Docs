@@ -3,10 +3,10 @@
 
 Per-dataset appendix to [`bigquery-agent-guide.md`](bigquery-agent-guide.md). Read this **only when the routing table (guide §2) sends you to `amplitude_us`**. Identity model (`account_short` / `user_short` = `SUBSTR(...,1,25)`), the cheap single-account / single-master retrieval recipes (cookbook #14/#15), and cost rules live in the core guide; this file holds the event schema, key-event props, channel inventory, and denominators.
 
-`amplitude_us` — product events bridge (iOS prod 213333 only)
--------------------------------------------------------------
+`amplitude_us` — product events bridge (multi-project)
+------------------------------------------------------
 
-Loaded daily 04:00 UTC (hours of lag — query full days ≤ yesterday). Rolling **90-day** partition expiration. Web project (586241) is NOT in BQ — reachable only via the Amplitude REST API.
+Loaded daily 04:00 UTC (hours of lag — query full days ≤ yesterday). Rolling **90-day** partition expiration. **Three projects mirrored** (filter by `source_project`; verified 2026-07-24): `213333` INV / Invoice Maker (iOS), `586241` **Tofu Web** (the FSM web funnel — carries `utm_*` + Facebook attribution, the join to `meta_us`), `760259` FS / Field Service (iOS). Older notes saying "web/FSM not in BQ" are **stale** (586241 added 2026-07-21). The per-project snapshots below (channel shares etc.) were computed on `213333` only — re-scope with a `source_project` filter.
 
 | Table | Cluster | Contents |
 |---|---|---|
@@ -42,6 +42,14 @@ How Subz sets identity/routing (from `Subz…AmplitudeEvent` / `AmplitudeTracker
 - **No `account_id` and no `device_id` are sent** → `account_id` is NULL in the mirror and Amplitude synthesizes a per-event `device_id` (why it differs from the user's real device). Their presence still proves the person is Amplitude-tracked.
 - **Amplitude project** is chosen by `productKey` → a per-product API key (`ApiKeyProduction`/`ApiKeySandbox`, env picks which). Billing events go to the same per-product project as that product's client events.
 - For subscription **state** (active/expired/plan) use `ai_analysis_us.mart_account_subscriptions`, not these events — they are triggers, not state (Subz enriched events don't even carry an expiration time, only a duration).
+
+**Attribution props** (in `user_properties`, AppsFlyer via Playfair; verified 2026-07-21) — **the join key to `meta_us` ad-spend** (see [`-meta_us.md`](bigquery-agent-guide-meta_us.md)):
+
+- `[Playfair | AF] ad_id` / `campaign_id` / `adset_id` — the **actual Meta ids**, so join on the id (not the name): `= meta_us.src_meta_ads.id` / `src_meta_campaigns.id` / `src_meta_adsets.id` (and `src_meta_insights.ad_id`/`campaign_id`/`adset_id`). `[Playfair | AF] ad`/`campaign`/`adset` hold the names (fuzzy fallback).
+- `initial_[Playfair | AF] *` = **first-touch**; bare `[Playfair | AF] *` = **last-touch** — they can differ; pick deliberately.
+- `[Playfair | AF] media_source` — channel: `facebook_int`/`Facebook Ads`, `googleadwords_int`, `Apple Search Ads`, `tiktokglobal_int`, …. Also `utm_source` (`'Facebook'`), `utm_campaign` (name), `fbclid`.
+- Read via `JSON_VALUE(user_properties,'$."[Playfair | AF] ad_id"')` (mind the spaces/brackets in the key). Set on **client** events (e.g. `Paywall shown`), not server-emitted Subz events.
+- **Coverage** (FB web `586241`, 2026-07-20..22): 92.6 % carry the campaign_id; ~74 % match a live `meta_us` dimension row (rest = old/deleted campaigns not in the current snapshot). The **FSM** creatives (`FSM_*`) live in the **web (586241)** + FS-iOS (760259) projects; project `213333` has its own `INV_*` creatives.
 
 **Send channel inventory** (`Send invoice.application`, iOS 90d snapshot 2026-07):
 

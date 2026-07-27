@@ -7,6 +7,7 @@ Backend documentation that applies across services. Up: [`../AGENTS.md`](../AGEN
 - Persistence overview → [`Persistence.md`](Persistence.md) · **data-store inventory** → [`Storage/AGENTS.md`](Storage/AGENTS.md)
 - Auth scenarios → [`HowTo/Authentication.md`](HowTo/Authentication.md), [`HowTo/Authorization.md`](HowTo/Authorization.md)
 - Code style → [`HowTo/CodeStyle.md`](HowTo/CodeStyle.md)
+- Debugging a production error from Cloud Logging → [`HowTo/LogInvestigation.md`](HowTo/LogInvestigation.md)
 
 ## Services (`Services/`)
 Per-service deep docs — each has its own `AGENTS.md`:
@@ -19,10 +20,10 @@ Per-service deep docs — each has its own `AGENTS.md`:
 `Api/<NAME>_API_REFERENCE.md`: ACCOUNT, AUTHORIZATION, CLIENTS, ESTIMATES, INVITATIONS, INVOICES, ITEMS, JOBS, NOTIFICATIONS, PAYMENTS, TEAMS, WORKER.
 
 ## Flows (`Flows/`)
-ANALYTICS_EVENTS_FLOWS (Amplitude + event bus), AUTHENTICATION_FLOW, INVITATION_FLOWS, JOB_FROM_ESTIMATE_FLOWS, NOTIFICATIONS_FLOWS, OTP_FLOW, WORKER_FLOWS.
+ANALYTICS_EVENTS_FLOWS (Amplitude + event bus), AUTHENTICATION_FLOW, INVITATION_FLOWS, JOB_FROM_ESTIMATE_FLOWS, NOTIFICATIONS_FLOWS, OTP_FLOW, WORKER_FLOWS, WORKER_INVITE_PROD_HEALTH (сводное расследование инвайт-флоу воркера в PROD: интеграция, воронка, TTL/magic-login, account_access_denied, email-case; companion to INVITATION_FLOWS).
 
 ## How-to guides (`HowTo/`)
-Architecture, Authentication, Authorization, CodeStyle, DDD, EmailSending, IntegrationTests, OneLink, PushNotifications, Transactions, UnitOfWork.
+Architecture, Authentication, Authorization, CodeStyle, DDD, EmailSending, IntegrationTests, LogInvestigation, OneLink, PushNotifications, Transactions, UnitOfWork.
 
 ## Domain notes (`Domain/`)
 permissions-architecture, permissions-migration-plan, plans-stripe, product-prices, reports, users.

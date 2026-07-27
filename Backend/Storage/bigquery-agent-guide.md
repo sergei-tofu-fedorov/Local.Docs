@@ -1,5 +1,5 @@
-BigQuery agent guide — `ai_analysis_us` / `amplitude_us` / `payments_us` / `stripe_us`
-=====================================================================================
+BigQuery agent guide — `ai_analysis_us` / `amplitude_us` / `payments_us` / `stripe_us` / `meta_us`
+==================================================================================================
 
 **Purpose:** the fast path for an AI agent composing SQL against our analytics storage in prod `inv-project`. Structure: common rules first (apply to every query), then the routing table, then the cookbook. The heavy per-dataset schema/decode/caveat tables live in **separate files** (`bigquery-agent-guide-<dataset>.md`) — load only the one your question routes to (§2/§3), to keep context small. Verified live on prod 2026-07-13; refined via agent evaluation runs.
 
@@ -72,6 +72,8 @@ ON COALESCE(e.account_id, e.user_id) = d.account_short
 -- retrieving ONE account's own events? bypass the view — raw table + thin cols is cheaper (cookbook #14)
 ```
 
+**Ad attribution edge (Meta ad → user).** `meta_us` carries no user identity — its grain is ad × day. The only bridge into the identity model above is the Playfair/AppsFlyer props Amplitude stamps onto `user_properties`: `[Playfair | AF] ad_id` / `campaign_id` / `adset_id` are the **real Meta ids** (clean equality join), present mainly on the Tofu Web project `586241`. So ad-level CAC/ROAS is a chain, never one join: `meta_us` spend → Amplitude user → account/subscription → `stripe_us` / `payments_us` revenue. Keys, coverage numbers, and a ready query live in [`bigquery-agent-guide-meta_us.md`](bigquery-agent-guide-meta_us.md).
+
 ### 1.6 Document relations & join keys
 
 Business-entity joins (invoice ↔ client ↔ estimate ↔ line-items ↔ PSP payment). All are **account-scoped** — these foreign keys are not globally clustered, so always add `account_id` to the join. `src_invoices.id` is a bare GUID; the keys pointing at it (`client_id`, estimate `invoice_id`, payment `entity_id`) carry inconsistent dashes, so normalize **both sides** with `REPLACE(LOWER(x),'-','')`.
@@ -137,6 +139,7 @@ ai_analysis_us.src_authenticated_payment_types   -- account_id ↔ provider_acco
 |---|---|---|
 | Current state or multi-year history of documents (counts, statuses, amounts, sent/paid state) | `ai_analysis_us.src_*` | `-ai_analysis_us.md` |
 | User actions and behaviour (how often users do X, funnels, UI context, channels) | `amplitude_us.v_events_resolved` | `-amplitude_us.md` |
+| Meta/Facebook **ad spend, delivery, creatives**; cost-per-X / ROAS (join spend → conversions) | `meta_us` — bridge to `amplitude_us` on the `[Playfair \| AF] *_id` keys | `-meta_us.md` |
 | Money through the built-in PSP: online payments, fees, fee passthrough | `payments_us` | `-payments_us.md` |
 | Tofu's own **web-subscription** Stripe billing (its customers, charges, refunds) | `stripe_us` — link to account via `mart_account_subscriptions.subz_account_id`, §1.7 | `-stripe_us.md` |
 | Which accounts connected a Stripe/PayPal payout account, connection status | `ai_analysis_us.src_authenticated_payment_types` (account ↔ `acct_`, §1.7) | `-ai_analysis_us.md` |
@@ -155,7 +158,8 @@ The full column catalog, cluster keys, enum **decode tables**, and per-dataset *
 | Dataset | Schema file |
 |---|---|
 | `ai_analysis_us` — warehouse (docs, marts, dims, identity) | [`bigquery-agent-guide-ai_analysis_us.md`](bigquery-agent-guide-ai_analysis_us.md) |
-| `amplitude_us` — iOS product events | [`bigquery-agent-guide-amplitude_us.md`](bigquery-agent-guide-amplitude_us.md) |
+| `amplitude_us` — product events (iOS + web) | [`bigquery-agent-guide-amplitude_us.md`](bigquery-agent-guide-amplitude_us.md) |
+| `meta_us` — Meta/Facebook ad spend & delivery | [`bigquery-agent-guide-meta_us.md`](bigquery-agent-guide-meta_us.md) |
 | `payments_us` — built-in PSP orders | [`bigquery-agent-guide-payments_us.md`](bigquery-agent-guide-payments_us.md) |
 | `stripe_us` — Tofu's web-subscription billing | [`bigquery-agent-guide-stripe_us.md`](bigquery-agent-guide-stripe_us.md) |
 
@@ -351,6 +355,35 @@ LEFT JOIN `inv-project.ai_analysis_us.mart_account_subscriptions` s
 WHERE d.email = '<email>';
 -- Fallback / web-billing cross-check by the STRIPE customer email (may differ from the login email; web-Stripe only):
 --   stripe_us.src_stripe_customers.email (clustered by email) -> id (cus_) -> mart_account_subscriptions.subz_account_id (§1.7).
+
+-- 18) Ad-level CAC — Meta spend per ad ÷ users who ended up on a PAID subscription. meta_us has no identity,
+--     so this is the chain from the ad-attribution edge (§1.5): ad -> amplitude user -> subscription mart.
+--     Cost-per-TRIAL (the same shape, stopping at 'Trial started') and the coverage numbers live in
+--     bigquery-agent-guide-meta_us.md — read it before trusting a CAC number.
+--     Two preconditions: src_meta_insights may be 0 rows (backfill pending — bq show the row count first),
+--     and only ~74% of FB web rows match a live ad id, so report the matched share, never assume 100%.
+WITH spend AS (
+  SELECT ad_id, SUM(spend) AS spend                    -- major units (USD); budgets would be minor units
+  FROM `inv-project.meta_us.src_meta_insights`
+  WHERE date BETWEEN '2026-06-01' AND '2026-06-30'     -- DATE partition: mandatory
+  GROUP BY 1
+),
+attributed AS (                                        -- web project stamps the real Meta ids + a full-GUID user_id
+  SELECT JSON_VALUE(user_properties,'$."[Playfair | AF] ad_id"') AS ad_id, user_id
+  FROM `inv-project.amplitude_us.src_amplitude_events`
+  WHERE event_time >= TIMESTAMP('2026-06-01') AND event_time < TIMESTAMP('2026-07-01')
+    AND source_project = '586241'
+    AND JSON_VALUE(user_properties,'$."[Playfair | AF] ad_id"') IS NOT NULL
+  GROUP BY 1,2
+)
+SELECT a.ad_id, s.spend,
+       COUNT(DISTINCT sub.platform_user_id)              AS paying_users,
+       SAFE_DIVIDE(s.spend, COUNT(DISTINCT sub.platform_user_id)) AS cac
+FROM attributed a
+JOIN spend s USING (ad_id)
+LEFT JOIN `inv-project.ai_analysis_us.mart_account_subscriptions` sub
+  ON sub.platform_user_id = a.user_id AND NOT sub.is_trial
+GROUP BY 1,2 ORDER BY s.spend DESC;
 ```
 
 5. Freshness
@@ -362,3 +395,4 @@ WHERE d.email = '<email>';
 | `amplitude_us` | daily 04:00 UTC | query full days ≤ yesterday; rolling 90 days only |
 | `payments_us` | daily 01:00 UTC | yesterday complete; history since 2024-04 |
 | `stripe_us` | daily 03:00 UTC (`stripe-ingest`) | customers full-snapshot; transactions incremental, history from 2025-01 |
+| `meta_us` | daily 05:00 UTC (`meta-ingest`) | dimensions full-snapshot MERGE (never deleted); insights re-pulled for the last 7 days, so recent days are not final — Meta attribution keeps moving for ~28 days |

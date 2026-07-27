@@ -49,8 +49,8 @@ Prod containers verified live 2026-07-25 (`inv-project`), ordered by WARNING-and
 | `auth-api` | authentication, sessions, permissions | `Backend\Tofu.Auth.Backend` |
 | `invoices-webroot` | nginx static content | — (infra; message is in `textPayload`) |
 | `expenses-api`, `expenses-worker` | expenses | `Tofu.Expenses.Backend` |
-| `payments-api` | payments | `Tofu.Payments.Backend` (not cloned in this workspace) |
-| `tofu-ai-api` | FSM-fit / analyses | `Tofu.AI.Backend` (not cloned; selectors in A.1 — different cluster) |
+| `payments-api` | payments | `Backend\Tofu.Payments.Backend` |
+| `tofu-ai-api` | FSM-fit / analyses / warehouse ingests | `Backend\Tofu.AI.Backend` (selectors in A.1 — different cluster) |
 | `tofu-web-app`, `tofu-web-promo` | web front end | `Tofu.Web.Frontend` |
 | `gke-metrics-agent`, `metrics-server` | infra | — (plain-text logs) |
 

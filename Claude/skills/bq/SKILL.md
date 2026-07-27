@@ -1,6 +1,6 @@
 ---
 name: bq
-description: BigQuery toolkit for the Tofu/Invoices analytics warehouse (`inv-project`). ALWAYS invoke before composing or running ANY `bq` command or BigQuery SQL — reads, cost checks, DDL, or DTS. It carries the cost gate (metadata + `--dry_run` before every scan), the prod/test env rules, and the SA-key write gate. Use it whenever the task is "query BigQuery", "how much revenue / how many invoices / active subscriptions", "how much do we bill via Stripe / web-subscription revenue", "which accounts connected a Stripe/PayPal payout account", "check a table's size", "run this SQL against `ai_analysis_us` / `amplitude_us` / `payments_us` / `stripe_us`", add/replace a warehouse table, or edit a scheduled query — even when the user just pastes SQL without naming BigQuery.
+description: BigQuery toolkit for the Tofu/Invoices analytics warehouse (`inv-project`). ALWAYS invoke before composing or running ANY `bq` command or BigQuery SQL — reads, cost checks, DDL, or DTS. It carries the cost gate (metadata + `--dry_run` before every scan), the prod/test env rules, and the SA-key write gate. Use it whenever the task is "query BigQuery", "how much revenue / how many invoices / active subscriptions", "how much do we bill via Stripe / web-subscription revenue", "which accounts connected a Stripe/PayPal payout account", "how much did we spend on Meta/Facebook ads / cost per trial / CAC / ROAS by campaign or creative", "check a table's size", "run this SQL against `ai_analysis_us` / `amplitude_us` / `payments_us` / `stripe_us` / `meta_us`", add/replace a warehouse table, or edit a scheduled query — even when the user just pastes SQL without naming BigQuery.
 ---
 
 ## User Input
@@ -20,7 +20,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 - **Relations & join keys** — the `account ↔ platform user ↔ master` **identity model** with canonical join snippets (§1.5), the document-to-document joins (`invoice ↔ client ↔ estimate ↔ line-items ↔ PSP payment`, §1.6), and the two-flow Stripe linkage (§1.7).
 - The **partition / cluster cost rules** (§1.2), **data conventions** (Extended-JSON enums, NULL≠0, dirty amounts — §1.3), **interpretation principles** (grain discipline, lower bounds, source cross-checks — §1.4), the **routing table** (§2), and a ready **SQL cookbook** (§4).
 
-The **heavy per-dataset detail** — full column catalogs, enum **decode tables**, and per-dataset caveats — is split into one file per dataset next to the core guide (`bigquery-agent-guide-<dataset>.md`, for `ai_analysis_us` / `amplitude_us` / `payments_us` / `stripe_us`). **Read only the dataset file your question routes to** (core guide §2 maps question shape → dataset → file) — this keeps context small when a question touches one dataset. A query built straight from a cookbook recipe may not need any dataset file; anything touching specific columns, enum values, or a dataset's caveats does.
+The **heavy per-dataset detail** — full column catalogs, enum **decode tables**, and per-dataset caveats — is split into one file per dataset next to the core guide (`bigquery-agent-guide-<dataset>.md`, for `ai_analysis_us` / `amplitude_us` / `payments_us` / `stripe_us` / `meta_us`). **Read only the dataset file your question routes to** (core guide §2 maps question shape → dataset → file) — this keeps context small when a question touches one dataset. A query built straight from a cookbook recipe may not need any dataset file; anything touching specific columns, enum values, or a dataset's caveats does.
 
 **Read the core guide before composing any non-trivial analytics query**, then pull the routed dataset file — do not re-derive schema, joins, or enum decodes from memory. If a table or join isn't documented, `bq show` it (free metadata) and then **add it to the right file** (core for a join/rule, the dataset file for a column/decode), not to this SKILL. The guide is part of the Storage catalog (humans browse it there); `/bq` points at it rather than duplicating it.
 
@@ -30,7 +30,7 @@ For one-off ad-hoc queries use `/bq` directly; for a multi-source investigation 
 
 | Env | Project ID | Use for | Default? |
 |-----|-----------|---------|----------|
-| **prod** | `inv-project` | **All real analytics reads** — `ai_analysis_us`, `amplitude_us`, `payments_us`, `stripe_us` live only here. Interactive identity is **read-only** on the dataset. | ✅ Yes for reads — the data is only here. |
+| **prod** | `inv-project` | **All real analytics reads** — `ai_analysis_us`, `amplitude_us`, `payments_us`, `stripe_us`, `meta_us` live only here. Interactive identity is **read-only** on the dataset. | ✅ Yes for reads — the data is only here. |
 | **test** | `invoicesapp-project-test` | Benchmarking, repeated experiments, repro of build/DDL logic, anything you'd want to break safely. Has **stubs and gaps** (e.g. `mart_account_current_plan` is a static stub) — real numbers do not live here. | For writes/experiments only. |
 
 ### Env-selection rules
@@ -131,6 +131,7 @@ Notes:
 ## Notes
 
 - The guide was verified live on prod 2026-07-13 and refined over six agent eval runs; its snapshot distributions (channel shares etc.) are ~90-day windows from 2026-07 — recompute for the report window.
-- Freshness (guide §5): `ai_analysis_us` daily ~16:xx UTC snapshot-driven; `amplitude_us` daily 04:00 UTC, rolling 90 days only, query full days ≤ yesterday; `payments_us` daily 01:00 UTC, history since 2024-04; `stripe_us` daily 03:00 UTC, transactions history from 2025-01.
+- Freshness (guide §5): `ai_analysis_us` daily ~16:xx UTC snapshot-driven; `amplitude_us` daily 04:00 UTC, rolling 90 days only, query full days ≤ yesterday; `payments_us` daily 01:00 UTC, history since 2024-04; `stripe_us` daily 03:00 UTC, transactions history from 2025-01; `meta_us` daily 05:00 UTC, insights re-pulled for the last 7 days (recent days not final).
 - `stripe_us` = Tofu's own web-subscription Stripe billing (its `cus_` customers + charges/refunds); link a `cus_` to a Tofu account via `mart_account_subscriptions.subz_account_id` (guide §1.7 / §3.4). Distinct from the PSP/Connect side: `ai_analysis_us.src_authenticated_payment_types` maps an account to its collecting Stripe `acct_`.
+- `meta_us` = Meta/Facebook ad spend, delivery and creatives (one ad account, `act_2725877157763325`). It carries **no user identity** — any cost-per-X / CAC / ROAS question joins ad ids to `amplitude_us` attribution props (`[Playfair | AF] ad_id` / `campaign_id` / `adset_id`, web project `586241`), then to revenue via `mart_account_subscriptions`. The whole chain plus its coverage caveats is in `bigquery-agent-guide-meta_us.md` — read that file, don't re-derive.
 - Extended-JSON enum gotcha: Mongo-sourced int enums in raw JSON arrive as `{"$numberInt":"N"}` — read via `COALESCE(JSON_VALUE(x,'$.F."$numberInt"'), JSON_VALUE(x,'$.F'))`, never bare `JSON_VALUE` (guide §1.3).
