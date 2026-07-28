@@ -29,7 +29,6 @@ Cross-product / cross-repo feature docs and plans. One folder per feature; `feat
 | `FS-1443` | Источник product-key платежа меняем на `Invoice.ProductKey` / `PaymentRequest.ProductKey` (правка только в BFF `Invoices.Backend`); ключ уже в jsonb `PspAdditionalInfos`, Tofu.AI экспорт сделан, PF-маппинг требует правки до раскатки BFF. | [README](FS-1443/README.md) |
 | `WEB-1788` | Launch-price offer на финале онбординга (Web): пропускаемый оффер вместо статичного финального экрана; реюз 3 месячных прайсов (Solo/Team/Business) по crew_size, промо «3 месяца» через Stripe-купон в PriceConfigs (без новых прайсов), триал/без-триала по состоянию подписки. Скоуп — только веб. | [README](WEB-1788/README.md) |
 | `FS-1335` | ML-подсказка цены позиции по названию айтема + гео клиента (US-only, каскад TF → on-device Core ML); первая из трёх ценовых моделей; данные — `inv-project:ml_training_us`, артефакты — `gs://tofu-ml-models`. Структура папки: README = обзор + компактный план, `explainer-for-newbies.md` = модель без ML-бэкграунда, `explainer-pipeline.md` = система/пайплайн для новичка, `research/` = весь исследовательский след (аудит, итерации, валидация, Core ML, Vertex, impl-design). | [README](FS-1335/README.md) |
-| `backend-notifications` | In-app лента уведомлений о работе команды (4 типа событий по визитам, колокольчик, группировка по визиту): требования с груминга 2026-07-22 + разбор существующего модуля `Invoices.Backend/Src/Notifications` и гэпов до требований. | [README](backend-notifications/README.md) |
 
 ## Convention
 
