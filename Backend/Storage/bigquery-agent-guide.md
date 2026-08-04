@@ -140,6 +140,8 @@ ai_analysis_us.src_authenticated_payment_types   -- account_id ↔ provider_acco
 | Current state or multi-year history of documents (counts, statuses, amounts, sent/paid state) | `ai_analysis_us.src_*` | `-ai_analysis_us.md` |
 | User actions and behaviour (how often users do X, funnels, UI context, channels) | `amplitude_us.v_events_resolved` | `-amplitude_us.md` |
 | Meta/Facebook **ad spend, delivery, creatives**; cost-per-X / ROAS (join spend → conversions) | `meta_us` — bridge to `amplitude_us` on the `[Playfair \| AF] *_id` keys | `-meta_us.md` |
+| **Which landing page / creative performs** — CPM, CPC, CPA, purchases by landing or by ad | `meta_us.tvf_meta_report_by_landing(from, to, account)`; custom cuts over `vw_meta_ad_daily` | `-meta_us.md` |
+| **Where an ad actually sends people** (link audit, promoted app vs creative links) | `meta_us.vw_meta_ad_links_audit` | `-meta_us.md` |
 | Money through the built-in PSP: online payments, fees, fee passthrough | `payments_us` | `-payments_us.md` |
 | Tofu's own **web-subscription** Stripe billing (its customers, charges, refunds) | `stripe_us` — link to account via `mart_account_subscriptions.subz_account_id`, §1.7 | `-stripe_us.md` |
 | Which accounts connected a Stripe/PayPal payout account, connection status | `ai_analysis_us.src_authenticated_payment_types` (account ↔ `acct_`, §1.7) | `-ai_analysis_us.md` |
@@ -395,4 +397,4 @@ GROUP BY 1,2 ORDER BY s.spend DESC;
 | `amplitude_us` | daily 04:00 UTC | query full days ≤ yesterday; rolling 90 days only |
 | `payments_us` | daily 01:00 UTC | yesterday complete; history since 2024-04 |
 | `stripe_us` | daily 03:00 UTC (`stripe-ingest`) | customers full-snapshot; transactions incremental, history from 2025-01 |
-| `meta_us` | daily 05:00 UTC (`meta-ingest`) | dimensions full-snapshot MERGE (never deleted); insights re-pulled for the last 7 days, so recent days are not final — Meta attribution keeps moving for ~28 days |
+| `meta_us` | four ticks: dimension+creatives 05:00, ad statuses hourly 07:00–21:00, insights 4×/day, full ad snapshot Sun 03:00 | campaigns/ad sets full-snapshot, the ad dimension maintained by the hourly delta (never deleted); insights deep-repulled 28 days at 08:00 and 2 days on the other passes, so recent days are not final. **Days are ad-account days, not UTC** |
